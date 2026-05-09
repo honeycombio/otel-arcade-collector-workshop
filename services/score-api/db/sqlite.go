@@ -139,25 +139,34 @@ func (s *Store) GetSession(ctx context.Context, id string) (*models.Session, err
 	return &sess, nil
 }
 
-func (s *Store) AppendEvent(ctx context.Context, sessionID, eventType string, data map[string]interface{}) (int64, error) {
+func (s *Store) AppendEvent(ctx context.Context, sessionID, eventType string, data map[string]any) (int64, error) {
 	blob, _ := json.Marshal(data)
 	displaySQL := fmt.Sprintf(
 		"INSERT INTO events (session_id, event_type, data) VALUES ('%s','%s','%s')",
 		sessionID, eventType, string(blob),
 	)
 	ctx, end := startQuerySpan(ctx, displaySQL)
-	res, err := s.db.ExecContext(ctx,
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		end(err)
+		return 0, err
+	}
+	res, err := tx.ExecContext(ctx,
 		`INSERT INTO events (session_id, event_type, data) VALUES (?, ?, ?)`,
 		sessionID, eventType, string(blob),
 	)
 	if err == nil {
-		_, err2 := s.db.ExecContext(ctx,
+		_, err = tx.ExecContext(ctx,
 			`UPDATE sessions SET events_count = events_count + 1 WHERE id = ?`, sessionID,
 		)
-		if err2 != nil {
-			err = err2
-		}
 	}
+	if err != nil {
+		_ = tx.Rollback()
+		end(err)
+		return 0, err
+	}
+	err = tx.Commit()
 	end(err)
 	if err != nil {
 		return 0, err

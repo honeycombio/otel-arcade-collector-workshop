@@ -59,18 +59,22 @@ func main() {
 	addr := getenv("SCORE_API_ADDR", ":8080")
 	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 5 * time.Second}
 
+	srvErr := make(chan error, 1)
 	go func() {
 		slog.Info("score-api listening", "addr", addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("listen failed", "err", err)
-			os.Exit(1)
+			srvErr <- err
 		}
 	}()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
-	slog.Info("shutting down")
+	select {
+	case <-sigCh:
+		slog.Info("shutting down")
+	case err := <-srvErr:
+		slog.Error("listen failed", "err", err)
+	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
