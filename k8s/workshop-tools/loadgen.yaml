@@ -1,0 +1,26 @@
+# Loadgen runs as a Deployment with replicas: 0 by default. The speaker
+# scales it up during Labs 3 and 4:
+#   kubectl scale deployment loadgen -n workshop-tools --replicas=1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: workshop-tools
+  labels: { app: loadgen }
+spec:
+  replicas: 0
+  selector:
+    matchLabels: { app: loadgen }
+  template:
+    metadata:
+      labels: { app: loadgen }
+    spec:
+      containers:
+        - name: loadgen
+          image: o11ycon-arcade/loadgen:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: LOADGEN_RPS
+              value: "5"
+            - name: SCORE_API_URL
+              value: http://score-api.arcade.svc.cluster.local:8080

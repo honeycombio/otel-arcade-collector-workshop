@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visualizer
+  namespace: workshop-tools
+  labels: { app: visualizer }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: visualizer }
+  template:
+    metadata:
+      labels: { app: visualizer }
+    spec:
+      containers:
+        - name: visualizer
+          image: o11ycon-arcade/visualizer:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http,     containerPort: 8090 }
+            - { name: otlp-http, containerPort: 4318 }
+          env:
+            - name: PORT
+              value: "8090"
+            - name: OTLP_PORT
+              value: "4318"
+            - name: COLLECTOR_METRICS_URL
+              value: http://otel-collector-agent.otel-system.svc.cluster.local:8888/metrics
+            - name: SCRAPE_INTERVAL_MS
+              value: "5000"
+          readinessProbe:
+            httpGet: { path: /health, port: 8090 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 8090 }
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: visualizer
+  namespace: workshop-tools
+spec:
+  selector: { app: visualizer }
+  ports:
+    - { name: http,      port: 8090, targetPort: 8090 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }

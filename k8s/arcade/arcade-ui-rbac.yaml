@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arcade-ui
+  namespace: arcade
+---
+# Allows the arcade-ui pod to manage collector ConfigMaps, inspect DaemonSet/Deployment
+# status, and stream pod logs — needed for the Deploy page in Lab 3.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: arcade-ui-collector-manager
+  namespace: otel-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "create", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "deployments"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: arcade-ui-collector-manager
+  namespace: otel-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: arcade-ui-collector-manager
+subjects:
+  - kind: ServiceAccount
+    name: arcade-ui
+    namespace: arcade

@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-agent-config
+  namespace: otel-system
+data:
+  config.yaml: |
+    # Lab 1 starting configuration for the AGENT collector (DaemonSet).
+    # Functional out of the box; attendees modify it during labs.
+    #
+    # Lab 2: add OTTL transforms (search for "TODO Lab 2").
+    # Lab 3: change the exporters to forward to the gateway instead of direct.
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        send_batch_size: 512
+        timeout: 5s
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 512
+        spike_limit_mib: 128
+      # TODO Lab 2: add `transform` here to normalize span names and redact
+      # player.id. The Visualizer will stop highlighting orange when this works.
+
+    exporters:
+      debug:
+        verbosity: detailed
+      otlp/backend:
+        endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+        headers:
+          x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+      otlphttp/visualizer:
+        endpoint: http://visualizer.workshop-tools.svc.cluster.local:4318
+        encoding: json
+        tls:
+          insecure: true
+
+    service:
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: "0.0.0.0"
+                    port: 8888
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug, otlp/backend, otlphttp/visualizer]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug, otlp/backend, otlphttp/visualizer]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug, otlp/backend, otlphttp/visualizer]

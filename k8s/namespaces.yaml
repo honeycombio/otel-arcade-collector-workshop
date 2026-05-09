@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arcade
+  labels:
+    workshop: o11ycon-2026
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otel-system
+  labels:
+    workshop: o11ycon-2026
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workshop-tools
+  labels:
+    workshop: o11ycon-2026
