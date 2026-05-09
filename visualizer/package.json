@@ -1,0 +1,25 @@
+{
+  "name": "visualizer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OTel Arcade pipeline visualizer — receives OTLP/HTTP from the Collector, scrapes Collector self-metrics, exposes a React UI.",
+  "scripts": {
+    "dev": "concurrently -n server,client -c green,cyan \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node server/index.js",
+    "dev:client": "vite",
+    "build": "vite build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "js-yaml": "^4.1.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^5.4.6"
+  }
+}
