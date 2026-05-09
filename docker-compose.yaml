@@ -1,0 +1,132 @@
+name: otel-arcade
+
+networks:
+  arcade:
+    driver: bridge
+
+services:
+  otel-collector-agent:
+    image: ${COLLECTOR_IMAGE:-otel/opentelemetry-collector-contrib:0.151.0}
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    environment:
+      HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}
+      OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-api.honeycomb.io:443}
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Collector self-metrics (Prometheus)
+    networks: [arcade]
+
+  score-api:
+    build: ./services/score-api
+    environment:
+      OTEL_SERVICE_NAME: score-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector-agent:4317
+      LEADERBOARD_URL: http://leaderboard:5000
+      SCORE_API_DB: /tmp/scores.db
+    ports:
+      - "8080:8080"
+    depends_on: [otel-collector-agent]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks: [arcade]
+
+  leaderboard:
+    build: ./services/leaderboard
+    environment:
+      OTEL_SERVICE_NAME: leaderboard
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector-agent:4317
+      LEADERBOARD_DB: /tmp/leaderboard.db
+    ports:
+      - "5000:5000"
+    depends_on: [otel-collector-agent]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 8s
+    networks: [arcade]
+
+  arcade-ui:
+    build: ./services/arcade-ui
+    environment:
+      OTEL_SERVICE_NAME: arcade-ui
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-agent:4317
+      SCORE_API_URL: http://score-api:8080
+      LEADERBOARD_URL: http://leaderboard:5000
+      COLLECTOR_CONFIG_PATH: /app/collector-config.yaml
+      COLLECTOR_CONTAINER_NAME: otel-arcade-otel-collector-agent-1
+      COLLECTOR_METRICS_URL: http://otel-collector-agent:8888/metrics
+      COLLECTOR_OTLP_HTTP: http://otel-collector-agent:4318
+      PORT: "3000"
+      GATEWAY_CONTAINER_NAME: otel-arcade-otel-collector-gateway-1
+      GATEWAY_NETWORK: otel-arcade_arcade
+      GATEWAY_CONFIG_PATH: /app/gateway-config.yaml
+      GATEWAY_CONFIG_HOST_PATH: ${PWD}/gateway-config.yaml
+      LOADGEN_CONTAINER_NAME: otel-arcade-loadgen-1
+      LOADGEN_IMAGE: otel-arcade-loadgen
+      HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}
+      OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-api.honeycomb.io:443}
+    volumes:
+      - ./collector-config.yaml:/app/collector-config.yaml
+      - ./gateway-config.yaml:/app/gateway-config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3000:3000"
+    depends_on:
+      otel-collector-agent:
+        condition: service_started
+      score-api:
+        condition: service_healthy
+      leaderboard:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks: [arcade]
+
+  visualizer:
+    build: ./visualizer
+    environment:
+      PORT: "8090"
+      OTLP_PORT: "4318"
+      COLLECTOR_METRICS_URL: http://otel-collector-agent:8888/metrics
+      GATEWAY_METRICS_URL: http://otel-collector-gateway:8888/metrics
+      SCRAPE_INTERVAL_MS: "5000"
+      COLLECTOR_CONFIG_PATH: /app/collector-config.yaml
+      GATEWAY_CONFIG_PATH: /app/gateway-config.yaml
+    volumes:
+      - ./collector-config.yaml:/app/collector-config.yaml:ro
+      - ./gateway-config.yaml:/app/gateway-config.yaml:ro
+    ports:
+      - "8090:8090"
+      # Visualizer's OTLP receiver is reached by the Collector via the
+      # `arcade` network on port 4318; no host port mapping needed.
+    networks: [arcade]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  loadgen:
+    build: ./loadgen
+    profiles: ["load"]   # `docker compose --profile load up loadgen` to start.
+    environment:
+      LOADGEN_RPS: ${LOADGEN_RPS:-5}
+      SCORE_API_URL: http://score-api:8080
+    depends_on:
+      score-api:
+        condition: service_healthy
+    networks: [arcade]
