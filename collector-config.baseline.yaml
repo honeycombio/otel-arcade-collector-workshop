@@ -1,0 +1,78 @@
+# OTel Arcade — Lab 1: Your first Collector pipeline.
+#
+# The Collector receives telemetry from the three arcade services and
+# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
+# play a game, and spans should appear in the Visualizer feed within seconds.
+#
+# Edit here or open collector-config.yaml at the repo root in your IDE
+# (use IDE Watch Mode on this tab to auto-restart on every save).
+
+# ── Receivers ────────────────────────────────────────────────────────
+# Receivers are the entry point — they define how telemetry gets IN.
+# The arcade services emit OTLP over gRPC (4317) and HTTP (4318).
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# ── Processors ───────────────────────────────────────────────────────
+# Processors transform or filter data in flight, in the order listed.
+# memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
+# batch: buffers spans/metrics/logs and sends them together (better throughput).
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+# ── Exporters ────────────────────────────────────────────────────────
+# Exporters define where telemetry goes OUT.
+# otlp/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlphttp/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# debug         → Collector stdout (useful when reading logs).
+exporters:
+  debug:
+    verbosity: basic
+  otlp/backend:
+    endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+  otlphttp/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+# ── Service ──────────────────────────────────────────────────────────
+# The service block wires everything together into named pipelines.
+# Each pipeline routes one signal type: receivers → processors → exporters.
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
