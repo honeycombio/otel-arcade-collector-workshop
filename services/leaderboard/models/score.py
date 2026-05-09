@@ -8,6 +8,8 @@ DB_PATH = os.getenv("LEADERBOARD_DB", "/tmp/leaderboard.db")
 
 
 def _connect() -> sqlite3.Connection:
+    # Each request gets a fresh connection via db(), closed in the finally block,
+    # so check_same_thread is not needed — but harmless with autocommit mode.
     conn = sqlite3.connect(DB_PATH, isolation_level=None, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
@@ -38,8 +40,8 @@ def init_schema() -> None:
         # Best-effort: add player_name to tables that predate this migration.
         try:
             conn.execute("ALTER TABLE scores ADD COLUMN player_name TEXT NOT NULL DEFAULT ''")
-        except Exception:
-            pass
+        except sqlite3.OperationalError:
+            pass  # column already exists — expected on subsequent startups
 
 
 def insert_score(session_id: str, game: str, player_id: str, score: int, player_name: str = '') -> int:
