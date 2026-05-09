@@ -12,6 +12,14 @@ if ! command -v bc >/dev/null 2>&1; then
   echo "loadgen: 'bc' not found; install bc or run inside the loadgen container" >&2
   exit 1
 fi
+if ! command -v curl >/dev/null 2>&1; then
+  echo "loadgen: 'curl' not found" >&2
+  exit 1
+fi
+if [ "$RPS" -le 0 ] 2>/dev/null; then
+  echo "loadgen: RPS must be a positive integer, got: $RPS" >&2
+  exit 1
+fi
 
 INTERVAL=$(echo "scale=4; 1/$RPS" | bc)
 
@@ -37,10 +45,10 @@ while true; do
       curl -s -m 3 -o /dev/null -X POST "$URL/sessions/$SESSION/events" \
         -H 'Content-Type: application/json' \
         -d "{\"type\":\"action\",\"data\":{\"value\":$((RANDOM % 100))}}"
-      sleep "$INTERVAL"
     done
     curl -s -m 3 -o /dev/null -X POST "$URL/sessions/$SESSION/complete"
   fi
 
+  # Throttle to approximately RPS sessions per second.
   sleep "$INTERVAL"
 done
