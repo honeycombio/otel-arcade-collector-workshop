@@ -1,0 +1,1798 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deploy & Configure — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/js/js-yaml.min.js"></script>
+  <style>
+    .col-shell { max-width: 960px; padding: 28px 24px 40px; }
+
+    /* ── tabs ── */
+    .col-tabs {
+      display: flex; gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+    .col-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 8px 20px;
+      font-family: inherit; font-size: 12px;
+      cursor: pointer; letter-spacing: 0.07em; text-transform: uppercase;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: -1px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .col-tab:hover { color: var(--text); }
+    .col-tab.active {
+      color: var(--accent2);
+      border-color: var(--border) var(--border) #161820 var(--border);
+      background: #161820;
+    }
+    .tab-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0;
+    }
+    .tab-dot.ok   { background: #6dd17a; }
+    .tab-dot.warn { background: #ffa64d; animation: pulse 1.2s infinite; }
+    .tab-dot.err  { background: #ff5d76; }
+
+    /* ── hint line ── */
+    .col-hint {
+      color: var(--muted); font-size: 12px; margin-bottom: 14px; line-height: 1.6;
+    }
+    .col-hint code {
+      background: #1d2030; border: 1px solid var(--border);
+      border-radius: 3px; padding: 1px 5px; font-size: 11px;
+    }
+    .col-hint .shortcut { opacity: 0.65; }
+
+    /* ── toolbar (template dropdown) ── */
+    .config-toolbar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .toolbar-label {
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted);
+    }
+    .select-template {
+      background: #1d2030; color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 10px; font-family: inherit; font-size: 12px;
+      cursor: pointer; outline: none;
+    }
+    .select-template:focus { border-color: var(--accent2); }
+
+    /* ── draft banner ── */
+    .draft-banner {
+      display: none; align-items: center; gap: 10px;
+      background: rgba(255,214,77,0.08); border: 1px solid rgba(255,214,77,0.3);
+      border-radius: 6px; padding: 8px 14px;
+      font-size: 12px; margin-bottom: 10px; color: #ffd64d;
+    }
+    .draft-banner button {
+      background: transparent; border: 1px solid #ffd64d; color: #ffd64d;
+      font-family: inherit; font-size: 11px; padding: 3px 10px;
+      border-radius: 4px; cursor: pointer; letter-spacing: 0.06em;
+    }
+    .draft-discard { border-color: var(--border) !important; color: var(--muted) !important; }
+
+    /* ── container status bar ── */
+    .ds-status {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 14px; padding: 8px 12px;
+      background: #0f1018; border: 1px solid var(--border); border-radius: 6px;
+    }
+    .ds-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; background: var(--border);
+    }
+    .ds-dot.ok   { background: #6dd17a; }
+    .ds-dot.warn { background: #ffa64d; animation: pulse 1.2s infinite; }
+    .ds-dot.err  { background: #ff5d76; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ── not-deployed notice ── */
+    .not-deployed-notice {
+      padding: 20px; border: 1px dashed var(--border); border-radius: 8px;
+      color: var(--muted); font-size: 13px; line-height: 1.8; margin-bottom: 16px;
+    }
+    .not-deployed-notice strong { color: var(--text); }
+    .not-deployed-notice code {
+      background: #1d2030; border: 1px solid var(--border);
+      border-radius: 3px; padding: 1px 5px; font-size: 12px;
+    }
+    .not-deployed-notice em { color: var(--accent2); font-style: normal; }
+
+    /* ── yaml lint error banner ── */
+    .yaml-error-banner {
+      display: none; align-items: flex-start; gap: 10px;
+      background: rgba(255,93,118,0.07); border: 1px solid rgba(255,93,118,0.35);
+      border-radius: 6px; padding: 8px 14px;
+      font-size: 12px; margin-bottom: 10px; color: #ff8099; line-height: 1.5;
+    }
+    .yaml-error-loc {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: #ff5d76; white-space: nowrap; flex-shrink: 0;
+      padding-top: 1px; cursor: pointer; text-decoration: underline dotted;
+    }
+    .yaml-error-loc:hover { color: #ff8099; }
+    .yaml-error-msg { word-break: break-word; }
+
+    /* ── tab lab badge ── */
+    .tab-lab {
+      font-size: 9px; opacity: 0.55; letter-spacing: 0.06em;
+      margin-left: 5px; text-transform: none; font-weight: normal;
+    }
+
+    /* ── editor ── */
+    .editor-wrap {
+      position: relative; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .yaml-editor {
+      display: block; width: 100%; min-height: 380px;
+      background: #0b0c12; color: var(--text);
+      font-family: 'JetBrains Mono', 'Menlo', monospace;
+      font-size: 13px; line-height: 1.6; padding: 16px;
+      border: none; resize: vertical; outline: none; tab-size: 2;
+    }
+    .yaml-editor:focus { box-shadow: inset 0 0 0 1px var(--accent2); }
+
+    /* ── action row ── */
+    .config-actions {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 14px; flex-wrap: wrap;
+    }
+    .btn-apply {
+      background: var(--accent2); color: #000; border: none;
+      padding: 9px 20px; font-family: inherit; font-size: 13px;
+      font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase;
+      border-radius: 6px; cursor: pointer;
+    }
+    .btn-apply:hover { opacity: 0.85; }
+    .btn-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border); padding: 8px 16px;
+      font-family: inherit; font-size: 12px; letter-spacing: 0.06em;
+      text-transform: uppercase; border-radius: 6px; cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-danger {
+      background: transparent; color: #ff5d76;
+      border: 1px solid rgba(255,93,118,0.4); padding: 8px 16px;
+      font-family: inherit; font-size: 12px; letter-spacing: 0.06em;
+      text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-left: auto;
+    }
+    .btn-danger:hover { border-color: #ff5d76; background: rgba(255,93,118,0.08); }
+    .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      margin-left: auto; font-size: 12px; color: var(--muted); min-width: 0;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; background: var(--border);
+    }
+    .status-dot.ok   { background: #6dd17a; }
+    .status-dot.err  { background: #ff5d76; }
+    .status-dot.busy { background: #ffa64d; animation: pulse 1.2s infinite; }
+    .status-msg { word-break: break-word; }
+    .status-msg.err { color: #ff5d76; }
+    .status-msg.ok  { color: #6dd17a; }
+
+    /* ── IDE Watch Mode toggle ──────────────────────────────────── */
+    .watch-toggle-bar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; margin-bottom: 14px;
+      background: #0f1018; border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .watch-toggle-label {
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted); flex: 1;
+    }
+    .watch-toggle-switch {
+      display: flex;
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .watch-toggle-switch button {
+      background: transparent; border: none; color: var(--muted);
+      font-family: inherit; font-size: 11px; letter-spacing: 0.07em;
+      padding: 5px 14px; cursor: pointer;
+      border-right: 1px solid var(--border);
+    }
+    .watch-toggle-switch button:last-child { border-right: none; }
+    .watch-toggle-switch button.active {
+      background: var(--accent2); color: #000; font-weight: bold;
+    }
+    .watch-toggle-switch button:hover:not(.active) {
+      background: rgba(255,255,255,0.05); color: var(--text);
+    }
+
+    /* ── IDE Watch Mode overlay ─────────────────────────────────── */
+    .ide-watch-overlay {
+      display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 32px; min-height: 200px;
+      border: 1px dashed var(--accent2); border-radius: 8px;
+      background: rgba(255,93,205,0.03);
+      color: var(--muted); font-size: 13px; text-align: center;
+      margin-bottom: 14px;
+    }
+    .ide-watch-overlay.active { display: flex; }
+    .watch-pulse {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent2); animation: pulse 1.2s infinite;
+    }
+    .watch-filename {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent2);
+    }
+    .watch-synced { font-size: 11px; opacity: 0.6; }
+    .yaml-editor[readonly] { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── log panel ── */
+    .log-panel {
+      display: none; margin-top: 16px;
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .log-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 14px; background: #0f1018;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+    }
+    .log-header button {
+      background: transparent; border: none; color: var(--muted);
+      cursor: pointer; font-size: 14px; padding: 0 4px;
+    }
+    .log-header button:hover { color: var(--text); }
+    .log-pre {
+      margin: 0; padding: 10px 14px; height: 220px;
+      overflow-y: auto; font-size: 11px; line-height: 1.5;
+      color: var(--muted); background: #0b0c12;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .log-line-err  { color: #ff5d76; }
+    .log-line-warn { color: #ffa64d; }
+    .log-line-ok   { color: #6dd17a; }
+
+    /* ── Architecture diagram ─────────────────────────────────── */
+    .arch-section { margin-bottom: 28px; }
+    .arch-diagram {
+      display: flex;
+      align-items: center;
+      padding: 24px 20px;
+      background: #080910;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+      min-height: 134px;
+      gap: 0;
+    }
+    .arch-col { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .arch-col-label {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--muted); text-align: center; margin-bottom: 4px;
+    }
+    .arch-node {
+      background: #1d2030; border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 16px;
+      font-size: 12px; color: var(--text); text-align: center;
+    }
+    .arch-node.service {
+      color: var(--accent); border-color: rgba(93,255,234,0.2);
+      font-size: 11px; min-width: 100px;
+    }
+    .arch-node.collector {
+      cursor: pointer; min-width: 148px;
+      color: var(--accent2); border-color: rgba(255,93,205,0.3);
+      transition: border-color .2s, box-shadow .2s, background .2s, transform .15s;
+    }
+    .arch-node.collector .arch-configure-hint {
+      display: block; font-size: 9px; color: var(--muted);
+      opacity: 0; transition: opacity .2s; margin-top: 4px;
+      letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .arch-node.collector:hover {
+      border-color: var(--accent2);
+      box-shadow: 0 0 18px rgba(255,93,205,0.28);
+      background: rgba(255,93,205,0.07);
+      transform: translateY(-2px);
+    }
+    .arch-node.collector:hover .arch-configure-hint { opacity: 1; }
+    .arch-node.collector.active {
+      border-color: var(--accent2);
+      background: rgba(255,93,205,0.11);
+      box-shadow: 0 0 22px rgba(255,93,205,0.35);
+    }
+    .arch-node.collector.active .arch-configure-hint { opacity: 0.5; content: 'active'; }
+    .arch-node.backend {
+      color: #8090b8; border-color: rgba(128,144,184,0.2);
+      font-size: 11px; min-width: 112px;
+    }
+    .arch-connector-wrap {
+      display: flex; align-items: center;
+      flex: 1; min-width: 44px; padding: 0 2px;
+    }
+    .arch-connector {
+      position: relative; height: 2px;
+      background: var(--border); flex: 1;
+      overflow: hidden; border-radius: 1px;
+    }
+    .arch-arrow-tip { color: var(--muted); font-size: 10px; flex-shrink: 0; }
+    .flow-dot {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+      animation: flowDot 2.2s linear infinite; opacity: 0;
+    }
+    @keyframes flowDot {
+      0%   { left: -6px; opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell col-shell">
+    <h1 class="brand">Deploy &amp; Configure</h1>
+
+    <div class="arch-section">
+      <div id="arch-diagram" class="arch-diagram"></div>
+    </div>
+
+    <div class="col-tabs">
+      <button class="col-tab active" id="tab-local"   onclick="showTab('local')">Collector <span class="tab-lab">Labs 1–2</span></button>
+      <button class="col-tab"        id="tab-agent"   onclick="showTab('agent')">
+        <span class="tab-dot" id="tab-dot-agent"></span>Agent <span class="tab-lab">Lab 3</span>
+      </button>
+      <button class="col-tab"        id="tab-gateway" onclick="showTab('gateway')">
+        <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 3</span>
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         COLLECTOR TAB — local docker-compose, Labs 1 & 2
+    ══════════════════════════════════════════════════════════ -->
+    <div id="pane-local" class="col-pane">
+      <p class="col-hint">
+        Configuring <code>otel-collector-agent</code> — your single Collector for Labs 1 and 2.
+        Use <strong>Built-in Editor</strong> to edit here, or switch to <strong>IDE Watch Mode</strong>
+        to edit <code>collector-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
+        <span class="shortcut">(Built-in: Ctrl+S / ⌘S applies)</span>
+      </p>
+
+      <div class="watch-toggle-bar">
+        <span class="watch-toggle-label">Edit mode</span>
+        <div class="watch-toggle-switch">
+          <button id="local-mode-builtin" class="active" onclick="setWatchMode('local', false)">Built-in Editor</button>
+          <button id="local-mode-ide"                    onclick="setWatchMode('local', true)">IDE Watch Mode</button>
+        </div>
+      </div>
+      <div class="ide-watch-overlay" id="local-ide-overlay">
+        <div class="watch-pulse"></div>
+        <div>Watching for changes&hellip;</div>
+        <div class="watch-filename">collector-config.yaml</div>
+        <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
+        <div class="watch-synced" id="local-watch-synced"></div>
+      </div>
+
+      <div class="config-toolbar">
+        <span class="toolbar-label">Template</span>
+        <select class="select-template" id="template-select" onchange="loadTemplate(this.value)">
+          <option value="">Load starter…</option>
+          <option value="lab1">↺ Lab 1 — baseline</option>
+          <option value="lab2">Lab 2 — OTTL transforms</option>
+        </select>
+        <button class="btn-secondary" onclick="formatYaml('local')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
+      </div>
+
+      <div class="yaml-error-banner" id="local-yaml-error">
+        <span class="yaml-error-loc" id="local-yaml-error-loc" onclick="jumpToYamlError('local')"></span>
+        <span class="yaml-error-msg" id="local-yaml-error-msg"></span>
+      </div>
+
+      <div class="draft-banner" id="draft-banner">
+        <span>⚠ Unsaved draft from <span id="draft-time"></span></span>
+        <button onclick="restoreDraft()">Restore</button>
+        <button class="draft-discard" onclick="discardDraft()">Discard</button>
+      </div>
+
+      <div class="editor-wrap">
+        <textarea class="yaml-editor" id="local-editor" spellcheck="false"
+          autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+
+      <div class="config-actions">
+        <button class="btn-apply"     id="local-btn-apply"   onclick="applyLocalConfig()">Apply &amp; Restart</button>
+        <button class="btn-secondary" id="local-btn-restart" onclick="restartLocal()">Restart</button>
+        <button class="btn-secondary" id="local-btn-reset"   onclick="resetLocal()">Revert</button>
+        <button class="btn-secondary" onclick="toggleLogs('local')">Logs ▾</button>
+        <div class="status-bar">
+          <span class="status-dot" id="local-dot"></span>
+          <span class="status-msg" id="local-msg"></span>
+        </div>
+      </div>
+
+      <div class="log-panel" id="local-log-panel">
+        <div class="log-header">
+          <span>Collector Logs</span>
+          <button onclick="toggleLogs('local')" title="Close">✕</button>
+        </div>
+        <pre class="log-pre" id="local-log-output"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         AGENT TAB — docker-compose agent container, Lab 3
+    ══════════════════════════════════════════════════════════ -->
+    <div id="pane-agent" class="col-pane" style="display:none">
+      <p class="col-hint">
+        Configuring <code>otel-collector-agent</code> in Lab 3 agent mode.
+        Change the exporters to forward to <code>otel-collector-gateway:4317</code>, then Apply &amp; Restart.
+      </p>
+
+      <div id="agent-k8s-content">
+        <div class="ds-status">
+          <span class="ds-dot" id="agent-ds-dot"></span>
+          <span id="agent-ds-msg">Loading…</span>
+        </div>
+
+        <div class="watch-toggle-bar">
+          <span class="watch-toggle-label">Edit mode</span>
+          <div class="watch-toggle-switch">
+            <button id="agent-mode-builtin" class="active" onclick="setWatchMode('agent', false)">Built-in Editor</button>
+            <button id="agent-mode-ide"                    onclick="setWatchMode('agent', true)">IDE Watch Mode</button>
+          </div>
+        </div>
+        <div class="ide-watch-overlay" id="agent-ide-overlay">
+          <div class="watch-pulse"></div>
+          <div>Watching for changes&hellip;</div>
+          <div class="watch-filename">collector-config.yaml</div>
+          <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
+          <div class="watch-synced" id="agent-watch-synced"></div>
+        </div>
+
+        <div class="config-toolbar">
+          <span class="toolbar-label">Template</span>
+          <select class="select-template" id="agent-template-select" onchange="loadAgentTemplate(this.value)">
+            <option value="">Load starter…</option>
+            <option value="lab3">Lab 3 — Agent forwarding</option>
+          </select>
+          <button class="btn-secondary" onclick="formatYaml('agent')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
+        </div>
+
+        <div class="yaml-error-banner" id="agent-yaml-error">
+          <span class="yaml-error-loc" id="agent-yaml-error-loc" onclick="jumpToYamlError('agent')"></span>
+          <span class="yaml-error-msg" id="agent-yaml-error-msg"></span>
+        </div>
+
+        <div class="editor-wrap">
+          <textarea class="yaml-editor" id="agent-editor" spellcheck="false"
+            autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+
+        <div class="config-actions">
+          <button class="btn-apply"     id="agent-btn-apply"   onclick="applyAgentConfig()">Apply &amp; Restart</button>
+          <button class="btn-secondary" id="agent-btn-restart" onclick="restartAgent()">Restart</button>
+          <button class="btn-secondary" id="agent-btn-reset"   onclick="resetAgent()">Revert</button>
+          <button class="btn-secondary" onclick="toggleLogs('agent')">Logs ▾</button>
+          <div class="status-bar">
+            <span class="status-dot" id="agent-dot"></span>
+            <span class="status-msg" id="agent-msg"></span>
+          </div>
+        </div>
+
+        <div class="log-panel" id="agent-log-panel">
+          <div class="log-header">
+            <span>Agent Logs</span>
+            <button onclick="toggleLogs('agent')" title="Close">✕</button>
+          </div>
+          <pre class="log-pre" id="agent-log-output"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         GATEWAY TAB — docker-compose gateway container, Lab 3
+    ══════════════════════════════════════════════════════════ -->
+    <div id="pane-gateway" class="col-pane" style="display:none">
+      <p class="col-hint">
+        Starts a gateway Collector container on the local Docker network.
+        Deploy it once, then point the Agent's exporters at <code>otel-collector-gateway:4317</code>.
+      </p>
+
+      <div id="gateway-k8s-content">
+        <div class="ds-status">
+          <span class="ds-dot" id="gateway-ds-dot"></span>
+          <span id="gateway-ds-msg">Loading…</span>
+        </div>
+
+        <!-- before gateway is deployed -->
+        <div id="gateway-not-deployed">
+          <div class="not-deployed-notice">
+            <strong>Gateway not running.</strong><br>
+            Click <em>Deploy Gateway</em> to start a gateway Collector container on the
+            local Docker network as <em>otel-collector-gateway</em>.
+            Then switch to the <em>Agent</em> tab and point the agent's exporters at
+            <code>otel-collector-gateway:4317</code>.
+          </div>
+          <div class="config-actions">
+            <button class="btn-apply" id="gateway-btn-deploy" onclick="deployGateway()">Deploy Gateway</button>
+            <div class="status-bar">
+              <span class="status-dot" id="gateway-deploy-dot"></span>
+              <span class="status-msg" id="gateway-deploy-msg"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- after gateway is deployed -->
+        <div id="gateway-config-section" style="display:none">
+          <p class="col-hint" style="margin-bottom:12px">
+            Gateway is running. Now switch to the <strong>Agent</strong> tab and update the agent's
+            exporters to point at <code>otel-collector-gateway:4317</code>. Once traffic flows through,
+            the Visualizer will show a second topology for the Gateway.
+          </p>
+          <div class="watch-toggle-bar">
+            <span class="watch-toggle-label">Edit mode</span>
+            <div class="watch-toggle-switch">
+              <button id="gateway-mode-builtin" class="active" onclick="setWatchMode('gateway', false)">Built-in Editor</button>
+              <button id="gateway-mode-ide"                    onclick="setWatchMode('gateway', true)">IDE Watch Mode</button>
+            </div>
+          </div>
+          <div class="ide-watch-overlay" id="gateway-ide-overlay">
+            <div class="watch-pulse"></div>
+            <div>Watching for changes&hellip;</div>
+            <div class="watch-filename">gateway-config.yaml</div>
+            <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
+            <div class="watch-synced" id="gateway-watch-synced"></div>
+          </div>
+
+          <div class="config-toolbar">
+            <span class="toolbar-label">Template</span>
+            <select class="select-template" id="gateway-template-select" onchange="loadGatewayTemplate(this.value)">
+              <option value="">Load starter…</option>
+              <option value="lab3">↺ Reset to Lab 3 baseline</option>
+              <option value="lab5">Lab 5 — Sampling &amp; Connectors</option>
+            </select>
+            <button class="btn-secondary" onclick="formatYaml('gateway')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
+          </div>
+
+          <div class="yaml-error-banner" id="gateway-yaml-error">
+            <span class="yaml-error-loc" id="gateway-yaml-error-loc" onclick="jumpToYamlError('gateway')"></span>
+            <span class="yaml-error-msg" id="gateway-yaml-error-msg"></span>
+          </div>
+
+          <div class="editor-wrap">
+            <textarea class="yaml-editor" id="gateway-editor" spellcheck="false"
+              autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+          </div>
+          <div class="config-actions">
+            <button class="btn-apply"     id="gateway-btn-apply"    onclick="applyGatewayConfig()">Apply &amp; Restart</button>
+            <button class="btn-secondary" id="gateway-btn-reset"    onclick="resetGateway()">Revert</button>
+            <button class="btn-secondary" onclick="toggleLogs('gateway')">Logs ▾</button>
+            <button class="btn-danger"    id="gateway-btn-teardown" onclick="teardownGateway()">Tear Down</button>
+            <div class="status-bar">
+              <span class="status-dot" id="gateway-dot"></span>
+              <span class="status-msg" id="gateway-msg"></span>
+            </div>
+          </div>
+
+          <div class="log-panel" id="gateway-log-panel">
+            <div class="log-header">
+              <span>Gateway Logs</span>
+              <button onclick="toggleLogs('gateway')" title="Close">✕</button>
+            </div>
+            <pre class="log-pre" id="gateway-log-output"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/nav.js"></script>
+  <script>
+  // ── Templates ─────────────────────────────────────────────────────────────
+  var TEMPLATES = {
+    lab1: `# OTel Arcade — Lab 1: Your first Collector pipeline.
+#
+# The Collector receives telemetry from the three arcade services and
+# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
+# play a game, and spans should appear in the Visualizer feed within seconds.
+#
+# Edit here or open collector-config.yaml at the repo root in your IDE
+# (use IDE Watch Mode on this tab to auto-restart on every save).
+
+# ── Receivers ────────────────────────────────────────────────────────
+# Receivers are the entry point — they define how telemetry gets IN.
+# The arcade services emit OTLP over gRPC (4317) and HTTP (4318).
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# ── Processors ───────────────────────────────────────────────────────
+# Processors transform or filter data in flight, in the order listed.
+# memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
+# batch: buffers spans/metrics/logs and sends them together (better throughput).
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+# ── Exporters ────────────────────────────────────────────────────────
+# Exporters define where telemetry goes OUT.
+# otlp/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlphttp/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# debug         → Collector stdout (useful when reading logs).
+exporters:
+  debug:
+    verbosity: basic
+  otlp/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlphttp/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+# ── Service ──────────────────────────────────────────────────────────
+# The service block wires everything together into named pipelines.
+# Each pipeline routes one signal type: receivers → processors → exporters.
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+`,
+
+    lab2: `# OTel Arcade — Lab 2: OTTL transforms.
+#
+# Fix the five deliberate telemetry problems using the transform and filter
+# processors. Uncomment each statement one at a time and apply — the
+# Visualizer's smells counter drops to 0 when all five are working.
+#
+# The traces/raw pipeline powers the Split view (Before→After) in the
+# Visualizer feed so you can see exactly what each fix changes.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+  # ── OTTL transform processor ──────────────────────────────────────
+  transform/normalize:
+    trace_statements:
+      - context: span
+        statements:
+          # Fix 1 — normalize raw SQL span names to a stable, low-cardinality value
+          # - replace_pattern(name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+
+          # Fix 2 — redact player.id PII
+          # - set(attributes["player.id"], "***") where attributes["player.id"] != nil
+
+          # Fix 4 — truncate long attribute values (e.g. full browser user-agent strings)
+          # - truncate_all(attributes, 128)
+
+      - context: resource
+        statements:
+          # Fix 5 — remove the redundant app.name resource attribute
+          # - delete_key(attributes, "app.name")
+
+  # Fix 3 — drop /health and /ready probe spans entirely (filter, not transform)
+  # Uncomment below, then add filter/drop_probes before batch in the traces pipeline.
+  # filter/drop_probes:
+  #   error_mode: ignore
+  #   traces:
+  #     span:
+  #       - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
+
+exporters:
+  debug:
+    verbosity: basic
+  otlp/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlphttp/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+  # Sends pre-transform spans to the Visualizer's Split (Before→After) view.
+  otlphttp/visualizer-raw:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-raw-channel: "true"
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    # Captures spans BEFORE any transforms — powers the Split (Before→After) view.
+    traces/raw:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlphttp/visualizer-raw]
+    traces:
+      receivers: [otlp]
+      # Once you have statements to apply, add transform/normalize to this list.
+      # For Fix 3, also add filter/drop_probes before batch.
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+`,
+
+    lab3: `# OTel Arcade — Lab 3: Agent → Gateway.
+#
+# The agent no longer exports directly to Honeycomb. Instead it forwards
+# all telemetry to the gateway, which handles final export and fan-out.
+#
+# Steps:
+#   1. Deploy the gateway first (Gateway tab → Deploy Gateway)
+#   2. Apply this config (Agent tab → Apply & Restart, or save in IDE Watch Mode)
+#   3. Watch the Visualizer topology update to show the two-hop pipeline
+#
+# Edit here or open collector-config.yaml at the repo root in your IDE.
+
+# ── Receivers ────────────────────────────────────────────────────────
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# ── Processors ───────────────────────────────────────────────────────
+# Same transforms from Lab 2 — the agent still cleans up telemetry
+# before forwarding. The gateway receives already-normalized data.
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+  filter/drop_probes:
+    error_mode: ignore
+    traces:
+      span:
+        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
+  transform/normalize:
+    trace_statements:
+      - context: span
+        statements:
+          - replace_pattern(name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          - set(attributes["player.id"], "***") where attributes["player.id"] != nil
+          - truncate_all(attributes, 128)
+      - context: resource
+        statements:
+          - delete_key(attributes, "app.name")
+
+# ── Exporters ────────────────────────────────────────────────────────
+# otlp/gateway: forwards to the gateway instead of Honeycomb directly.
+#   The gateway's DNS name on the Docker network is otel-collector-gateway.
+# otlphttp/visualizer-raw: still needed for the Split (Before→After) view.
+exporters:
+  debug:
+    verbosity: basic
+  otlp/gateway:
+    endpoint: otel-collector-gateway:4317
+    tls:
+      insecure: true
+  otlphttp/visualizer-raw:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-raw-channel: "true"
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+# ── Service ──────────────────────────────────────────────────────────
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    # traces/raw: captures spans BEFORE transforms — powers the Split view.
+    traces/raw:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlphttp/visualizer-raw]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      exporters: [debug, otlp/gateway]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/gateway]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/gateway]
+`
+  };
+
+  // ── Gateway templates ─────────────────────────────────────────────────────
+  var GATEWAY_TEMPLATES = {
+    lab3: `# OTel Arcade — Gateway Collector.
+# Receives OTLP from agents and forwards to Honeycomb and the Visualizer.
+# In Lab 3, point your agent's exporters at otel-collector-gateway:4317.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+exporters:
+  debug:
+    verbosity: basic
+  otlp/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlphttp/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: gateway
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+`,
+    lab5: `# OTel Arcade — Lab 5: Advanced Gateway Patterns.
+# Builds on Lab 3. Uncomment each exercise block one at a time.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+  # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
+  # Uncomment below and replace [batch] with [tail_sampling] in traces pipeline.
+  # The health panel will show sampled/dropped counts once traffic flows.
+  #
+  # tail_sampling:
+  #   decision_wait: 5s
+  #   policies:
+  #     - name: keep_errors
+  #       type: status_code
+  #       status_code:
+  #         status_codes: [ERROR]
+  #     - name: keep_slow_traces
+  #       type: latency
+  #       latency:
+  #         threshold_ms: 500
+  #     - name: sample_the_rest
+  #       type: probabilistic
+  #       probabilistic:
+  #         sampling_percentage: 10
+
+connectors:
+  # ── Exercise 2: Routing ───────────────────────────────────────────────────
+  # Uncomment, then add [routing] to traces pipeline exporters,
+  # and uncomment the two named pipelines at the bottom.
+  #
+  # routing:
+  #   default_pipelines: [traces/standard]
+  #   error_mode: ignore
+  #   table:
+  #     - context: span
+  #       statement: status.code == STATUS_CODE_ERROR
+  #       pipelines: [traces/errors]
+
+  # ── Exercise 3: Service Graph ─────────────────────────────────────────────
+  # Uncomment, then add [servicegraph] to traces pipeline exporters,
+  # and uncomment the metrics/servicegraph pipeline at the bottom.
+  # Check Honeycomb for traces_service_graph_* metrics.
+  #
+  # servicegraph:
+  #   latency_histogram_buckets: [5ms, 25ms, 100ms, 500ms, 1s]
+  #   store:
+  #     ttl: 2s
+  #     max_items: 1000
+
+exporters:
+  debug:
+    verbosity: basic
+  otlp/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlphttp/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: gateway
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      # Exercise 1: replace [batch] with [tail_sampling] above
+      # Exercise 2: add routing to exporters list
+      # Exercise 3: add servicegraph to exporters list
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp/backend, otlphttp/visualizer]
+
+    # ── Exercise 2: uncomment after adding routing connector ─────────────────
+    # traces/standard:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp/backend, otlphttp/visualizer]
+    # traces/errors:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp/backend, otlphttp/visualizer]
+
+    # ── Exercise 3: uncomment after adding servicegraph connector ─────────────
+    # metrics/servicegraph:
+    #   receivers: [servicegraph]
+    #   exporters: [otlp/backend]
+`,
+  };
+
+  function loadGatewayTemplate(key) {
+    var tmpl = GATEWAY_TEMPLATES[key];
+    if (!tmpl) return;
+    document.getElementById('gateway-template-select').value = '';
+    document.getElementById('gateway-editor').value = tmpl;
+    lintYaml('gateway');
+    setStatus('gateway', '', 'Template loaded — click Apply & Restart to deploy.');
+  }
+
+  // ── Architecture diagram ──────────────────────────────────────────────────
+  var archState = { agentDeployed: false, gatewayDeployed: false };
+
+  function makeConnector() {
+    return '<div class="arch-connector-wrap">'
+      + '<div class="arch-connector">'
+      + '<div class="flow-dot" style="animation-delay:0s"></div>'
+      + '<div class="flow-dot" style="animation-delay:0.73s"></div>'
+      + '<div class="flow-dot" style="animation-delay:1.46s"></div>'
+      + '</div>'
+      + '<span class="arch-arrow-tip">▶</span>'
+      + '</div>';
+  }
+
+  function collectorNode(label, sub, tabName) {
+    var active = activeTab === tabName ? ' active' : '';
+    var hintText = activeTab === tabName ? 'active' : 'click to configure';
+    return '<div class="arch-node collector' + active + '" onclick="showTab(\'' + tabName + '\')">'
+      + label
+      + (sub ? '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + sub + '</div>' : '')
+      + '<span class="arch-configure-hint">' + hintText + '</span>'
+      + '</div>';
+  }
+
+  function renderArchDiagram() {
+    var el = document.getElementById('arch-diagram');
+    if (!el) return;
+    var html = '';
+
+    // Sources
+    html += '<div class="arch-col">'
+      + '<div class="arch-col-label">Sources</div>'
+      + '<div class="arch-node service">arcade-ui</div>'
+      + '<div class="arch-node service">score-api</div>'
+      + '<div class="arch-node service">leaderboard</div>'
+      + '</div>';
+
+    html += makeConnector();
+
+    // Collector(s) — adapt to deployment state
+    if (archState.gatewayDeployed) {
+      html += '<div class="arch-col">'
+        + '<div class="arch-col-label">Agent</div>'
+        + collectorNode('OTel Agent', 'docker-compose', 'agent')
+        + '</div>';
+      html += makeConnector();
+      html += '<div class="arch-col">'
+        + '<div class="arch-col-label">Gateway</div>'
+        + collectorNode('OTel Gateway', 'docker-compose', 'gateway')
+        + '</div>';
+    } else {
+      html += '<div class="arch-col">'
+        + '<div class="arch-col-label">Collector</div>'
+        + collectorNode('OTel Collector', 'docker-compose', 'local')
+        + '</div>';
+    }
+
+    html += makeConnector();
+
+    // Backends
+    html += '<div class="arch-col">'
+      + '<div class="arch-col-label">Backends</div>'
+      + '<div class="arch-node backend">Honeycomb</div>'
+      + '<div class="arch-node backend">Visualizer</div>'
+      + '</div>';
+
+    el.innerHTML = html;
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  var localSaved   = '';
+  var agentSaved   = '';
+  var gatewaySaved = '';
+  var logSources   = {};
+  var draftKey     = 'arcade-collector-draft';
+  var draftTimeKey = 'arcade-collector-draft-time';
+  var draftTimer   = null;
+  var statusPoller = null;
+  var activeTab    = 'local';
+
+  // ── IDE Watch Mode state ──────────────────────────────────────────────────
+  var watchModeActive = { local: false, agent: false, gateway: false };
+  var watchPollers    = {};
+
+  var WATCH_APIS = {
+    local:   '/api/collector/watch',
+    agent:   '/api/deploy/agent/watch',
+    gateway: '/api/deploy/gateway/watch',
+  };
+  var CONFIG_FETCH_URLS = {
+    local:   '/api/collector/config',
+    agent:   '/api/deploy/agent/config',
+    gateway: '/api/deploy/gateway/config',
+  };
+
+  async function setWatchMode(tab, enable) {
+    watchModeActive[tab] = enable;
+    applyWatchModeUi(tab);
+    localStorage.setItem('arcade-watch-mode-' + tab, enable ? '1' : '0');
+
+    try {
+      var r = await fetch(WATCH_APIS[tab], {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ enabled: enable }),
+      });
+      if (!r.ok) {
+        var d = await r.json().catch(function () { return {}; });
+        setStatus(tab, 'err', 'Watch toggle failed: ' + (d.error || r.statusText));
+        watchModeActive[tab] = !enable;
+        applyWatchModeUi(tab);
+        return;
+      }
+    } catch (e) {
+      setStatus(tab, 'err', 'Watch toggle failed: ' + e.message);
+      watchModeActive[tab] = !enable;
+      applyWatchModeUi(tab);
+      return;
+    }
+
+    if (enable) {
+      setStatus(tab, 'ok', 'IDE Watch Mode active — edit the YAML file in your editor and save');
+      startWatchPoller(tab);
+    } else {
+      stopWatchPoller(tab);
+      setStatus(tab, '', '');
+    }
+  }
+
+  function applyWatchModeUi(tab) {
+    var isIde      = watchModeActive[tab];
+    var editor     = document.getElementById(tab + '-editor');
+    var overlay    = document.getElementById(tab + '-ide-overlay');
+    var edWrap     = editor ? editor.closest('.editor-wrap') : null;
+    var btnBuiltin = document.getElementById(tab + '-mode-builtin');
+    var btnIde     = document.getElementById(tab + '-mode-ide');
+
+    // Gateway tab has its editor inside gateway-config-section; toolbar is also there.
+    // For local/agent we find the toolbar directly in the pane.
+    var pane    = document.getElementById('pane-' + tab);
+    var toolbar = pane ? pane.querySelector('.config-toolbar') : null;
+
+    if (isIde) {
+      if (editor)    editor.setAttribute('readonly', 'readonly');
+      if (edWrap)    edWrap.style.display = 'none';
+      if (overlay)   overlay.classList.add('active');
+      if (toolbar)   toolbar.style.display = 'none';
+      ['btn-apply', 'btn-restart', 'btn-reset'].forEach(function (id) {
+        var el = document.getElementById(tab + '-' + id);
+        if (el) el.disabled = true;
+      });
+      if (btnBuiltin) btnBuiltin.classList.remove('active');
+      if (btnIde)     btnIde.classList.add('active');
+    } else {
+      if (editor)    editor.removeAttribute('readonly');
+      if (edWrap)    edWrap.style.display = '';
+      if (overlay)   overlay.classList.remove('active');
+      if (toolbar)   toolbar.style.display = '';
+      ['btn-apply', 'btn-restart', 'btn-reset'].forEach(function (id) {
+        var el = document.getElementById(tab + '-' + id);
+        if (el) el.disabled = false;
+      });
+      if (btnBuiltin) btnBuiltin.classList.add('active');
+      if (btnIde)     btnIde.classList.remove('active');
+    }
+  }
+
+  function startWatchPoller(tab) {
+    stopWatchPoller(tab);
+    pollWatchedConfig(tab);
+    watchPollers[tab] = setInterval(function () { pollWatchedConfig(tab); }, 2000);
+  }
+
+  function stopWatchPoller(tab) {
+    clearInterval(watchPollers[tab]);
+    watchPollers[tab] = null;
+  }
+
+  async function pollWatchedConfig(tab) {
+    if (!watchModeActive[tab]) return;
+    try {
+      var r = await fetch(CONFIG_FETCH_URLS[tab]);
+      if (!r.ok) return;
+      var data = await r.json();
+      var editor = document.getElementById(tab + '-editor');
+      if (editor && data.config !== undefined) {
+        editor.value = data.config;
+        if (tab === 'local')   localSaved   = data.config;
+        if (tab === 'agent')   agentSaved   = data.config;
+        if (tab === 'gateway') gatewaySaved = data.config;
+        scheduleLint(tab);
+      }
+      var syncEl = document.getElementById(tab + '-watch-synced');
+      if (syncEl) syncEl.textContent = 'Last synced ' + new Date().toLocaleTimeString();
+    } catch (_) { /* retry next interval */ }
+  }
+
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function showTab(which) {
+    ['local', 'agent', 'gateway'].forEach(function (t) {
+      document.getElementById('pane-' + t).style.display = t === which ? '' : 'none';
+      document.getElementById('tab-' + t).classList.toggle('active', t === which);
+    });
+    activeTab = which;
+    renderArchDiagram();
+  }
+
+  // ── Generic status helpers ─────────────────────────────────────────────────
+  function setStatus(prefix, state, msg) {
+    var dot = document.getElementById(prefix + '-dot');
+    var txt = document.getElementById(prefix + '-msg');
+    if (!dot || !txt) return;
+    dot.className = 'status-dot ' + state;
+    txt.className = 'status-msg' + (state === 'err' ? ' err' : state === 'ok' ? ' ok' : '');
+    txt.textContent = msg;
+  }
+
+  function setBusy(prefix, busy) {
+    ['btn-apply', 'btn-restart', 'btn-reset'].forEach(function (id) {
+      var el = document.getElementById(prefix + '-' + id);
+      if (el) el.disabled = busy;
+    });
+  }
+
+  function setDsStatus(prefix, info) {
+    var dot    = document.getElementById(prefix + '-ds-dot');
+    var msg    = document.getElementById(prefix + '-ds-msg');
+    var tabDot = document.getElementById('tab-dot-' + prefix);
+    if (!dot || !msg) return;
+    if (!info.deployed) {
+      dot.className    = 'ds-dot err';
+      msg.textContent  = 'Not deployed';
+      if (tabDot) tabDot.className = 'tab-dot err';
+      return;
+    }
+    var ready = info.ready, desired = info.desired;
+    if (ready >= desired && desired > 0) {
+      dot.className    = 'ds-dot ok';
+      msg.textContent  = ready + '/' + desired + ' ready';
+      if (tabDot) tabDot.className = 'tab-dot ok';
+    } else if (ready > 0) {
+      dot.className    = 'ds-dot warn';
+      msg.textContent  = ready + '/' + desired + ' ready — restarting';
+      if (tabDot) tabDot.className = 'tab-dot warn';
+    } else {
+      dot.className    = 'ds-dot err';
+      msg.textContent  = '0/' + desired + ' ready';
+      if (tabDot) tabDot.className = 'tab-dot err';
+    }
+  }
+
+  // ── Draft helpers (local tab only) ────────────────────────────────────────
+  function saveDraft(value) {
+    localStorage.setItem(draftKey, value);
+    localStorage.setItem(draftTimeKey, new Date().toISOString());
+  }
+  function clearDraft() {
+    localStorage.removeItem(draftKey);
+    localStorage.removeItem(draftTimeKey);
+    document.getElementById('draft-banner').style.display = 'none';
+  }
+  function checkForDraft(serverValue) {
+    var draft = localStorage.getItem(draftKey);
+    if (!draft || draft === serverValue) return;
+    var t = localStorage.getItem(draftTimeKey);
+    document.getElementById('draft-time').textContent = t ? new Date(t).toLocaleTimeString() : 'earlier';
+    document.getElementById('draft-banner').style.display = 'flex';
+  }
+  function restoreDraft() {
+    var draft = localStorage.getItem(draftKey);
+    if (draft) document.getElementById('local-editor').value = draft;
+    document.getElementById('draft-banner').style.display = 'none';
+  }
+  function discardDraft() {
+    clearDraft();
+    document.getElementById('local-editor').value = localSaved;
+  }
+
+  document.getElementById('local-editor').addEventListener('input', function () {
+    if (watchModeActive['local']) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(function () { saveDraft(document.getElementById('local-editor').value); }, 300);
+    scheduleLint('local');
+  });
+
+  document.getElementById('agent-editor').addEventListener('input', function () {
+    scheduleLint('agent');
+  });
+
+  document.getElementById('gateway-editor').addEventListener('input', function () {
+    scheduleLint('gateway');
+  });
+
+  function loadTemplate(key) {
+    document.getElementById('template-select').value = '';
+    if (!key || !TEMPLATES[key]) return;
+    var editor = document.getElementById('local-editor');
+    if (editor.value && editor.value !== localSaved) saveDraft(editor.value);
+    editor.value = TEMPLATES[key];
+    setStatus('local', '', 'Template loaded — click Apply & Restart to deploy.');
+    lintYaml('local');
+  }
+
+  function loadAgentTemplate(key) {
+    document.getElementById('agent-template-select').value = '';
+    if (!key || !TEMPLATES[key]) return;
+    document.getElementById('agent-editor').value = TEMPLATES[key];
+    setStatus('agent', '', 'Template loaded — click Apply & Restart to deploy.');
+    lintYaml('agent');
+  }
+
+  // ── Restart helpers ───────────────────────────────────────────────────────
+  async function restartLocal() {
+    setBusy('local', true);
+    setStatus('local', 'busy', 'Restarting…');
+    openLogs('local');
+    try {
+      var r    = await fetch('/api/collector/restart', { method: 'POST' });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('local', 'err', data.error || 'Unknown error');
+      } else {
+        setStatus('local', 'ok', 'Restarted (' + new Date().toLocaleTimeString() + ')');
+      }
+    } catch (err) {
+      setStatus('local', 'err', 'Request failed: ' + err.message);
+    }
+    setBusy('local', false);
+  }
+
+  async function restartAgent() {
+    setBusy('agent', true);
+    setStatus('agent', 'busy', 'Restarting…');
+    openLogs('agent');
+    try {
+      var r    = await fetch('/api/deploy/agent/restart', { method: 'POST' });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('agent', 'err', data.error || 'Unknown error');
+      } else {
+        setStatus('agent', 'ok', 'Restarted (' + new Date().toLocaleTimeString() + ')');
+      }
+    } catch (err) {
+      setStatus('agent', 'err', 'Request failed: ' + err.message);
+    }
+    setBusy('agent', false);
+  }
+
+  async function teardownGateway() {
+    var btn = document.getElementById('gateway-btn-teardown');
+    btn.disabled = true;
+    setStatus('gateway', 'busy', 'Removing gateway…');
+    try {
+      var r    = await fetch('/api/deploy/gateway', { method: 'DELETE' });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('gateway', 'err', data.error || 'Teardown failed');
+        btn.disabled = false;
+      } else {
+        gatewaySaved = '';
+        setStatus('gateway', '', '');
+        await loadKubeStatus();
+      }
+    } catch (err) {
+      setStatus('gateway', 'err', 'Request failed: ' + err.message);
+      btn.disabled = false;
+    }
+  }
+
+  // ── LOCAL TAB ─────────────────────────────────────────────────────────────
+  async function loadLocalConfig() {
+    setStatus('local', 'busy', 'Loading…');
+    try {
+      var r    = await fetch('/api/collector/config');
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      localSaved = data.config;
+      document.getElementById('local-editor').value = localSaved;
+      setStatus('local', '', '');
+      checkForDraft(localSaved);
+      lintYaml('local');
+    } catch (err) {
+      setStatus('local', 'err', 'Could not load: ' + err.message);
+    }
+  }
+
+  function resetLocal() {
+    document.getElementById('local-editor').value = localSaved;
+    clearDraft();
+    setStatus('local', '', '');
+  }
+
+  async function applyLocalConfig() {
+    var config = document.getElementById('local-editor').value;
+    setBusy('local', true);
+    setStatus('local', 'busy', 'Validating and restarting…');
+    openLogs('local');
+    try {
+      var r    = await fetch('/api/collector/config', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ config }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('local', 'err', data.error || 'Unknown error');
+      } else {
+        localSaved = config;
+        clearDraft();
+        setStatus('local', 'ok', data.message + ' (' + new Date().toLocaleTimeString() + ')');
+      }
+    } catch (err) {
+      setStatus('local', 'err', 'Request failed: ' + err.message);
+    }
+    setBusy('local', false);
+  }
+
+  // ── STATUS POLLING ────────────────────────────────────────────────────────
+  async function loadKubeStatus() {
+    try {
+      var r = await fetch('/api/deploy/status');
+      if (!r.ok) return false;
+      var data = await r.json();
+      archState.agentDeployed   = !!(data.agent   && data.agent.deployed);
+      archState.gatewayDeployed = !!(data.gateway && data.gateway.deployed);
+      renderArchDiagram();
+      setDsStatus('agent',   data.agent);
+      setDsStatus('gateway', data.gateway);
+      var notDeployed   = document.getElementById('gateway-not-deployed');
+      var configSection = document.getElementById('gateway-config-section');
+      if (data.gateway.deployed) {
+        notDeployed.style.display   = 'none';
+        configSection.style.display = '';
+        if (!gatewaySaved) loadGatewayConfig();
+      } else {
+        notDeployed.style.display   = '';
+        configSection.style.display = 'none';
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ── AGENT TAB ─────────────────────────────────────────────────────────────
+  async function loadAgentConfig() {
+    setStatus('agent', 'busy', 'Loading…');
+    try {
+      var r    = await fetch('/api/deploy/agent/config');
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      agentSaved = data.config;
+      document.getElementById('agent-editor').value = agentSaved;
+      setStatus('agent', '', '');
+      lintYaml('agent');
+    } catch (err) {
+      setStatus('agent', 'err', 'Could not load: ' + err.message);
+    }
+  }
+
+  function resetAgent() {
+    document.getElementById('agent-editor').value = agentSaved;
+    setStatus('agent', '', '');
+  }
+
+  async function applyAgentConfig() {
+    var config = document.getElementById('agent-editor').value;
+    setBusy('agent', true);
+    setStatus('agent', 'busy', 'Applying…');
+    openLogs('agent');
+    try {
+      var r    = await fetch('/api/deploy/agent/config', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ config }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('agent', 'err', data.error || 'Unknown error');
+      } else {
+        agentSaved = config;
+        setStatus('agent', 'ok', data.message + ' (' + new Date().toLocaleTimeString() + ')');
+      }
+    } catch (err) {
+      setStatus('agent', 'err', 'Request failed: ' + err.message);
+    }
+    setBusy('agent', false);
+  }
+
+  // ── GATEWAY TAB ───────────────────────────────────────────────────────────
+  async function loadGatewayConfig() {
+    setStatus('gateway', 'busy', 'Loading…');
+    try {
+      var r    = await fetch('/api/deploy/gateway/config');
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      gatewaySaved = data.config || '';
+      document.getElementById('gateway-editor').value = gatewaySaved;
+      setStatus('gateway', '', '');
+      lintYaml('gateway');
+    } catch (err) {
+      setStatus('gateway', 'err', 'Could not load: ' + err.message);
+    }
+  }
+
+  function resetGateway() {
+    document.getElementById('gateway-editor').value = gatewaySaved;
+    setStatus('gateway', '', '');
+  }
+
+  async function applyGatewayConfig() {
+    var config = document.getElementById('gateway-editor').value;
+    setBusy('gateway', true);
+    setStatus('gateway', 'busy', 'Applying…');
+    openLogs('gateway');
+    try {
+      var r    = await fetch('/api/deploy/gateway/config', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ config }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('gateway', 'err', data.error || 'Unknown error');
+      } else {
+        gatewaySaved = config;
+        setStatus('gateway', 'ok', data.message + ' (' + new Date().toLocaleTimeString() + ')');
+      }
+    } catch (err) {
+      setStatus('gateway', 'err', 'Request failed: ' + err.message);
+    }
+    setBusy('gateway', false);
+  }
+
+  async function deployGateway() {
+    var btn = document.getElementById('gateway-btn-deploy');
+    btn.disabled = true;
+    var dot = document.getElementById('gateway-deploy-dot');
+    var msg = document.getElementById('gateway-deploy-msg');
+    dot.className = 'status-dot busy';
+    msg.className = 'status-msg';
+    msg.textContent = 'Deploying…';
+    try {
+      var r    = await fetch('/api/deploy/gateway', { method: 'POST' });
+      var data = await r.json();
+      if (!r.ok) {
+        dot.className   = 'status-dot err';
+        msg.className   = 'status-msg err';
+        msg.textContent = data.error || 'Deploy failed';
+        btn.disabled    = false;
+      } else {
+        dot.className   = 'status-dot ok';
+        msg.className   = 'status-msg ok';
+        msg.textContent = data.message;
+        await loadKubeStatus();
+        openLogs('gateway');
+      }
+    } catch (err) {
+      dot.className   = 'status-dot err';
+      msg.className   = 'status-msg err';
+      msg.textContent = 'Request failed: ' + err.message;
+      btn.disabled    = false;
+    }
+  }
+
+  // ── LOG PANELS ────────────────────────────────────────────────────────────
+  var LOG_URLS = {
+    local:   '/api/collector/logs',
+    agent:   '/api/deploy/agent/logs',
+    gateway: '/api/deploy/gateway/logs',
+  };
+
+  function colorize(line) {
+    if (/error|Error|ERROR|panic/.test(line))               return 'log-line-err';
+    if (/warn|WARN|Warn/.test(line))                        return 'log-line-warn';
+    if (/Everything is ready|started|Running/.test(line))   return 'log-line-ok';
+    return '';
+  }
+
+  function openLogs(which) {
+    var panel = document.getElementById(which + '-log-panel');
+    panel.style.display = 'block';
+    if (logSources[which]) return;
+    var pre = document.getElementById(which + '-log-output');
+    var src = new EventSource(LOG_URLS[which]);
+    logSources[which] = src;
+    src.onmessage = function (e) {
+      var line = JSON.parse(e.data);
+      var span = document.createElement('span');
+      var cls  = colorize(line);
+      if (cls) span.className = cls;
+      span.textContent = line + '\n';
+      pre.appendChild(span);
+      pre.scrollTop = pre.scrollHeight;
+      while (pre.childNodes.length > 600) pre.removeChild(pre.firstChild);
+    };
+    src.onerror = function () { src.close(); logSources[which] = null; };
+  }
+
+  function toggleLogs(which) {
+    var panel = document.getElementById(which + '-log-panel');
+    if (panel.style.display === 'none' || !panel.style.display) {
+      openLogs(which);
+    } else {
+      panel.style.display = 'none';
+    }
+  }
+
+  // ── YAML lint & format ───────────────────────────────────────────────────
+  var lintTimers = {};
+
+  function lintYaml(pane) {
+    if (typeof jsyaml === 'undefined') return;
+    var editorId = pane + '-editor';
+    var ta       = document.getElementById(editorId);
+    var banner   = document.getElementById(pane + '-yaml-error');
+    if (!ta || !banner) return;
+    try {
+      jsyaml.load(ta.value);
+      banner.style.display = 'none';
+    } catch (e) {
+      var line = (e.mark && e.mark.line   != null) ? e.mark.line   + 1 : null;
+      var col  = (e.mark && e.mark.column != null) ? e.mark.column + 1 : null;
+      var loc  = line != null ? 'Line ' + line + (col != null ? ', col ' + col : '') : 'Error';
+      document.getElementById(pane + '-yaml-error-loc').textContent = loc;
+      document.getElementById(pane + '-yaml-error-msg').textContent = e.reason || e.message || String(e);
+      banner.style.display = 'flex';
+    }
+  }
+
+  function scheduleLint(pane) {
+    clearTimeout(lintTimers[pane]);
+    lintTimers[pane] = setTimeout(function () { lintYaml(pane); }, 450);
+  }
+
+  function jumpToYamlError(pane) {
+    if (typeof jsyaml === 'undefined') return;
+    var ta = document.getElementById(pane + '-editor');
+    if (!ta) return;
+    try {
+      jsyaml.load(ta.value);
+    } catch (e) {
+      if (e.mark && e.mark.line != null) {
+        var lines = ta.value.split('\n');
+        var pos = 0;
+        for (var i = 0; i < e.mark.line && i < lines.length; i++) {
+          pos += lines[i].length + 1;
+        }
+        pos += (e.mark.column || 0);
+        ta.focus();
+        ta.setSelectionRange(pos, pos);
+      }
+    }
+  }
+
+  function formatYaml(pane) {
+    var ta = document.getElementById(pane + '-editor');
+    if (!ta) return;
+    var lines = ta.value.split('\n');
+    var formatted = lines
+      .map(function (l) { return l.replace(/\t/g, '  ').replace(/[ \t]+$/, ''); })
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n*$/, '\n');
+    if (formatted !== ta.value) {
+      ta.value = formatted;
+      ta.dispatchEvent(new Event('input'));
+      setStatus(pane, 'ok', 'Formatted');
+      setTimeout(function () { setStatus(pane, '', ''); }, 2000);
+    }
+  }
+
+  // ── Tab key → 2 spaces in all editors ─────────────────────────────────────
+  ['local-editor', 'agent-editor', 'gateway-editor'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        var s = this.selectionStart;
+        this.value = this.value.substring(0, s) + '  ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = s + 2;
+      }
+    });
+  });
+
+  // ── Ctrl+S / ⌘S → apply current tab ──────────────────────────────────────
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (activeTab === 'local'   && !watchModeActive['local'])   applyLocalConfig();
+      if (activeTab === 'agent'   && !watchModeActive['agent'])   applyAgentConfig();
+      if (activeTab === 'gateway' && !watchModeActive['gateway']) applyGatewayConfig();
+    }
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  renderArchDiagram();
+  loadLocalConfig();
+  loadKubeStatus().then(function () {
+    loadAgentConfig();
+  });
+  statusPoller = setInterval(loadKubeStatus, 5000);
+
+  // Restore IDE Watch Mode preferences from localStorage.
+  ['local', 'agent', 'gateway'].forEach(function (tab) {
+    if (localStorage.getItem('arcade-watch-mode-' + tab) === '1') {
+      setWatchMode(tab, true);
+    }
+  });
+  </script>
+</body>
+</html>

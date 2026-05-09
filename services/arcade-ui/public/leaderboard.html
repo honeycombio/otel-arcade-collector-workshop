@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leaderboard — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <h1 class="brand">Leaderboard</h1>
+    <p class="tagline">Top scores across all games.</p>
+
+    <section class="lb-section">
+      <div class="lb-header">
+        <h2 class="lb-title">Top Scores</h2>
+        <div class="lb-tabs">
+          <button class="lb-tab active" data-game="">All</button>
+          <button class="lb-tab" data-game="memory">Memory</button>
+          <button class="lb-tab" data-game="typing">Typing</button>
+          <button class="lb-tab" data-game="whackamole">Mole</button>
+        </div>
+        <span class="lb-age" id="lb-age"></span>
+      </div>
+      <table class="lb-table">
+        <thead>
+          <tr><th>#</th><th>Player</th><th>Game</th><th>Score</th></tr>
+        </thead>
+        <tbody id="lb-body">
+          <tr><td colspan="4" class="lb-empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/app.js"></script>
+  <script>window.LB_LIMIT = 10;</script>
+  <script src="/js/leaderboard.js"></script>
+</body>
+</html>

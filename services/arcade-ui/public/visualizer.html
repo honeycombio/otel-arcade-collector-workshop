@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pipeline Visualizer — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <iframe id="viz-frame" class="viz-frame" title="Pipeline Visualizer"></iframe>
+  <script src="/js/nav.js"></script>
+  <script>
+    document.getElementById('viz-frame').src =
+      location.protocol + '//' + location.hostname + ':8090';
+  </script>
+</body>
+</html>

@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TelemetryGen — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .tgen-shell { max-width: 700px; padding: 28px 24px 48px; }
+    .tgen-tagline { color: var(--muted); font-size: 13px; margin: 0 0 22px; }
+
+    .tgen-section { margin-bottom: 20px; }
+    .tgen-label {
+      display: block; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px;
+    }
+    .tgen-input {
+      width: 100%; background: var(--panel-solid); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 12px; font-family: inherit; font-size: 13px; outline: none;
+    }
+    .tgen-input:focus { border-color: var(--accent2); }
+
+    .tgen-toolbar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .select-preset {
+      background: var(--panel-solid); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 10px; font-family: inherit; font-size: 12px; cursor: pointer; outline: none;
+    }
+    .select-preset:focus { border-color: var(--accent2); }
+
+    /* Attribute rows */
+    .attr-rows { display: flex; flex-direction: column; gap: 8px; }
+    .attr-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; }
+    .attr-input {
+      background: var(--panel-solid); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 7px 10px; font-family: inherit; font-size: 12px; outline: none; width: 100%;
+    }
+    .attr-input:focus { border-color: var(--accent2); }
+    .btn-remove {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 4px; padding: 6px 10px;
+      font-family: inherit; font-size: 13px; cursor: pointer; line-height: 1;
+    }
+    .btn-remove:hover { border-color: var(--bad); color: var(--bad); }
+    .btn-add-attr {
+      background: transparent; border: 1px dashed var(--border);
+      color: var(--muted); border-radius: 6px; padding: 7px 14px;
+      font-family: inherit; font-size: 12px; cursor: pointer; margin-top: 4px; width: 100%;
+    }
+    .btn-add-attr:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* Actions */
+    .tgen-actions { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .btn-generate {
+      background: var(--accent2); color: #000; border: none;
+      padding: 9px 22px; font-family: inherit; font-size: 13px; font-weight: bold;
+      letter-spacing: 0.06em; text-transform: uppercase; border-radius: 6px; cursor: pointer;
+    }
+    .btn-generate:hover { opacity: 0.85; }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .tgen-status {
+      display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+    }
+    .tgen-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .tgen-dot.ok   { background: #6dd17a; }
+    .tgen-dot.err  { background: #ff5d76; }
+    .tgen-dot.busy { background: var(--accent3); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .tgen-msg.ok  { color: #6dd17a; }
+    .tgen-msg.err { color: #ff5d76; }
+
+    .tgen-hint {
+      font-size: 11px; color: var(--muted); margin-top: 10px;
+      background: rgba(93,255,234,0.04); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px;
+    }
+    .tgen-hint a { color: var(--accent2); }
+
+    .session-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .btn-session {
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      letter-spacing: 0.02em;
+      transition: border-color 100ms ease;
+    }
+    .btn-session:hover  { border-color: var(--accent2); color: var(--accent2); }
+    .btn-session:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Load generator ──────────────────────────────────── */
+    .loadgen-rps-input {
+      width: 60px; padding: 7px 10px;
+      background: var(--panel-solid); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 13px;
+      text-align: center; font-family: inherit; outline: none;
+    }
+    .loadgen-rps-input:focus { border-color: var(--accent2); }
+    .btn-stop {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 6px; padding: 9px 20px;
+      font-family: inherit; font-size: 13px; font-weight: bold;
+      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .btn-stop:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
+    .btn-stop:disabled { opacity: 0.4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="shell tgen-shell">
+    <h1 class="brand">TelemetryGen</h1>
+    <p class="tgen-tagline">Generate a span and send it directly to the Collector — no game required. Useful for testing OTTL transforms.</p>
+
+    <div class="tgen-toolbar">
+      <span class="tgen-label" style="margin:0">Preset</span>
+      <select class="select-preset" id="preset-select" onchange="loadPreset(this.value)">
+        <option value="">Choose a preset…</option>
+        <option value="sql">SQL smell span</option>
+        <option value="pii">PII span</option>
+        <option value="probe">Health probe span</option>
+        <option value="clean">Clean span (no smells)</option>
+        <option value="error">Error span (status code 2)</option>
+      </select>
+    </div>
+
+    <div class="tgen-section">
+      <label class="tgen-label" for="service-name">Service name</label>
+      <input class="tgen-input" id="service-name" value="test-service" />
+    </div>
+
+    <div class="tgen-section">
+      <label class="tgen-label" for="span-name">Span name</label>
+      <input class="tgen-input" id="span-name" value="test.span" />
+    </div>
+
+    <div class="tgen-section">
+      <label class="tgen-label">Attributes</label>
+      <div class="attr-rows" id="attr-rows"></div>
+      <button class="btn-add-attr" onclick="addAttrRow()">+ Add attribute</button>
+    </div>
+
+    <div class="tgen-section">
+      <label class="tgen-label">Span Events</label>
+      <div class="attr-rows" id="event-rows"></div>
+      <button class="btn-add-attr" onclick="addEventRow()">+ Add span event</button>
+    </div>
+
+    <div class="tgen-section" style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <input type="checkbox" id="with-error" style="width:auto;cursor:pointer;accent-color:var(--accent2)" />
+      <label for="with-error" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;cursor:pointer">Set error status (code=2)</label>
+    </div>
+    <div class="tgen-section" style="display:flex;align-items:center;gap:10px;margin-bottom:0">
+      <input type="checkbox" id="with-log" style="width:auto;cursor:pointer;accent-color:var(--accent2)" />
+      <label for="with-log" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;cursor:pointer">Also send a log record</label>
+    </div>
+
+    <div class="tgen-actions">
+      <button class="btn-generate" id="btn-gen" onclick="generate()">Generate span</button>
+      <div class="tgen-status">
+        <span class="tgen-dot" id="tgen-dot"></span>
+        <span class="tgen-msg" id="tgen-msg"></span>
+      </div>
+    </div>
+
+    <div class="tgen-hint" id="tgen-hint" style="display:none">
+      Span sent ✓ — open the <a href="/visualizer.html">Visualizer</a> to see it appear in the feed.
+      <span id="tgen-log-hint"></span>
+      <br>traceId: <code id="trace-id-out"></code>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:28px 0 22px" />
+
+    <h2 class="brand" style="font-size:15px;margin:0 0 6px">Game Session Presets</h2>
+    <p class="tgen-tagline" style="margin-bottom:16px">
+      Simulate complete game sessions across all three services — each session produces
+      realistic multi-span traces with all deliberate telemetry smells intact.
+    </p>
+
+    <div class="session-grid" id="session-grid">
+      <button class="btn-session" onclick="genSession('memory', 5)">5 × Memory Match</button>
+      <button class="btn-session" onclick="genSession('typing', 5)">5 × Typing Speed</button>
+      <button class="btn-session" onclick="genSession('whackamole', 5)">5 × Whack-a-Mole</button>
+      <button class="btn-session" onclick="genSession('reaction', 5)">5 × Reaction Timer</button>
+      <button class="btn-session" onclick="genSession('math-sprint', 5)">5 × Math Sprint</button>
+      <button class="btn-session" onclick="genSession('simon-says', 5)">5 × Simon Says</button>
+      <button class="btn-session" onclick="genSession('mixed', 10)">10 × Mixed (all games)</button>
+      <button class="btn-session" onclick="genSession('mixed', 50)">50 × Mixed (load volume)</button>
+    </div>
+
+    <div class="tgen-status" style="margin-top:12px">
+      <span class="tgen-dot" id="sess-dot"></span>
+      <span class="tgen-msg" id="sess-msg"></span>
+    </div>
+    <div class="tgen-hint" id="sess-hint" style="display:none">
+      Sessions sent ✓ — open the <a href="/visualizer.html">Visualizer</a> to see the traces flow through.
+      <br><span id="sess-summary"></span>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:28px 0 22px" />
+
+    <h2 class="brand" style="font-size:15px;margin:0 0 6px">Load Generator</h2>
+    <p class="tgen-tagline" style="margin-bottom:16px">
+      Sustained background traffic at a configurable rate — useful for Labs 3–4 queue depth
+      and throughput experiments. Runs as a Docker container on the arcade network.
+    </p>
+
+    <div class="tgen-actions">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="tgen-label" for="loadgen-rps" style="margin:0">RPS</label>
+        <input class="loadgen-rps-input" id="loadgen-rps" type="number" min="1" max="50" value="5" />
+      </div>
+      <button class="btn-generate" id="loadgen-start-btn" onclick="startLoadgen()">Start</button>
+      <button class="btn-stop"     id="loadgen-stop-btn"  onclick="stopLoadgen()" disabled>Stop</button>
+      <div class="tgen-status">
+        <span class="tgen-dot" id="loadgen-dot"></span>
+        <span class="tgen-msg" id="loadgen-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/nav.js"></script>
+  <script>
+  var PRESETS = {
+    sql: {
+      service: 'score-api',
+      span:    "SELECT * FROM scores WHERE player_id = 'u_test123'",
+      attrs:   [['player.id', 'u_test123'], ['db.statement', "SELECT * FROM scores WHERE player_id = 'u_test123'"], ['db.system', 'sqlite']],
+    },
+    pii: {
+      service: 'arcade-ui',
+      span:    'arcade.game.start',
+      attrs:   [['player.id', 'u_test123'], ['game.name', 'memory'], ['browser.user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.2478.97']],
+    },
+    probe: {
+      service: 'arcade-ui',
+      span:    'GET /health',
+      attrs:   [['http.method', 'GET'], ['http.target', '/health'], ['http.status_code', '200']],
+    },
+    clean: {
+      service: 'test-service',
+      span:    'my.operation',
+      attrs:   [['operation.type', 'read'], ['result', 'ok']],
+    },
+    error: {
+      service:    'score-api',
+      span:       'game.session.complete',
+      attrs:      [['game.name', 'memory'], ['player.id', 'u_test123'], ['error.type', 'TimeoutError']],
+      withError:  true,
+    },
+  };
+
+  function addEventRow(name) {
+    var container = document.getElementById('event-rows');
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    row.style.gridTemplateColumns = '1fr auto';
+    row.innerHTML =
+      '<input class="attr-input" placeholder="event name (e.g. cache.miss, db.query.slow)" value="' + escHtml(name || '') + '" />' +
+      '<button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';
+    container.appendChild(row);
+  }
+
+  function getEvents() {
+    var events = [];
+    document.querySelectorAll('#event-rows .attr-row').forEach(function(row) {
+      var name = row.querySelector('.attr-input').value.trim();
+      if (name) events.push({ name: name });
+    });
+    return events;
+  }
+
+  function addAttrRow(key, value) {
+    var container = document.getElementById('attr-rows');
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    row.innerHTML =
+      '<input class="attr-input" placeholder="key" value="' + escHtml(key || '') + '" />' +
+      '<input class="attr-input" placeholder="value" value="' + escHtml(value || '') + '" />' +
+      '<button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';
+    container.appendChild(row);
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function loadPreset(key) {
+    document.getElementById('preset-select').value = '';
+    var p = PRESETS[key];
+    if (!p) return;
+    document.getElementById('service-name').value = p.service;
+    document.getElementById('span-name').value    = p.span;
+    document.getElementById('attr-rows').innerHTML = '';
+    (p.attrs || []).forEach(function(a) { addAttrRow(a[0], a[1]); });
+    document.getElementById('with-error').checked = !!(p.withError);
+    setStatus('', '');
+    document.getElementById('tgen-hint').style.display = 'none';
+  }
+
+  function getAttributes() {
+    var rows = document.querySelectorAll('.attr-row');
+    var attrs = [];
+    rows.forEach(function(row) {
+      var inputs = row.querySelectorAll('.attr-input');
+      var key = inputs[0] && inputs[0].value.trim();
+      var val = inputs[1] && inputs[1].value.trim();
+      if (key) attrs.push({ key: key, value: val });
+    });
+    return attrs;
+  }
+
+  function setStatus(state, msg) {
+    var dot = document.getElementById('tgen-dot');
+    var txt = document.getElementById('tgen-msg');
+    dot.className = 'tgen-dot ' + state;
+    txt.className = 'tgen-msg ' + (state === 'err' ? 'err' : state === 'ok' ? 'ok' : '');
+    txt.textContent = msg;
+  }
+
+  async function generate() {
+    var serviceName = document.getElementById('service-name').value.trim() || 'test-service';
+    var spanName    = document.getElementById('span-name').value.trim()    || 'test.span';
+    var attributes  = getAttributes();
+    var events      = getEvents();
+    var withLog     = document.getElementById('with-log').checked;
+    var withError   = document.getElementById('with-error').checked;
+
+    document.getElementById('btn-gen').disabled = true;
+    document.getElementById('tgen-hint').style.display = 'none';
+    setStatus('busy', 'Sending…');
+
+    try {
+      var r = await fetch('/api/telemetrygen', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ serviceName, spanName, attributes, events, withLog, withError }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        setStatus('err', data.error || 'Failed');
+      } else {
+        setStatus('ok', 'Sent · ' + new Date().toLocaleTimeString());
+        document.getElementById('tgen-hint').style.display = 'block';
+        document.getElementById('trace-id-out').textContent = data.traceId;
+        document.getElementById('tgen-log-hint').textContent =
+          withLog ? ' A log record was also sent — check the Logs tab in the Visualizer.' : '';
+      }
+    } catch (err) {
+      setStatus('err', err.message);
+    }
+    document.getElementById('btn-gen').disabled = false;
+  }
+
+  async function genSession(game, sessions) {
+    var buttons = document.querySelectorAll('.btn-session');
+    buttons.forEach(function(b) { b.disabled = true; });
+    document.getElementById('sess-dot').className = 'tgen-dot busy';
+    document.getElementById('sess-msg').className = 'tgen-msg';
+    document.getElementById('sess-msg').textContent = 'Sending ' + sessions + ' session' + (sessions > 1 ? 's' : '') + '…';
+    document.getElementById('sess-hint').style.display = 'none';
+    try {
+      var r = await fetch('/api/telemetrygen/session', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ game: game, sessions: sessions }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        document.getElementById('sess-dot').className = 'tgen-dot err';
+        document.getElementById('sess-msg').className = 'tgen-msg err';
+        document.getElementById('sess-msg').textContent = data.error || 'Failed';
+      } else {
+        document.getElementById('sess-dot').className = 'tgen-dot ok';
+        document.getElementById('sess-msg').className = 'tgen-msg ok';
+        document.getElementById('sess-msg').textContent =
+          data.sessions + ' sessions · ' + data.spanCount + ' spans sent · ' + new Date().toLocaleTimeString();
+        document.getElementById('sess-hint').style.display = 'block';
+        document.getElementById('sess-summary').textContent =
+          data.spanCount + ' spans · ' + (data.logCount || 0) + ' log records across ' + data.sessions + ' sessions. Check the Traces and Logs tabs in the Visualizer.';
+      }
+    } catch (err) {
+      document.getElementById('sess-dot').className = 'tgen-dot err';
+      document.getElementById('sess-msg').className = 'tgen-msg err';
+      document.getElementById('sess-msg').textContent = err.message;
+    }
+    buttons.forEach(function(b) { b.disabled = false; });
+  }
+
+  // Enter key on any input triggers generate
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.target.matches('button') && e.target.id !== 'loadgen-rps') generate();
+  });
+
+  // ── Load generator ────────────────────────────────────────────────────────
+  function setLoadgenUI(running, msg) {
+    var dot   = document.getElementById('loadgen-dot');
+    var start = document.getElementById('loadgen-start-btn');
+    var stop  = document.getElementById('loadgen-stop-btn');
+    var msgEl = document.getElementById('loadgen-msg');
+    dot.className = 'tgen-dot' + (running ? ' busy' : '');
+    start.disabled = running;
+    stop.disabled  = !running;
+    msgEl.className = 'tgen-msg' + (running ? '' : '');
+    if (msg !== undefined) msgEl.textContent = msg;
+  }
+
+  function pollLoadgenStatus() {
+    fetch('/api/deploy/loadgen/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.running) {
+          document.getElementById('loadgen-rps').value = data.rps || 5;
+          setLoadgenUI(true, 'Running at ' + (data.rps || 5) + ' RPS');
+        } else {
+          setLoadgenUI(false, '');
+        }
+      })
+      .catch(function() { /* ignore — container may not exist yet */ });
+  }
+
+  function startLoadgen() {
+    var rps = Math.max(1, Math.min(50, parseInt(document.getElementById('loadgen-rps').value, 10) || 5));
+    setLoadgenUI(false, 'Starting…');
+    fetch('/api/deploy/loadgen/start', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ rps: rps }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          setLoadgenUI(true, 'Running at ' + rps + ' RPS');
+        } else {
+          setLoadgenUI(false, 'Error: ' + (data.error || 'unknown'));
+        }
+      })
+      .catch(function(err) { setLoadgenUI(false, 'Error: ' + err.message); });
+  }
+
+  function stopLoadgen() {
+    setLoadgenUI(false, 'Stopping…');
+    fetch('/api/deploy/loadgen/stop', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        setLoadgenUI(false, data.ok ? 'Stopped.' : 'Error: ' + (data.error || 'unknown'));
+      })
+      .catch(function(err) { setLoadgenUI(false, 'Error: ' + err.message); });
+  }
+
+  // Seed one default attribute row on load
+  addAttrRow('key', 'value');
+  pollLoadgenStatus();
+  setInterval(pollLoadgenStatus, 5000);
+  </script>
+</body>
+</html>

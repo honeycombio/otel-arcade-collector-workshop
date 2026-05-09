@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Sprint — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell game-shell">
+    <h1 class="brand">Math Sprint</h1>
+    <div class="scorebar">
+      <span>question: <b id="q-num">1</b> / 10</span>
+      <span>score: <b id="score">0</b></span>
+      <span>time: <b id="time">60</b>s</span>
+      <span>player: <b id="player"></b></span>
+    </div>
+    <div class="math-equation" id="equation"></div>
+    <input class="math-input" id="answer" placeholder="?" autocomplete="off" autofocus />
+    <div class="math-progress" id="progress"></div>
+  </div>
+  <script src="/js/nav.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/math-sprint.js"></script>
+</body>
+</html>

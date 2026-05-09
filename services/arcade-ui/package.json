@@ -1,0 +1,25 @@
+{
+  "name": "arcade-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OTel Arcade UI — game lobby and 3 mini-games (workshop frontend, all spans server-side).",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node -r ./src/tracing.js src/server.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.0",
+    "@opentelemetry/exporter-logs-otlp-grpc": "^0.54.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.54.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.54.0",
+    "@opentelemetry/resources": "^1.27.0",
+    "@opentelemetry/sdk-logs": "^0.54.0",
+    "@opentelemetry/sdk-metrics": "^1.27.0",
+    "@opentelemetry/sdk-node": "^0.54.0",
+    "@opentelemetry/sdk-trace-node": "^1.27.0",
+    "@opentelemetry/semantic-conventions": "^1.27.0",
+    "express": "^4.19.2",
+    "js-yaml": "^4.1.0"
+  }
+}

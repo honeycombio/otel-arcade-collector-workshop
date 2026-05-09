@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reaction Timer — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell game-shell">
+    <h1 class="brand">Reaction Timer</h1>
+    <div class="scorebar">
+      <span>round: <b id="round">0</b> / 5</span>
+      <span>avg: <b id="avg">—</b> ms</span>
+      <span>player: <b id="player"></b></span>
+    </div>
+    <div class="reaction-circle" id="circle">Wait…</div>
+    <div class="reaction-result" id="result"></div>
+    <div class="reaction-history" id="history"></div>
+  </div>
+  <script src="/js/nav.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/browser-tracer.js"></script>
+  <script src="/js/reaction.js"></script>
+</body>
+</html>
