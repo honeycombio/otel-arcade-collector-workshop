@@ -250,6 +250,15 @@ a { color: var(--accent2); text-decoration: none; }
   gap: 18px;
 }
 
+.game-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
 .scorebar {
   display: flex;
   gap: 24px;
