@@ -175,13 +175,9 @@ function makeServiceGraph() {
 
   function indexSpan(spanId, service) {
     spanIndex.set(spanId, { service, ts: Date.now() });
-    // Evict oldest entries when over cap
+    // Map iteration is in insertion order, so the first key is always oldest — O(1) eviction.
     if (spanIndex.size > SPAN_INDEX_CAP) {
-      let oldest = null, oldestTs = Infinity;
-      for (const [id, e] of spanIndex) {
-        if (e.ts < oldestTs) { oldest = id; oldestTs = e.ts; }
-      }
-      if (oldest) spanIndex.delete(oldest);
+      spanIndex.delete(spanIndex.keys().next().value);
     }
   }
 

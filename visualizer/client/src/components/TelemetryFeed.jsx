@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 
 const SQL_RE   = /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE)\b/i;
 const PROBE_RE  = /^(GET|POST) \/(health|ready)$/;
@@ -80,7 +80,7 @@ function KVTable({ label, obj }) {
 
 // ── Single feed row ────────────────────────────────────────────────────────
 
-function FeedRow({ item, showDiff }) {
+const FeedRow = memo(function FeedRow({ item, showDiff }) {
   const [expanded, setExpanded] = useState(false);
   const tags   = detectSmells(item);
   const hasDiff = item.diff && item.diff.length > 0;
@@ -147,7 +147,7 @@ function FeedRow({ item, showDiff }) {
       )}
     </div>
   );
-}
+});
 
 // ── Main component ─────────────────────────────────────────────────────────
 
