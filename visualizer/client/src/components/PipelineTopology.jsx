@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-function sumByName(metrics, name) {
-  const arr = (metrics && metrics[name]) || [];
-  return arr.reduce((s, m) => s + (m.value || 0), 0);
-}
+import { sumByName } from '../utils.js';
 
 function chip(name) {
   return <span key={name} className="pipe-chip">{name}</span>;

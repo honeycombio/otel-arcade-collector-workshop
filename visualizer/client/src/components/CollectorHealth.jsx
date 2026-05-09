@@ -1,20 +1,5 @@
 import React from 'react';
-
-function sumByName(metrics, name) {
-  const arr = (metrics && metrics[name]) || [];
-  return arr.reduce((s, m) => s + (m.value || 0), 0);
-}
-
-function sumByLabel(metrics, name, lk, lv) {
-  return ((metrics && metrics[name]) || [])
-    .filter((m) => m.labels && m.labels[lk] === lv)
-    .reduce((s, m) => s + (m.value || 0), 0);
-}
-
-function pick(metrics, name) {
-  const arr = (metrics && metrics[name]) || [];
-  return arr[0] ? arr[0].value : 0;
-}
+import { sumByName, sumByLabel, pick } from '../utils.js';
 
 function gauge(label, value, opts = {}) {
   let cls = 'gauge';

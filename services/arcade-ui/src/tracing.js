@@ -44,9 +44,8 @@ const sdk = new NodeSDK({
 
 sdk.start();
 
-process.on('SIGTERM', () => {
+function shutdown() {
   sdk.shutdown().catch(() => {}).finally(() => process.exit(0));
-});
-process.on('SIGINT', () => {
-  sdk.shutdown().catch(() => {}).finally(() => process.exit(0));
-});
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

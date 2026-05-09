@@ -73,7 +73,8 @@ local-init:  ## First-time setup: check Docker, create .env, pre-pull the Collec
 	  echo "✓ .env already exists"; \
 	fi
 	@echo "pulling Collector image: $(COLLECTOR_IMAGE)"
-	@docker pull $(COLLECTOR_IMAGE) > /dev/null && echo "✓ Collector image cached"
+	@docker pull $(COLLECTOR_IMAGE) > /dev/null || { echo "✗ failed to pull $(COLLECTOR_IMAGE)"; exit 1; }
+	@echo "✓ Collector image cached"
 	@echo
 	@echo "Setup complete. Next: make local-up"
 

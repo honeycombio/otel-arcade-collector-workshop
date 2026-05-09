@@ -170,7 +170,7 @@ router.post('/api/games/wave-defender/wave', async (req, res) => {
         'enemy.destroyed': !!enemy.destroyed,
         'enemy.points':    enemy.destroyed ? (enemy.points || 10) : 0,
       });
-      await new Promise(r => setTimeout(r, 4 + Math.random() * 22));
+      await new Promise(r => setTimeout(r, 4 + Math.random() * 22)); // simulates variable enemy-resolution latency
       s.end();
       return enemy.destroyed ? (enemy.points || 10) : 0;
     })
