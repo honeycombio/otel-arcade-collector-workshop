@@ -5,6 +5,8 @@
   const scoreEl    = document.getElementById('score');
   document.getElementById('player').textContent = window.Arcade.getPlayerId();
 
+  const difficulty = await window.Arcade.chooseDifficulty();
+
   let session = null;
   try {
     session = await window.Arcade.startGame('bid-wars');
@@ -13,13 +15,21 @@
     return;
   }
 
-  const ITEMS = [
+  const ALL_ITEMS = [
     { id: 'item_traces',  emoji: '📡', name: 'Rare Trace Artifact',   basePrice: 80  },
     { id: 'item_metrics', emoji: '📊', name: 'Metric Heirloom',        basePrice: 120 },
     { id: 'item_logs',    emoji: '📜', name: 'Ancient Log Fragment',   basePrice: 160 },
+    { id: 'item_spans',   emoji: '🔗', name: 'Golden Span Token',      basePrice: 200 },
+    { id: 'item_ottl',    emoji: '⚗️', name: 'OTTL Formula Blueprint', basePrice: 250 },
   ];
 
-  const ROUND_SECONDS = 12;
+  // Easy: 2 items, Medium: 3, Hard: all 5
+  const ITEMS = difficulty === 'easy' ? ALL_ITEMS.slice(0, 2)
+              : difficulty === 'hard'  ? ALL_ITEMS
+              : ALL_ITEMS.slice(0, 3);
+
+  // Easy: 18s per round, Medium: 12s, Hard: 8s (more time pressure)
+  const ROUND_SECONDS = difficulty === 'easy' ? 18 : difficulty === 'hard' ? 8 : 12;
   let totalScore = 0;
   let itemsWon   = 0;
 
@@ -137,8 +147,8 @@
 
   auctionEl.innerHTML = '<div style="color:var(--accent2);padding:14px;font-size:14px">Auction complete.</div>';
   try {
-    await window.Arcade.completeGame('bid-wars', session.id, totalScore);
+    await window.Arcade.completeGame('bid-wars', session.id, totalScore, difficulty);
   } catch (_) {}
 
-  window.Arcade.showGameOver({ title: 'Auction Closed! 🏺', stats: [{ label: 'Items Won', value: itemsWon + ' / 3' }], score: totalScore });
+  window.Arcade.showGameOver({ title: 'Auction Closed! 🏺', stats: [{ label: 'Items Won', value: itemsWon + ' / ' + ITEMS.length }], score: totalScore });
 })();

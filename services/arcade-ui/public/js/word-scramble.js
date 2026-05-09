@@ -1,9 +1,22 @@
 (async function () {
-  const WORDS = [
-    'PIPELINE', 'RECEIVER', 'EXPORTER', 'PROCESSOR',
-    'METRIC',   'TRACING',  'SAMPLER',  'BAGGAGE',
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // All OTel-themed words sorted by length; difficulty picks a subset
+  const ALL_WORDS = [
+    // short (≤6 letters) — Easy
+    'SPAN', 'TRACE', 'METRIC', 'BAGGAGE', 'SAMPLER',
+    // medium (7–8 letters) — Medium
+    'TRACING', 'EXPORTER', 'RECEIVER', 'PIPELINE', 'RESOURCE',
+    // long (9+ letters) — Hard
+    'PROCESSOR', 'ATTRIBUTE', 'PROPAGATOR', 'INSTRUMENTATION',
   ];
-  const MAX_ATTEMPTS = 3;
+  const WORDS = difficulty === 'easy'
+    ? ALL_WORDS.slice(0, 5)
+    : difficulty === 'hard'
+    ? ALL_WORDS.slice(5)
+    : ALL_WORDS.slice(5, 10);
+
+  const MAX_ATTEMPTS = difficulty === 'hard' ? 2 : 3;
 
   const scrambledEl = document.getElementById('scrambled');
   const guessEl     = document.getElementById('guess');
@@ -99,7 +112,7 @@
   async function finish() {
     scrambledEl.textContent = '🎉';
     feedbackEl.textContent = 'All done!';
-    try { await window.Arcade.completeGame('word-scramble', session.id, totalScore); } catch (_) {}
+    try { await window.Arcade.completeGame('word-scramble', session.id, totalScore, difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: 'Unscrambled! 🔤', score: totalScore });
   }
 

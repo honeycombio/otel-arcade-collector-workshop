@@ -97,12 +97,49 @@
     document.body.appendChild(overlay);
   }
 
+  var DIFF_MULTIPLIERS = { easy: 1, medium: 2, hard: 3 };
+  var DIFF_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+
+  function chooseDifficulty() {
+    return new Promise(function (resolve) {
+      var last = localStorage.getItem('arcade.difficulty') || 'medium';
+
+      var overlay = document.createElement('div');
+      overlay.className = 'difficulty-picker';
+
+      var card = document.createElement('div');
+      card.className = 'difficulty-picker-card';
+      card.innerHTML =
+        '<div class="difficulty-picker-title">Select Difficulty</div>' +
+        '<div class="difficulty-picker-desc">Higher difficulty earns more points.</div>' +
+        '<div class="difficulty-picker-btns">' +
+          '<button class="diff-btn diff-btn--easy'  + (last === 'easy'   ? ' selected' : '') + '" data-level="easy">Easy<span class="diff-btn-mult">1×</span></button>' +
+          '<button class="diff-btn diff-btn--medium' + (last === 'medium' ? ' selected' : '') + '" data-level="medium">Medium<span class="diff-btn-mult">2×</span></button>' +
+          '<button class="diff-btn diff-btn--hard'  + (last === 'hard'   ? ' selected' : '') + '" data-level="hard">Hard<span class="diff-btn-mult">3×</span></button>' +
+        '</div>';
+
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+
+      overlay.querySelectorAll('.diff-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var level = btn.dataset.level;
+          localStorage.setItem('arcade.difficulty', level);
+          overlay.remove();
+          resolve(level);
+        });
+      });
+    });
+  }
+
   window.Arcade = {
     getPlayerId,
     getPlayerName,
     getPlayerAvatar,
     setPlayerName,
     showGameOver,
+    chooseDifficulty,
+    diffMultiplier: function (level) { return DIFF_MULTIPLIERS[level] || 2; },
     startGame(game) {
       return api('POST', `/api/games/${game}/start`, {});
     },
@@ -113,10 +150,11 @@
         data: data || {},
       });
     },
-    completeGame(game, sessionId, clientScore) {
+    completeGame(game, sessionId, clientScore, difficulty) {
       return api('POST', `/api/games/${game}/complete`, {
         session_id: sessionId,
         client_score: clientScore,
+        difficulty: difficulty || 'medium',
       });
     },
   };

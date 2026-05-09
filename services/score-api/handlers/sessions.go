@@ -171,14 +171,23 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 			return
 		}
 
+		var body struct {
+			Difficulty string `json:"difficulty"`
+		}
+		json.NewDecoder(req.Body).Decode(&body) //nolint:errcheck
+		if body.Difficulty == "" {
+			body.Difficulty = "medium"
+		}
+
 		span.SetAttributes(
 			attribute.String("game.name", sess.Game),
 			attribute.String("game.session.id", sess.ID),
 			attribute.String("player.id", sess.PlayerID),
 			attribute.Int("game.events_count", sess.EventsCount),
+			attribute.String("game.difficulty", body.Difficulty),
 		)
 
-		score := computeScore(ctx, sess)
+		score := computeScore(ctx, sess, body.Difficulty)
 		if err := store.CompleteSession(ctx, sess.ID, score); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
@@ -191,6 +200,7 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 			PlayerID:   sess.PlayerID,
 			PlayerName: sess.PlayerName,
 			Score:      score,
+			Difficulty: body.Difficulty,
 		}
 		if err := store.InsertScore(ctx, row); err != nil {
 			slog.WarnContext(ctx, "insert score failed", "err", err)
@@ -209,33 +219,47 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 	})
 }
 
-func computeScore(ctx context.Context, sess *models.Session) int {
+func difficultyMultiplier(d string) float64 {
+	switch d {
+	case "easy":
+		return 1.0
+	case "hard":
+		return 3.0
+	default:
+		return 2.0 // medium
+	}
+}
+
+func computeScore(ctx context.Context, sess *models.Session, difficulty string) int {
 	ctx, span := tracer.Start(ctx, "score.compute")
 	defer span.End()
 
 	// Pseudo-realistic algorithm. The numbers don't matter — the span attributes do.
 	rawScore := 100 + rand.Intn(900) + sess.EventsCount*5
-	multiplier := 1.0
+	gameMult := 1.0
 	switch sess.Game {
 	case "memory":
-		multiplier = 1.2
+		gameMult = 1.2
 	case "typing":
-		multiplier = 1.5
+		gameMult = 1.5
 	case "whackamole":
-		multiplier = 1.0
+		gameMult = 1.0
 	case "wave-defender":
-		multiplier = 1.3
+		gameMult = 1.3
 	case "bid-wars":
-		multiplier = 1.4
+		gameMult = 1.4
 	case "hot-cache":
-		multiplier = 1.2
+		gameMult = 1.2
 	}
-	final := int(float64(rawScore) * multiplier)
+	diffMult := difficultyMultiplier(difficulty)
+	final := int(float64(rawScore) * gameMult * diffMult)
 
 	span.SetAttributes(
 		attribute.String("algorithm", "weighted-sum-v1"),
 		attribute.Int("raw_score", rawScore),
-		attribute.Float64("bonus_multiplier", multiplier),
+		attribute.Float64("bonus_multiplier", gameMult),
+		attribute.String("game.difficulty", difficulty),
+		attribute.Float64("difficulty.multiplier", diffMult),
 		attribute.String("game.name", sess.Game),
 		attribute.String("player.id", sess.PlayerID),
 		attribute.Int("final_score", final),
@@ -250,6 +274,7 @@ func forwardToLeaderboard(ctx context.Context, sc *models.Score) {
 		"player_id":   sc.PlayerID,
 		"player_name": sc.PlayerName,
 		"score":       sc.Score,
+		"difficulty":  sc.Difficulty,
 	})
 	url := leaderboardURL() + "/scores"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))

@@ -1,10 +1,24 @@
 (async function () {
-  const PASSAGES = [
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // Easy: short passages, Medium: current, Hard: long complex passages
+  const EASY_PASSAGES = [
+    'Spans are the building blocks of traces.',
+    'The Collector receives, processes, and exports telemetry.',
+    'Metrics, logs, and traces are the three pillars of observability.',
+  ];
+  const MEDIUM_PASSAGES = [
     'OpenTelemetry is an observability framework. It provides APIs, libraries, agents, and instrumentation to enable observability in modern software.',
     'A trace tells the story of a request as it flows through a distributed system. Each operation is captured as a span with attributes and timing.',
     'Pipelines transform telemetry. Receivers ingest, processors mutate, exporters ship the data to a backend. The Collector is the swiss army knife.',
   ];
-  const PASSAGE = PASSAGES[Math.floor(Math.random() * PASSAGES.length)];
+  const HARD_PASSAGES = [
+    'The OpenTelemetry Collector supports multiple pipeline configurations simultaneously. Each pipeline is independent: a receiver can feed multiple pipelines, and a processor chain can fan out to several exporters with different sampling strategies.',
+    'OTTL — the OpenTelemetry Transformation Language — allows you to filter, transform, and enrich telemetry at collection time. Expressions operate on typed contexts: span, resource, metric datapoint, and log record each expose their own field set.',
+    'Tail-based sampling defers the keep-or-drop decision until all spans for a trace have arrived at the gateway. This requires a stateful collector tier that buffers incomplete traces and evaluates sampling policies against the full trace graph.',
+  ];
+  const pool = difficulty === 'easy' ? EASY_PASSAGES : difficulty === 'hard' ? HARD_PASSAGES : MEDIUM_PASSAGES;
+  const PASSAGE = pool[Math.floor(Math.random() * pool.length)];
 
   const passageEl = document.getElementById('passage');
   const inputEl = document.getElementById('input');
@@ -86,7 +100,7 @@
     inputEl.disabled = true;
     const score = Math.max(0, wpm * 10 - errors * 5);
     try {
-      await window.Arcade.completeGame('typing', session.id, score);
+      await window.Arcade.completeGame('typing', session.id, score, difficulty);
     } catch (e) { /* ignore */ }
     window.Arcade.showGameOver({ title: 'Speed Typist! ⌨️', stats: [{ label: 'WPM', value: wpm }, { label: 'Errors', value: errors }], score });
   }

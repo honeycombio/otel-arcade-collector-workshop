@@ -1,5 +1,10 @@
 (async function () {
-  const SYMBOLS = ['🎯', '🚀', '⭐', '🎲', '🍕', '🐙', '🌵', '🎷'];
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // Easy: 3×4 (6 pairs), Medium: 4×4 (8 pairs), Hard: 4×6 (12 pairs)
+  const SYMBOL_POOL = ['🎯', '🚀', '⭐', '🎲', '🍕', '🐙', '🌵', '🎷', '🦊', '🎪', '🎸', '🌊'];
+  const pairCount = difficulty === 'easy' ? 6 : difficulty === 'hard' ? 12 : 8;
+  const SYMBOLS = SYMBOL_POOL.slice(0, pairCount);
   const PAIRS = [...SYMBOLS, ...SYMBOLS].sort(() => Math.random() - 0.5);
 
   const grid = document.getElementById('grid');
@@ -8,6 +13,10 @@
   const playerEl = document.getElementById('player');
 
   playerEl.textContent = window.Arcade.getPlayerId();
+
+  // Adjust grid columns to match difficulty
+  if (difficulty === 'easy')  grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  if (difficulty === 'hard')  grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
 
   let session = null;
   try {
@@ -77,7 +86,7 @@
     completed = true;
     const score = Math.max(10, 200 - flips * 5);
     try {
-      await window.Arcade.completeGame('memory', session.id, score);
+      await window.Arcade.completeGame('memory', session.id, score, difficulty);
     } catch (e) { /* ignore */ }
     window.Arcade.showGameOver({ title: 'All Matched! 🧠', stats: [{ label: 'Flips', value: flips }], score });
   }

@@ -5,6 +5,8 @@
   const scoreEl  = document.getElementById('score');
   document.getElementById('player').textContent = window.Arcade.getPlayerId();
 
+  const difficulty = await window.Arcade.chooseDifficulty();
+
   let session = null;
   try {
     session = await window.Arcade.startGame('hot-cache');
@@ -12,6 +14,9 @@
     quizEl.innerHTML = '<div style="color:#ff5d76;padding:14px">Failed to start: ' + err.message + '</div>';
     return;
   }
+
+  // Speed bonus window: Easy = 8s, Medium = 5s, Hard = 3s
+  const ANSWER_WINDOW_MS = difficulty === 'easy' ? 8000 : difficulty === 'hard' ? 3000 : 5000;
 
   // OTel-themed questions — the answers reinforce workshop concepts.
   // Odd-indexed questions (0, 2, 4, 6) are presented as "cold" (❄️ cache miss).
@@ -127,7 +132,7 @@
           pips[qi] = isCorrect ? 'done' : 'wrong';
           if (isCorrect) {
             totalCorrect++;
-            const speedBonus = Math.max(0, Math.round((5000 - responseMs) / 100));
+            const speedBonus = Math.max(0, Math.round((ANSWER_WINDOW_MS - responseMs) / 100));
             totalScore += 100 + speedBonus + (isHot ? 0 : 20); // bonus for cold (harder)
           }
           correctEl.textContent = totalCorrect;
@@ -161,7 +166,7 @@
     '<div style="font-size:18px;color:var(--accent2);margin-top:20px">Quiz complete!</div>';
 
   try {
-    await window.Arcade.completeGame('hot-cache', session.id, totalScore);
+    await window.Arcade.completeGame('hot-cache', session.id, totalScore, difficulty);
   } catch (_) {}
 
   window.Arcade.showGameOver({ title: 'Cache Cleared! 🔥', stats: [{ label: 'Correct', value: totalCorrect + ' / 8' }], score: totalScore });

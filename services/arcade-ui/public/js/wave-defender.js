@@ -8,6 +8,8 @@
   const scoreEl     = document.getElementById('score');
   document.getElementById('player').textContent = window.Arcade.getPlayerId();
 
+  const difficulty = await window.Arcade.chooseDifficulty();
+
   let session = null;
   try {
     session = await window.Arcade.startGame('wave-defender');
@@ -18,7 +20,7 @@
 
   // Wave configurations: each entry is a list of enemy descriptors.
   // Points are weighted by enemy type so the fan-out spans have varied values.
-  const WAVES = [
+  const ALL_WAVES = [
     [
       { type: 'drone', emoji: '👾', points: 10 },
       { type: 'drone', emoji: '👾', points: 10 },
@@ -43,7 +45,30 @@
       { type: 'drone',  emoji: '👾', points: 10 },
       { type: 'elite',  emoji: '👹', points: 40 },
     ],
+    [
+      { type: 'boss',   emoji: '🤖', points: 30 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'boss',   emoji: '🤖', points: 30 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'tank',   emoji: '💀', points: 20 },
+      { type: 'boss',   emoji: '🤖', points: 30 },
+    ],
+    [
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'boss',   emoji: '🤖', points: 30 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'boss',   emoji: '🤖', points: 30 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'elite',  emoji: '👹', points: 40 },
+      { type: 'boss',   emoji: '🤖', points: 30 },
+    ],
   ];
+
+  // Easy: 1 wave, Medium: 3 waves, Hard: all 5 waves
+  const WAVES = difficulty === 'easy' ? ALL_WAVES.slice(0, 1)
+              : difficulty === 'hard'  ? ALL_WAVES
+              : ALL_WAVES.slice(0, 3);
 
   const WAVE_DURATION_MS = 6000;
   let totalDestroyed = 0;
@@ -173,7 +198,6 @@
 
   function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  // Run all three waves
   for (let i = 0; i < WAVES.length; i++) {
     await runWave(i);
     if (i < WAVES.length - 1) {
@@ -184,7 +208,7 @@
 
   bannerEl.textContent = 'Game over!';
   try {
-    await window.Arcade.completeGame('wave-defender', session.id, totalScore);
+    await window.Arcade.completeGame('wave-defender', session.id, totalScore, difficulty);
   } catch (_) {}
 
   window.Arcade.showGameOver({ title: 'Base Defended! 🏰', stats: [{ label: 'Destroyed', value: totalDestroyed }, { label: 'Escaped', value: totalEscaped }], score: totalScore });

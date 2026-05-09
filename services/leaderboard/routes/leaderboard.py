@@ -60,6 +60,7 @@ def get_leaderboard():
             "player_id": r["player_id"],
             "player_name": r["player_name"],
             "score": r["score"],
+            "difficulty": r["difficulty"],
             "created_at": r["created_at"],
         }
         for r in rows

@@ -1,5 +1,9 @@
 (async function () {
-  const DURATION = 10, BURST_MS = 500;
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // Easy: 15s (more time to rack up taps), Medium: 10s, Hard: 7s (shorter window)
+  const DURATION = difficulty === 'easy' ? 15 : difficulty === 'hard' ? 7 : 10;
+  const BURST_MS = 500;
 
   const tapBtn  = document.getElementById('tap-btn');
   const tapsEl  = document.getElementById('taps');
@@ -57,7 +61,7 @@
     tapBtn.textContent = '—';
     const rate = totalTaps / DURATION;
     rateEl.textContent = 'Final: ' + rate.toFixed(1) + ' taps/s';
-    try { await window.Arcade.completeGame('speed-tap', session.id, totalTaps); } catch (_) {}
+    try { await window.Arcade.completeGame('speed-tap', session.id, totalTaps, difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: 'Tap Machine! 👆', stats: [{ label: 'Total Taps', value: totalTaps }, { label: 'Rate', value: rate.toFixed(1) + '/s' }], score: totalTaps });
   }
 })();

@@ -397,22 +397,23 @@ a { color: var(--accent2); text-decoration: none; }
   color: var(--muted);
   white-space: nowrap;
 }
-.lb-tabs {
-  display: flex;
-  gap: 6px;
-}
-.lb-tab {
-  background: transparent;
+.lb-select {
+  background: var(--panel-solid);
   border: 1px solid var(--border);
   color: var(--muted);
-  padding: 3px 10px;
+  padding: 3px 24px 3px 8px;
   border-radius: 4px;
   font-family: inherit;
   font-size: 12px;
-  cursor: pointer;
   letter-spacing: 0.06em;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8fb0'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
 }
-.lb-tab.active, .lb-tab:hover {
+.lb-select:focus {
+  outline: none;
   border-color: var(--accent2);
   color: var(--accent2);
 }
@@ -442,7 +443,7 @@ a { color: var(--accent2); text-decoration: none; }
 }
 .lb-table tr:last-child td { border-bottom: none; }
 .lb-table td:first-child { color: var(--muted); width: 28px; }
-.lb-table td:last-child { color: var(--accent3); text-align: right; }
+.lb-table td:nth-child(4) { color: var(--accent3); text-align: right; }
 .lb-empty {
   color: var(--muted);
   padding: 14px 8px;
@@ -790,3 +791,164 @@ a { color: var(--accent2); text-decoration: none; }
   border-radius: 2px; pointer-events: none; z-index: 9001;
   animation: confettiFall linear both;
 }
+
+/* ── Random lobby card ─────────────────────────────────────── */
+.card--random {
+  border-color: var(--accent3);
+  background: rgba(255, 217, 93, 0.03);
+}
+.card--random:hover {
+  border-color: var(--accent3);
+  background: rgba(255, 217, 93, 0.07);
+}
+.card--random h2 { color: var(--accent3); }
+.card-badge--random {
+  background: rgba(255, 217, 93, 0.12);
+  color: var(--accent3);
+  border: 1px solid rgba(255, 217, 93, 0.3);
+}
+
+/* ── Pixel Sort ────────────────────────────────────────────── */
+.sort-buckets {
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+  max-width: 520px;
+}
+.sort-bucket {
+  width: 118px; padding: 16px 10px;
+  background: var(--panel-solid); border: 2px solid var(--border);
+  border-radius: 10px; text-align: center; user-select: none;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.sort-bucket .sort-bucket-icon  { font-size: 32px; margin-bottom: 6px; display: block; }
+.sort-bucket .sort-bucket-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.sort-bucket .sort-bucket-size  { font-size: 20px; color: var(--accent3); margin: 4px 0; }
+.sort-bucket.waiting { opacity: 0.38; cursor: default; }
+.sort-bucket.active  {
+  border-color: var(--accent); cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(255,93,205,0.4);
+  animation: sortPulse 0.7s ease-in-out infinite;
+}
+.sort-bucket.active:hover { transform: translateY(-2px); }
+.sort-bucket.pending { border-color: var(--accent3); background: rgba(255,217,93,0.06); opacity: 0.65; cursor: default; }
+.sort-bucket.done    { border-color: #6dd17a; background: rgba(109,209,122,0.06); }
+@keyframes sortPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,93,205,0.4); }
+  50%     { box-shadow: 0 0 0 7px rgba(255,93,205,0); }
+}
+.sort-status { font-size: 13px; color: var(--muted); min-height: 20px; text-align: center; margin-top: 12px; }
+.sort-status.ok { color: #6dd17a; }
+
+/* ── Chain Reaction ────────────────────────────────────────── */
+.chain-tiles {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  max-width: 560px;
+}
+.chain-tile {
+  width: 84px; height: 84px;
+  background: var(--panel-solid); border: 2px solid var(--border);
+  border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;
+  user-select: none;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+.chain-tile:hover:not(.done):not(.compensating) { transform: translateY(-2px); }
+.chain-tile .chain-step-num  { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.chain-tile .chain-step-name { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.chain-tile.next         { border-color: var(--accent2); box-shadow: 0 0 12px rgba(93,255,234,0.25); }
+.chain-tile.done         { border-color: #6dd17a; background: rgba(109,209,122,0.06); cursor: default; }
+.chain-tile.compensating { border-color: #ff5d76; background: rgba(255,93,118,0.06); cursor: default; }
+.chain-tile.wrong-flash  { border-color: #ff5d76; background: rgba(255,93,118,0.12); }
+.chain-status { font-size: 13px; color: var(--muted); min-height: 20px; text-align: center; }
+.chain-status.ok    { color: #6dd17a; }
+.chain-status.error { color: #ff5d76; }
+
+/* ── Deadline Dash ─────────────────────────────────────────── */
+.dash-order {
+  background: var(--panel-solid); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 22px;
+  width: 100%; max-width: 420px;
+}
+.dash-order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.dash-order-name   { font-size: 16px; color: var(--text); }
+.dash-order-reward { font-size: 20px; color: var(--accent3); }
+.dash-deadline-bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-bottom: 14px; }
+.dash-deadline-fill { height: 100%; border-radius: 2px; background: var(--accent2); transition: width 100ms linear; }
+.dash-deadline-fill.urgent { background: #ff5d76; }
+.dash-steps { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.dash-step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.dash-step-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--border); }
+.dash-step.running .dash-step-dot   { background: var(--accent3); }
+.dash-step.ok      .dash-step-dot   { background: #6dd17a; }
+.dash-step.timeout .dash-step-dot   { background: #ff5d76; }
+.dash-step.running .dash-step-label { color: var(--accent3); }
+.dash-step.ok      .dash-step-label { color: #6dd17a; }
+.dash-step.timeout .dash-step-label { color: #ff5d76; }
+.dash-accept-btn {
+  width: 100%; padding: 12px;
+  background: var(--accent2); color: #000;
+  border: none; border-radius: 8px;
+  font-family: inherit; font-size: 15px; font-weight: bold;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: opacity 150ms;
+}
+.dash-accept-btn:hover    { opacity: 0.85; }
+.dash-accept-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.dash-result { font-size: 13px; min-height: 20px; text-align: center; color: var(--muted); margin-top: 6px; }
+.dash-result.ok  { color: #6dd17a; }
+.dash-result.bad { color: #ff5d76; }
+
+/* ── Difficulty picker overlay ───────────────────────────────────── */
+.difficulty-picker {
+  position: fixed; inset: 0;
+  background: rgba(12, 13, 18, 0.88);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+.difficulty-picker-card {
+  background: var(--panel-solid);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px 36px;
+  text-align: center;
+  min-width: 300px;
+}
+.difficulty-picker-title {
+  font-size: 18px; font-weight: bold;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 8px;
+}
+.difficulty-picker-desc {
+  font-size: 12px; color: var(--muted); margin-bottom: 24px;
+}
+.difficulty-picker-btns {
+  display: flex; gap: 12px; justify-content: center;
+}
+.diff-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 14px 22px;
+  border: 2px solid transparent; border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: bold;
+  letter-spacing: 0.06em; cursor: pointer;
+  transition: opacity 140ms, transform 100ms;
+  color: #000;
+}
+.diff-btn:hover  { opacity: 0.88; transform: translateY(-2px); }
+.diff-btn.selected { box-shadow: 0 0 0 3px #fff3; }
+.diff-btn-mult { font-size: 11px; font-weight: normal; opacity: 0.75; }
+.diff-btn--easy   { background: #6dd17a; border-color: #6dd17a; }
+.diff-btn--medium { background: #ffd95d; border-color: #ffd95d; }
+.diff-btn--hard   { background: #ff5d76; border-color: #ff5d76; }
+
+/* ── Difficulty badges (leaderboard) ─────────────────────────────── */
+.diff-badge {
+  display: inline-block;
+  padding: 1px 7px; border-radius: 10px;
+  font-size: 10px; font-weight: bold; letter-spacing: 0.05em;
+  text-transform: uppercase; color: #000;
+}
+.diff-badge--easy   { background: #6dd17a; }
+.diff-badge--medium { background: #ffd95d; }
+.diff-badge--hard   { background: #ff5d76; }

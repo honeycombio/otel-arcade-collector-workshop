@@ -1,7 +1,13 @@
 (async function () {
+  const difficulty = await window.Arcade.chooseDifficulty();
+
   const COLORS    = ['red', 'green', 'blue', 'yellow'];
-  const START_LEN = 3, MAX_ROUNDS = 10;
-  const FLASH_MS = 500, GAP_MS = 200;
+  const START_LEN = 3;
+  // Easy: 10 rounds, Medium: 10, Hard: 15
+  const MAX_ROUNDS = difficulty === 'hard' ? 15 : 10;
+  // Easy: 700ms flash, Medium: 500ms, Hard: 300ms
+  const FLASH_MS = difficulty === 'easy' ? 700 : difficulty === 'hard' ? 300 : 500;
+  const GAP_MS   = difficulty === 'easy' ? 300 : difficulty === 'hard' ? 150 : 200;
 
   const roundEl  = document.getElementById('round');
   const seqEl    = document.getElementById('seq-len');
@@ -101,7 +107,7 @@
     done = true;
     const score = (round - 1) * 100 + playerPos * 10;
     statusEl.textContent = won ? '🎉 You won!' : '✗ Game over — reached round ' + round;
-    try { await window.Arcade.completeGame('simon-says', session.id, score); } catch (_) {}
+    try { await window.Arcade.completeGame('simon-says', session.id, score, difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: won ? 'Perfect! 🎉' : 'Game Over', stats: [{ label: 'Round Reached', value: round }], score });
   }
 

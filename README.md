@@ -44,7 +44,7 @@ Start by playing a game, then open the Visualizer and watch what shows up. You'l
 
 ## The games
 
-There are 12 games. Play any of them to generate telemetry. Each produces a slightly different trace shape.
+There are 15 games plus a **Random** card (always top-left in the lobby) that picks one at random. Play any of them to generate telemetry. Each produces a slightly different trace shape.
 
 | Game | Trace shape |
 |---|---|
@@ -60,8 +60,11 @@ There are 12 games. Play any of them to generate telemetry. Each produces a slig
 | **Wave Defender** | **Fan-out spans** — each enemy resolved as a parallel child span |
 | **Bid Wars** | **Retry spans** — bid attempts with error status on contention |
 | **Hot Cache** | **Cache hit/miss spans** — cold answers produce a `cache.lookup` child span |
+| **Pixel Sort** | **Scatter-gather spans** — parallel partitions followed by an explicit merge span |
+| **Chain Reaction** | **Saga spans** — sequential steps; wrong click triggers compensating rollback spans |
+| **Deadline Dash** | **Timeout spans** — fulfillment steps that miss the order deadline get `DEADLINE_EXCEEDED` status |
 
-The last three games are specifically designed to show distributed systems patterns that are harder to see in the first nine. To see the fan-out, retry, and cache branching shapes in the Visualizer, play those games — the TelemetryGen session generator uses the original nine.
+The last six games are specifically designed to show distributed systems patterns that are harder to see in the first nine. To see these trace shapes in the Visualizer, play those games — the TelemetryGen session generator uses the original nine.
 
 ---
 

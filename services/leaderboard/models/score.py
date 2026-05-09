@@ -34,24 +34,29 @@ def init_schema() -> None:
                 player_id TEXT NOT NULL,
                 player_name TEXT NOT NULL DEFAULT '',
                 score INTEGER NOT NULL,
+                difficulty TEXT NOT NULL DEFAULT 'medium',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""
         )
-        # Best-effort: add player_name to tables that predate this migration.
-        try:
-            conn.execute("ALTER TABLE scores ADD COLUMN player_name TEXT NOT NULL DEFAULT ''")
-        except sqlite3.OperationalError:
-            pass  # column already exists — expected on subsequent startups
+        # Best-effort: add columns to tables that predate this migration.
+        for alter in [
+            "ALTER TABLE scores ADD COLUMN player_name TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE scores ADD COLUMN difficulty TEXT NOT NULL DEFAULT 'medium'",
+        ]:
+            try:
+                conn.execute(alter)
+            except sqlite3.OperationalError:
+                pass  # column already exists — expected on subsequent startups
 
 
-def insert_score(session_id: str, game: str, player_id: str, score: int, player_name: str = '') -> int:
+def insert_score(session_id: str, game: str, player_id: str, score: int, player_name: str = '', difficulty: str = 'medium') -> int:
     with db() as conn:
         # DELIBERATE smell: literal player_id in this f-string makes it a usable
         # SQL injection IF we used the f-string for execution. The actual exec
         # is parameterized; the string is only for the span name (see routes).
         cur = conn.execute(
-            "INSERT INTO scores (session_id, game, player_id, player_name, score) VALUES (?, ?, ?, ?, ?)",
-            (session_id, game, player_id, player_name, score),
+            "INSERT INTO scores (session_id, game, player_id, player_name, score, difficulty) VALUES (?, ?, ?, ?, ?, ?)",
+            (session_id, game, player_id, player_name, score, difficulty),
         )
         return cur.lastrowid
 
@@ -60,12 +65,12 @@ def top_scores(game: Optional[str], limit: int) -> List[sqlite3.Row]:
     with db() as conn:
         if game:
             return list(conn.execute(
-                "SELECT id, session_id, game, player_id, player_name, score, created_at "
+                "SELECT id, session_id, game, player_id, player_name, score, difficulty, created_at "
                 "FROM scores WHERE game = ? ORDER BY score DESC, created_at DESC LIMIT ?",
                 (game, limit),
             ))
         return list(conn.execute(
-            "SELECT id, session_id, game, player_id, player_name, score, created_at "
+            "SELECT id, session_id, game, player_id, player_name, score, difficulty, created_at "
             "FROM scores ORDER BY score DESC, created_at DESC LIMIT ?",
             (limit,),
         ))

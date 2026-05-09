@@ -14,20 +14,32 @@
     <section class="lb-section">
       <div class="lb-header">
         <h2 class="lb-title">Top Scores</h2>
-        <div class="lb-tabs">
-          <button class="lb-tab active" data-game="">All</button>
-          <button class="lb-tab" data-game="memory">Memory</button>
-          <button class="lb-tab" data-game="typing">Typing</button>
-          <button class="lb-tab" data-game="whackamole">Mole</button>
-        </div>
+        <select class="lb-select" id="lb-game">
+          <option value="">All Games</option>
+          <option value="memory">Memory Match</option>
+          <option value="typing">Typing Speed</option>
+          <option value="whackamole">Whack-a-Mole</option>
+          <option value="reaction">Reaction Timer</option>
+          <option value="target-shooter">Target Shooter</option>
+          <option value="word-scramble">Word Scramble</option>
+          <option value="math-sprint">Math Sprint</option>
+          <option value="simon-says">Simon Says</option>
+          <option value="speed-tap">Speed Tap</option>
+          <option value="wave-defender">Wave Defender</option>
+          <option value="bid-wars">Bid Wars</option>
+          <option value="hot-cache">Hot Cache</option>
+          <option value="pixel-sort">Pixel Sort</option>
+          <option value="chain-reaction">Chain Reaction</option>
+          <option value="deadline-dash">Deadline Dash</option>
+        </select>
         <span class="lb-age" id="lb-age"></span>
       </div>
       <table class="lb-table">
         <thead>
-          <tr><th>#</th><th>Player</th><th>Game</th><th>Score</th></tr>
+          <tr><th>#</th><th>Player</th><th>Game</th><th>Score</th><th>Difficulty</th></tr>
         </thead>
         <tbody id="lb-body">
-          <tr><td colspan="4" class="lb-empty">Loading…</td></tr>
+          <tr><td colspan="5" class="lb-empty">Loading…</td></tr>
         </tbody>
       </table>
     </section>

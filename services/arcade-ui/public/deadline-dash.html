@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deadline Dash — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell game-shell">
+    <h1 class="brand">Deadline Dash</h1>
+    <div class="scorebar">
+      <span>order: <b id="order-num">1</b>/5</span>
+      <span>fulfilled: <b id="fulfilled">0</b></span>
+      <span>score: <b id="score">0</b></span>
+      <span>player: <b id="player"></b></span>
+    </div>
+    <p class="game-hint">Accept each delivery order before its countdown expires. Three fulfillment steps run automatically — if the deadline hits mid-fulfillment, late steps get a DEADLINE_EXCEEDED span.</p>
+    <div id="order-area"></div>
+  </div>
+  <script src="/js/nav.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/deadline-dash.js"></script>
+</body>
+</html>

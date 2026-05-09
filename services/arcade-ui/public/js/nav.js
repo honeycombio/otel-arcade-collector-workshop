@@ -1,8 +1,12 @@
 // Injects the persistent sidebar navigation into every arcade-ui page.
 // Add one script tag to each page: <script src="/js/nav.js"></script>
 (function () {
-  var GAME_PATHS = ['/', '/index.html', '/memory.html', '/typing.html', '/whackamole.html',
-    '/wave-defender.html', '/bid-wars.html', '/hot-cache.html'];
+  var GAME_PATHS = ['/', '/index.html',
+    '/memory.html', '/typing.html', '/whackamole.html',
+    '/reaction.html', '/target-shooter.html', '/word-scramble.html',
+    '/math-sprint.html', '/simon-says.html', '/speed-tap.html',
+    '/wave-defender.html', '/bid-wars.html', '/hot-cache.html',
+    '/pixel-sort.html', '/chain-reaction.html', '/deadline-dash.html'];
 
   var AVATARS = {
     robot: '🤖', alien: '👾', fox: '🦊', dragon: '🐉',

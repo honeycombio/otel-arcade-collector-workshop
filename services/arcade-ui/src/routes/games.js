@@ -12,6 +12,7 @@ const VALID_GAMES = new Set([
   'reaction', 'target-shooter', 'word-scramble',
   'math-sprint', 'simon-says', 'speed-tap',
   'wave-defender', 'bid-wars', 'hot-cache',
+  'pixel-sort', 'chain-reaction', 'deadline-dash',
 ]);
 
 // In-memory cache for hot-cache game — simulates a warmed question store.
@@ -100,14 +101,16 @@ router.post('/api/games/:gameId/complete', async (req, res) => {
   if (!sessionId) return res.status(400).json({ error: 'session_id required' });
   annotate(req, { 'game.name': gameId, 'game.session.id': sessionId });
 
+  const difficulty = (req.body && req.body.difficulty) || 'medium';
   const span = tracer.startSpan('arcade.game.complete');
   span.setAttributes({
     'game.name': gameId,
     'game.session.id': sessionId,
     'game.client.score': (req.body && req.body.client_score) || 0,
+    'game.difficulty': difficulty,
   });
   try {
-    const r = await forward('POST', `/sessions/${sessionId}/complete`);
+    const r = await forward('POST', `/sessions/${sessionId}/complete`, { difficulty });
     res.status(r.status).json(r.body);
   } catch (err) {
     span.recordException(err);
@@ -290,6 +293,203 @@ router.post('/api/games/hot-cache/answer', async (req, res) => {
   } catch (_) {}
 
   res.json({ ok: true, cache_hit: cacheHit });
+});
+
+// ── Pixel Sort: scatter-gather with explicit merge span ───────────────────────
+// Partitions run in parallel (scatter); sort.merge is a dedicated child span (gather).
+// Trace shape: sort.run → [sort.partition × N parallel] → sort.merge (sequential after all).
+router.post('/api/games/pixel-sort/sort', async (req, res) => {
+  const { session_id, sectors } = req.body || {};
+  if (!session_id) return res.status(400).json({ error: 'session_id required' });
+  annotate(req, { 'game.name': 'pixel-sort', 'game.session.id': session_id });
+
+  const sortSpan = tracer.startSpan('sort.run');
+  sortSpan.setAttributes({
+    'game.name':        'pixel-sort',
+    'sort.sector_count': (sectors || []).length,
+  });
+  const ctx = trace.setSpan(context.active(), sortSpan);
+
+  const partitionResults = await Promise.all(
+    (sectors || []).map(async (sector) => {
+      const s = tracer.startSpan('sort.partition', {}, ctx);
+      s.setAttributes({
+        'sort.color':     sector.color     || 'unknown',
+        'sort.row_count': sector.row_count || 0,
+        'sort.sector':    sector.sector    || 'unknown',
+      });
+      await new Promise(r => setTimeout(r, 5 + Math.random() * 20));
+      s.setAttribute('sort.throughput_mbs', Math.round(10 + Math.random() * 40));
+      s.end();
+      return sector.row_count || 0;
+    })
+  );
+
+  const totalRows = partitionResults.reduce((a, b) => a + b, 0);
+
+  const mergeSpan = tracer.startSpan('sort.merge', {}, ctx);
+  mergeSpan.setAttributes({
+    'sort.total_rows':  totalRows,
+    'sort.sector_count': partitionResults.length,
+  });
+  await new Promise(r => setTimeout(r, 10 + Math.random() * 20));
+  mergeSpan.setAttribute('sort.output_rows', totalRows);
+  mergeSpan.end();
+
+  sortSpan.setAttribute('sort.total_rows', totalRows);
+  sortSpan.end();
+
+  try {
+    await forward('POST', `/sessions/${session_id}/events`, {
+      type: 'sort',
+      data: { sector_count: (sectors || []).length, total_rows: totalRows },
+    });
+  } catch (_) {}
+
+  res.json({ ok: true, total_rows: totalRows });
+});
+
+// ── Chain Reaction: saga with compensating transactions ───────────────────────
+// Successful chains produce sequential saga.step spans; failures add saga.compensate
+// spans in reverse order to roll back each completed step.
+// Trace shape (success): saga.execute → [saga.step × N sequential]
+// Trace shape (failure): saga.execute → [saga.step × M] → saga.step(ERROR) → [saga.compensate × M reverse]
+router.post('/api/games/chain-reaction/execute', async (req, res) => {
+  const { session_id, steps, failed_at } = req.body || {};
+  if (!session_id) return res.status(400).json({ error: 'session_id required' });
+  annotate(req, { 'game.name': 'chain-reaction', 'game.session.id': session_id });
+
+  const failed = failed_at !== null && failed_at !== undefined;
+
+  const sagaSpan = tracer.startSpan('saga.execute');
+  sagaSpan.setAttributes({
+    'game.name':       'chain-reaction',
+    'saga.step_count': (steps || []).length,
+    'saga.failed':     failed,
+  });
+  const ctx = trace.setSpan(context.active(), sagaSpan);
+
+  const completedSteps = failed ? (steps || []).slice(0, failed_at) : (steps || []);
+
+  for (let i = 0; i < completedSteps.length; i++) {
+    const s = tracer.startSpan('saga.step', {}, ctx);
+    s.setAttributes({ 'saga.step.index': i, 'saga.step.action': completedSteps[i], 'saga.step.success': true });
+    await new Promise(r => setTimeout(r, 8 + Math.random() * 20));
+    s.setStatus({ code: SpanStatusCode.OK });
+    s.end();
+  }
+
+  if (failed) {
+    const failSpan = tracer.startSpan('saga.step', {}, ctx);
+    failSpan.setAttributes({ 'saga.step.index': failed_at, 'saga.step.action': (steps || [])[failed_at] || 'unknown', 'saga.step.success': false });
+    await new Promise(r => setTimeout(r, 8 + Math.random() * 20));
+    failSpan.setStatus({ code: SpanStatusCode.ERROR, message: 'wrong step selected — chain broken' });
+    failSpan.recordException(new Error('chain reaction broken'));
+    failSpan.end();
+
+    for (let i = completedSteps.length - 1; i >= 0; i--) {
+      const s = tracer.startSpan('saga.compensate', {}, ctx);
+      s.setAttributes({ 'saga.step.index': i, 'saga.step.action': completedSteps[i], 'saga.compensate.reason': 'chain_failure_rollback' });
+      await new Promise(r => setTimeout(r, 6 + Math.random() * 14));
+      s.end();
+    }
+
+    sagaSpan.setStatus({ code: SpanStatusCode.ERROR, message: 'saga failed — chain broken at step ' + failed_at });
+  }
+
+  sagaSpan.end();
+
+  try {
+    await forward('POST', `/sessions/${session_id}/events`, {
+      type: 'chain',
+      data: { step_count: (steps || []).length, failed, failed_at: failed ? failed_at : null },
+    });
+  } catch (_) {}
+
+  res.json({ ok: true, failed });
+});
+
+// ── Deadline Dash: deadline/timeout propagation ───────────────────────────────
+// Each order has a deadline_ms budget. Steps run sequentially; any step that starts
+// or completes after the deadline receives SpanStatusCode.ERROR (deadline_exceeded).
+// Trace shape: order.fulfill → [fulfillment.step × 3 sequential]; late steps get ERROR.
+router.post('/api/games/deadline-dash/order', async (req, res) => {
+  const { session_id, order_id, deadline_ms } = req.body || {};
+  if (!session_id) return res.status(400).json({ error: 'session_id required' });
+  annotate(req, { 'game.name': 'deadline-dash', 'game.session.id': session_id });
+
+  const STEPS = [
+    { name: 'inventory_check', minMs: 80,  maxMs: 300 },
+    { name: 'payment_charge',  minMs: 150, maxMs: 500 },
+    { name: 'shipment_book',   minMs: 200, maxMs: 800 },
+  ];
+
+  const deadline = deadline_ms || 2000;
+  const orderSpan = tracer.startSpan('order.fulfill');
+  orderSpan.setAttributes({
+    'game.name':          'deadline-dash',
+    'order.id':           order_id || 'unknown',
+    'order.deadline_ms':  deadline,
+  });
+  const ctx = trace.setSpan(context.active(), orderSpan);
+
+  const startMs = Date.now();
+  let deadlineHit = false;
+  const stepResults = [];
+
+  for (const step of STEPS) {
+    const elapsed   = Date.now() - startMs;
+    const remaining = deadline - elapsed;
+    const duration  = step.minMs + Math.random() * (step.maxMs - step.minMs);
+
+    const s = tracer.startSpan('fulfillment.step', {}, ctx);
+    s.setAttributes({
+      'fulfillment.step.name':             step.name,
+      'fulfillment.step.duration_ms':      Math.round(duration),
+      'fulfillment.deadline_remaining_ms': Math.round(remaining),
+    });
+
+    if (remaining <= 0) {
+      deadlineHit = true;
+      await new Promise(r => setTimeout(r, Math.min(duration, 50)));
+      s.setStatus({ code: SpanStatusCode.ERROR, message: 'deadline exceeded before step could start' });
+      s.setAttribute('fulfillment.step.status', 'deadline_exceeded');
+      s.end();
+      stepResults.push({ name: step.name, status: 'timeout' });
+      continue;
+    }
+
+    await new Promise(r => setTimeout(r, duration));
+    const elapsedAfter = Date.now() - startMs;
+
+    if (elapsedAfter > deadline) {
+      deadlineHit = true;
+      s.setStatus({ code: SpanStatusCode.ERROR, message: 'step completed after deadline expired' });
+      s.setAttribute('fulfillment.step.status', 'deadline_exceeded');
+    } else {
+      s.setStatus({ code: SpanStatusCode.OK });
+      s.setAttribute('fulfillment.step.status', 'ok');
+    }
+    s.end();
+    stepResults.push({ name: step.name, status: elapsedAfter > deadline ? 'timeout' : 'ok' });
+  }
+
+  orderSpan.setAttributes({
+    'order.fulfilled':         !deadlineHit,
+    'order.deadline_exceeded':  deadlineHit,
+    'order.total_ms':           Date.now() - startMs,
+  });
+  if (deadlineHit) orderSpan.setStatus({ code: SpanStatusCode.ERROR, message: 'order not fulfilled within deadline' });
+  orderSpan.end();
+
+  try {
+    await forward('POST', `/sessions/${session_id}/events`, {
+      type: 'order',
+      data: { order_id, fulfilled: !deadlineHit, deadline_exceeded: deadlineHit },
+    });
+  } catch (_) {}
+
+  res.json({ ok: true, fulfilled: !deadlineHit, deadline_exceeded: deadlineHit, steps: stepResults });
 });
 
 // Proxy browser OTLP/JSON spans to the Collector's HTTP receiver.

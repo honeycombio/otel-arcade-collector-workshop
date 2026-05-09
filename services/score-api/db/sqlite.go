@@ -74,9 +74,10 @@ func (s *Store) migrate() error {
 			return err
 		}
 	}
-	// Best-effort: add player_name to tables that predate this migration.
+	// Best-effort: add columns to tables that predate this migration.
 	s.db.Exec(`ALTER TABLE sessions ADD COLUMN player_name TEXT NOT NULL DEFAULT ''`)
 	s.db.Exec(`ALTER TABLE scores ADD COLUMN player_name TEXT NOT NULL DEFAULT ''`)
+	s.db.Exec(`ALTER TABLE scores ADD COLUMN difficulty TEXT NOT NULL DEFAULT 'medium'`)
 	return nil
 }
 
@@ -191,13 +192,13 @@ func (s *Store) CompleteSession(ctx context.Context, id string, score int) error
 
 func (s *Store) InsertScore(ctx context.Context, sc *models.Score) error {
 	displaySQL := fmt.Sprintf(
-		"INSERT INTO scores (session_id, game, player_id, player_name, score) VALUES ('%s','%s','%s','%s',%d)",
-		sc.SessionID, sc.Game, sc.PlayerID, sc.PlayerName, sc.Score,
+		"INSERT INTO scores (session_id, game, player_id, player_name, score, difficulty) VALUES ('%s','%s','%s','%s',%d,'%s')",
+		sc.SessionID, sc.Game, sc.PlayerID, sc.PlayerName, sc.Score, sc.Difficulty,
 	)
 	ctx, end := startQuerySpan(ctx, displaySQL)
 	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO scores (session_id, game, player_id, player_name, score) VALUES (?, ?, ?, ?, ?)`,
-		sc.SessionID, sc.Game, sc.PlayerID, sc.PlayerName, sc.Score,
+		`INSERT INTO scores (session_id, game, player_id, player_name, score, difficulty) VALUES (?, ?, ?, ?, ?, ?)`,
+		sc.SessionID, sc.Game, sc.PlayerID, sc.PlayerName, sc.Score, sc.Difficulty,
 	)
 	end(err)
 	if err != nil {
@@ -214,7 +215,7 @@ func (s *Store) RecentScores(ctx context.Context, limit int) ([]models.Score, er
 	)
 	ctx, end := startQuerySpan(ctx, displaySQL)
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, session_id, game, player_id, player_name, score, created_at FROM scores ORDER BY created_at DESC LIMIT ?`,
+		`SELECT id, session_id, game, player_id, player_name, score, difficulty, created_at FROM scores ORDER BY created_at DESC LIMIT ?`,
 		limit,
 	)
 	if err != nil {
@@ -225,7 +226,7 @@ func (s *Store) RecentScores(ctx context.Context, limit int) ([]models.Score, er
 	var out []models.Score
 	for rows.Next() {
 		var sc models.Score
-		if err := rows.Scan(&sc.ID, &sc.SessionID, &sc.Game, &sc.PlayerID, &sc.PlayerName, &sc.Score, &sc.CreatedAt); err != nil {
+		if err := rows.Scan(&sc.ID, &sc.SessionID, &sc.Game, &sc.PlayerID, &sc.PlayerName, &sc.Score, &sc.Difficulty, &sc.CreatedAt); err != nil {
 			end(err)
 			return nil, err
 		}

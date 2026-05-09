@@ -1,6 +1,16 @@
 // Leaderboard widget logic. Include after nav.js and app.js on any page
 // that contains #lb-body, #lb-age, and .lb-tab elements.
 (function () {
+  var GAME_NAMES = {
+    'memory': 'Memory Match', 'typing': 'Typing Speed', 'whackamole': 'Whack-a-Mole',
+    'reaction': 'Reaction Timer', 'target-shooter': 'Target Shooter',
+    'word-scramble': 'Word Scramble', 'math-sprint': 'Math Sprint',
+    'simon-says': 'Simon Says', 'speed-tap': 'Speed Tap',
+    'wave-defender': 'Wave Defender', 'bid-wars': 'Bid Wars',
+    'hot-cache': 'Hot Cache', 'pixel-sort': 'Pixel Sort',
+    'chain-reaction': 'Chain Reaction', 'deadline-dash': 'Deadline Dash',
+  };
+
   var limit = window.LB_LIMIT || 10;
   var activeGame = '';
   var timer;
@@ -24,34 +34,35 @@
     var tbody = document.getElementById('lb-body');
     if (!tbody) return;
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="lb-empty">No scores yet — play a game!</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="lb-empty">No scores yet — play a game!</td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(function (row, i) {
+      var diff = row.difficulty || 'medium';
       return '<tr>'
         + '<td>' + (i + 1) + '</td>'
         + '<td>' + (row.player_name || row.player_id) + '</td>'
-        + '<td>' + row.game + '</td>'
+        + '<td>' + (GAME_NAMES[row.game] || row.game) + '</td>'
         + '<td>' + row.score + '</td>'
+        + '<td><span class="diff-badge diff-badge--' + diff + '">' + diff + '</span></td>'
         + '</tr>';
     }).join('');
   }
 
   function renderEmpty(msg) {
     var tbody = document.getElementById('lb-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="lb-empty">' + msg + '</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="lb-empty">' + msg + '</td></tr>';
   }
 
-  document.querySelectorAll('.lb-tab').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.lb-tab').forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeGame = btn.dataset.game;
+  var sel = document.getElementById('lb-game');
+  if (sel) {
+    sel.addEventListener('change', function () {
+      activeGame = sel.value;
       clearInterval(timer);
       load();
       timer = setInterval(load, 15000);
     });
-  });
+  }
 
   load();
   timer = setInterval(load, 15000);

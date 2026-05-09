@@ -1,5 +1,11 @@
 (async function () {
-  const COLS = 5, ROWS = 4, DURATION = 30;
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  const COLS = 5, ROWS = 4;
+  // Easy: 40s, Medium: 30s, Hard: 20s
+  const DURATION = difficulty === 'easy' ? 40 : difficulty === 'hard' ? 20 : 30;
+  // Easy: 1800ms between targets, Medium: 1200ms, Hard: 700ms
+  const TARGET_INTERVAL_MS = difficulty === 'easy' ? 1800 : difficulty === 'hard' ? 700 : 1200;
   const field   = document.getElementById('field');
   const hitsEl  = document.getElementById('hits');
   const missEl  = document.getElementById('misses');
@@ -70,7 +76,7 @@
   }
 
   litNext();
-  const moleTimer  = setInterval(litNext, 1200);
+  const moleTimer  = setInterval(litNext, TARGET_INTERVAL_MS);
   const tickTimer  = setInterval(() => {
     timeLeft--;
     timeEl.textContent = timeLeft;
@@ -83,7 +89,7 @@
     clearInterval(tickTimer);
     if (activeIdx >= 0) cells[activeIdx].className = 'target-cell';
     const score = hits * 10 - misses * 3;
-    try { await window.Arcade.completeGame('target-shooter', session.id, Math.max(0, score)); } catch (_) {}
+    try { await window.Arcade.completeGame('target-shooter', session.id, Math.max(0, score), difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: 'Shots Fired! 🎯', stats: [{ label: 'Hits', value: hits }, { label: 'Misses', value: misses }], score: Math.max(0, score) });
   }
 })();

@@ -1,5 +1,8 @@
 (async function () {
-  const TRIALS = 5;
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // Easy: 3 trials, Medium: 5, Hard: 8
+  const TRIALS = difficulty === 'easy' ? 3 : difficulty === 'hard' ? 8 : 5;
   const circle  = document.getElementById('circle');
   const result  = document.getElementById('result');
   const history = document.getElementById('history');
@@ -102,7 +105,7 @@
     circle.className = 'reaction-circle';
     circle.textContent = 'Done!';
     const score = Math.max(0, Math.round(1000 - avgMs));
-    try { await window.Arcade.completeGame('reaction', session.id, score); } catch (_) {}
+    try { await window.Arcade.completeGame('reaction', session.id, score, difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: 'Fast Reflexes! ⚡', stats: [{ label: 'Avg Reaction', value: avgMs.toFixed(0) + ' ms' }], score });
   }
 })();

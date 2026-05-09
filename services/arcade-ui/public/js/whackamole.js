@@ -1,4 +1,9 @@
 (async function () {
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  // Easy: 1800ms spawn, Medium: 900ms, Hard: 550ms
+  const moleIntervalMs = difficulty === 'easy' ? 1800 : difficulty === 'hard' ? 550 : 900;
+
   const grid = document.getElementById('grid');
   const hitsEl = document.getElementById('hits');
   const missesEl = document.getElementById('misses');
@@ -57,7 +62,7 @@
     }
     activeIndex = Math.floor(Math.random() * 9);
     cells[activeIndex].classList.add('up');
-  }, 900);
+  }, moleIntervalMs);
 
   const tickTimer = setInterval(() => {
     timeLeft -= 1;
@@ -73,7 +78,7 @@
     const accuracy = hits + misses > 0 ? hits / (hits + misses) : 0;
     const score = Math.max(0, hits * 10 - misses * 2);
     try {
-      await window.Arcade.completeGame('whackamole', session.id, score);
+      await window.Arcade.completeGame('whackamole', session.id, score, difficulty);
     } catch (e) { /* ignore */ }
     window.Arcade.showGameOver({ title: 'Round Up! 🐹', stats: [{ label: 'Hits', value: hits }, { label: 'Accuracy', value: (accuracy * 100).toFixed(0) + '%' }], score });
   }

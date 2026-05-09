@@ -31,6 +31,7 @@ def create_score():
     player_id = body.get("player_id")
     player_name = body.get("player_name", "")
     score = body.get("score")
+    difficulty = body.get("difficulty", "medium")
     if not all([session_id, game, player_id, isinstance(score, int)]):
         return jsonify(error="session_id, game, player_id, score (int) required"), 400
 
@@ -49,7 +50,7 @@ def create_score():
             "player.id": player_id,
             "leaderboard.session.id": session_id,
         })
-        new_id = score_model.insert_score(session_id, game, player_id, score, player_name)
+        new_id = score_model.insert_score(session_id, game, player_id, score, player_name, difficulty)
 
     with tracer.start_as_current_span("leaderboard.rank.compute") as span:
         rank = score_model.rank_for_score(game, score)

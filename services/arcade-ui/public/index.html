@@ -12,6 +12,11 @@
     <p class="tagline">Pick a game. Telemetry happens.</p>
 
     <div class="lobby">
+      <a class="card card--random" href="#" onclick="event.preventDefault();var g=['memory','typing','whackamole','reaction','target-shooter','word-scramble','math-sprint','simon-says','speed-tap','wave-defender','bid-wars','hot-cache','pixel-sort','chain-reaction','deadline-dash'];window.location.href='/'+g[Math.floor(Math.random()*g.length)]+'.html'">
+        <h2>Random</h2>
+        <p>Not sure what to play? Let the scheduler decide.</p>
+        <span class="card-badge card-badge--random">? surprise</span>
+      </a>
       <a class="card" href="/memory.html">
         <h2>Memory Match</h2>
         <p>4×4 grid. Flip pairs of matching tiles. Fewer flips, higher score.</p>
@@ -64,6 +69,21 @@
         <h2>Hot Cache</h2>
         <p>OTel trivia. Hot questions are cached; cold ones trigger a lookup.</p>
         <span class="card-badge">cache spans</span>
+      </a>
+      <a class="card" href="/pixel-sort.html">
+        <h2>Pixel Sort</h2>
+        <p>React to sector activations. When all four are clicked, a scatter-gather sort runs in parallel then merges.</p>
+        <span class="card-badge">scatter-gather</span>
+      </a>
+      <a class="card" href="/chain-reaction.html">
+        <h2>Chain Reaction</h2>
+        <p>Click tiles in order. One wrong step breaks the chain — saga compensation spans roll back every completed step.</p>
+        <span class="card-badge">saga spans</span>
+      </a>
+      <a class="card" href="/deadline-dash.html">
+        <h2>Deadline Dash</h2>
+        <p>Accept delivery orders before their countdown expires. Fulfillment steps that run late produce DEADLINE_EXCEEDED spans.</p>
+        <span class="card-badge">timeout spans</span>
       </a>
     </div>
 

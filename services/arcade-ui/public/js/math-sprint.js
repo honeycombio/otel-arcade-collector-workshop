@@ -1,5 +1,9 @@
 (async function () {
-  const QUESTIONS = 10, TIME_LIMIT = 60;
+  const difficulty = await window.Arcade.chooseDifficulty();
+
+  const QUESTIONS = 10;
+  // Easy: 90s, Medium: 60s, Hard: 40s
+  const TIME_LIMIT = difficulty === 'easy' ? 90 : difficulty === 'hard' ? 40 : 60;
 
   const eqEl       = document.getElementById('equation');
   const answerEl   = document.getElementById('answer');
@@ -30,12 +34,21 @@
   function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
   function generateQuestion() {
-    var ops = ['+', '-', '×'];
+    var ops = difficulty === 'easy' ? ['+', '-'] : ['+', '-', '×'];
     var op = ops[Math.floor(Math.random() * ops.length)];
     var a, b, answer;
-    if (op === '+') { a = randInt(2, 50); b = randInt(2, 50); answer = a + b; }
-    else if (op === '-') { a = randInt(10, 60); b = randInt(2, a); answer = a - b; }
-    else { a = randInt(2, 12); b = randInt(2, 12); answer = a * b; }
+    if (difficulty === 'easy') {
+      if (op === '+') { a = randInt(1, 10); b = randInt(1, 10); answer = a + b; }
+      else            { a = randInt(5, 15); b = randInt(1, a);  answer = a - b; }
+    } else if (difficulty === 'hard') {
+      if (op === '+') { a = randInt(20, 99); b = randInt(20, 99); answer = a + b; }
+      else if (op === '-') { a = randInt(30, 99); b = randInt(10, a); answer = a - b; }
+      else { a = randInt(7, 15); b = randInt(7, 15); answer = a * b; }
+    } else {
+      if (op === '+') { a = randInt(2, 50); b = randInt(2, 50); answer = a + b; }
+      else if (op === '-') { a = randInt(10, 60); b = randInt(2, a); answer = a - b; }
+      else { a = randInt(2, 12); b = randInt(2, 12); answer = a * b; }
+    }
     // DELIBERATE smell: equation string as span name (mirrors raw SQL smell)
     var text = a + ' ' + op + ' ' + b + ' = ?';
     return { text, answer, a, b, op };
@@ -83,7 +96,7 @@
     clearInterval(tick);
     eqEl.textContent = '—';
     answerEl.disabled = true;
-    try { await window.Arcade.completeGame('math-sprint', session.id, score); } catch (_) {}
+    try { await window.Arcade.completeGame('math-sprint', session.id, score, difficulty); } catch (_) {}
     window.Arcade.showGameOver({ title: 'Time\'s Up! 🔢', stats: [{ label: 'Correct', value: score / 10 + ' / ' + QUESTIONS }], score });
   }
 

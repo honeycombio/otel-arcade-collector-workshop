@@ -9,29 +9,60 @@
   <style>
     .col-shell { max-width: 960px; padding: 28px 24px 40px; }
 
-    /* ── tabs ── */
+    /* ── layout ── */
+    .col-layout { display: flex; align-items: flex-start; }
+    .col-content { flex: 1; min-width: 0; padding-left: 20px; }
+
+    /* ── tabs (vertical) ── */
     .col-tabs {
-      display: flex; gap: 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 22px;
+      display: flex; flex-direction: column;
+      width: 130px; flex-shrink: 0;
+      background: #0f1018;
+      border-right: 1px solid var(--border);
+      border-radius: 8px 0 0 8px;
+      padding: 6px 0;
     }
     .col-tab {
       background: transparent;
-      border: 1px solid transparent;
-      border-bottom: 2px solid transparent;
+      border: none;
+      border-left: 3px solid transparent;
       color: var(--muted);
-      padding: 8px 20px;
-      font-family: inherit; font-size: 12px;
-      cursor: pointer; letter-spacing: 0.07em; text-transform: uppercase;
-      border-radius: 4px 4px 0 0;
-      margin-bottom: -1px;
-      display: flex; align-items: center; gap: 7px;
+      padding: 10px 14px;
+      font-family: inherit; font-size: 11px;
+      cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: left; width: 100%;
+      display: flex; flex-direction: column; gap: 4px;
+      transition: color 120ms, background 120ms;
     }
-    .col-tab:hover { color: var(--text); }
+    .col-tab:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
     .col-tab.active {
       color: var(--accent2);
-      border-color: var(--border) var(--border) #161820 var(--border);
-      background: #161820;
+      border-left-color: var(--accent2);
+      background: rgba(93,255,234,0.07);
+    }
+
+    @media (max-width: 840px) {
+      .col-layout { flex-direction: column; }
+      .col-tabs {
+        flex-direction: row;
+        width: auto; border-radius: 8px 8px 0 0;
+        border-right: none; border-bottom: 1px solid var(--border);
+        padding: 0 6px;
+      }
+      .col-tab {
+        flex-direction: row; align-items: center; gap: 6px;
+        padding: 8px 12px;
+        border-left: none; border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+      .col-tab.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--accent2);
+      }
+      .col-content { padding-left: 0; padding-top: 16px; }
     }
     .tab-dot {
       width: 7px; height: 7px; border-radius: 50%;
@@ -350,6 +381,7 @@
       <div id="arch-diagram" class="arch-diagram"></div>
     </div>
 
+    <div class="col-layout">
     <div class="col-tabs">
       <button class="col-tab active" id="tab-local"   onclick="showTab('local')">Collector <span class="tab-lab">Labs 1–2</span></button>
       <button class="col-tab"        id="tab-agent"   onclick="showTab('agent')">
@@ -359,7 +391,7 @@
         <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 3</span>
       </button>
     </div>
-
+    <div class="col-content">
     <!-- ══════════════════════════════════════════════════════════
          COLLECTOR TAB — local docker-compose, Labs 1 & 2
     ══════════════════════════════════════════════════════════ -->
@@ -597,6 +629,8 @@
         </div>
       </div>
     </div>
+    </div><!-- col-content -->
+    </div><!-- col-layout -->
 
   </div>
 

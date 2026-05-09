@@ -9,5 +9,6 @@ type Score struct {
 	PlayerID   string    `json:"player_id"`
 	PlayerName string    `json:"player_name"`
 	Score      int       `json:"score"`
+	Difficulty string    `json:"difficulty"`
 	CreatedAt  time.Time `json:"created_at"`
 }
