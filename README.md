@@ -10,11 +10,22 @@ Your job isn't to understand the app. Your job is to build and tune the **OpenTe
 
 ```bash
 make local-init   # check Docker, create .env, pre-pull the Collector image
+```
+
+**(Optional — do this before the next step)** Open `.env` and add your Honeycomb API key:
+```
+HONEYCOMB_API_KEY=your-key-here
+```
+If you don't have one yet, skip it. The Visualizer and Collector pipeline work without it; only the Honeycomb backend export is affected. Adding the key *after* `make local-up` requires recreating the container — see Lab 1 for details.
+
+```bash
 make local-up     # build and start everything
 make local-status # confirm all services are healthy
 ```
 
 Once everything is up, open **http://localhost:3000** in your browser.
+
+**Start here: [Lab 1 →](labs/lab-1.md)** — write your first Collector pipeline and watch telemetry flow through it.
 
 ---
 

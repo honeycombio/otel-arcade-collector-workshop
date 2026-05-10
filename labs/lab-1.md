@@ -7,7 +7,7 @@ Write a working OpenTelemetry Collector configuration that receives telemetry fr
 ## Prerequisites
 
 - The app is running (`make local-up`, then `make local-status` to confirm)
-- You have a Honeycomb API key (your facilitator will provide one)
+- A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp/backend` exporter will log auth errors.
 - Open the arcade UI at **http://localhost:3000**
 
 ---
@@ -47,11 +47,16 @@ As you read, try to answer:
 - What do the processors do, and why are they ordered the way they are?
 - What is the `otlphttp/visualizer` exporter for?
 
-### 3. Add your Honeycomb API key
+### 3. Understand the variable substitution
 
-Find the `otlp/backend` exporter. It has a header `x-honeycomb-team` that reads from an environment variable. That variable is already set in your `.env` file — open it in a text editor and paste your API key as the value of `HONEYCOMB_API_KEY`.
+Find the `otlp/backend` exporter. The `x-honeycomb-team` header uses `${env:HONEYCOMB_API_KEY}` — the Collector substitutes this at startup from the container's environment, which was set when you ran `make local-up`.
 
-You don't need to touch the exporter config itself. The variable substitution handles it.
+You don't need to edit the exporter config. If your key was in `.env` before `make local-up`, it's already in use.
+
+> **If you need to add or change the API key now:** Edit `.env`, then run this from the repo root — Apply & Restart alone is not enough, because env vars are only injected when the container is first created, not on restart:
+> ```
+> docker compose up --force-recreate otel-collector-agent
+> ```
 
 ### 4. Apply the config
 
@@ -79,7 +84,7 @@ Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, 
 
 - The Visualizer feed shows live spans
 - The Pipeline panel shows your receiver → processor → exporter topology
-- Honeycomb is receiving traces from all three services
+- Honeycomb is receiving traces from all three services *(if you have an API key set)*
 
 ---
 

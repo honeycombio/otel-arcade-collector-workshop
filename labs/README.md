@@ -15,11 +15,16 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 ## Before you start
 
 1. Make sure Docker Desktop is running
-2. Start the stack: `make local-up`
-3. Confirm everything is healthy: `make local-status`
-4. Open the arcade UI at **http://localhost:3000**
-5. Set your name and avatar: sidebar → **Profile** (changes save automatically — no button)
-6. Get your Honeycomb API key from the facilitator and add it to `.env`
+2. If you haven't already: `make local-init` — checks Docker, creates `.env`, pre-pulls the Collector image
+3. **Do this now, before the next step:** if you have a Honeycomb API key, open `.env` and add it:
+   ```
+   HONEYCOMB_API_KEY=your-key-here
+   ```
+   The pipeline and Visualizer work without it — only the Honeycomb backend export is affected. Adding the key *after* `make local-up` requires recreating the container (not just restarting it).
+4. Start the stack: `make local-up`
+5. Confirm everything is healthy: `make local-status`
+6. Open the arcade UI at **http://localhost:3000**
+7. Set your name and avatar: sidebar → **Profile** (changes save automatically — no button)
 
 ## Useful links
 
