@@ -74,7 +74,7 @@
 
     /* ── hint line ── */
     .col-hint {
-      color: var(--muted); font-size: 12px; margin-bottom: 14px; line-height: 1.6;
+      color: var(--muted); font-size: 13px; margin-bottom: 14px; line-height: 1.6;
     }
     .col-hint code {
       background: #1d2030; border: 1px solid var(--border);
@@ -131,7 +131,7 @@
 
     /* ── not-deployed notice ── */
     .not-deployed-notice {
-      padding: 20px; border: 1px dashed var(--border); border-radius: 8px;
+      padding: 20px; border: 1px solid var(--border); border-radius: 8px;
       color: var(--muted); font-size: 13px; line-height: 1.8; margin-bottom: 16px;
     }
     .not-deployed-notice strong { color: var(--text); }
@@ -158,7 +158,7 @@
 
     /* ── tab lab badge ── */
     .tab-lab {
-      font-size: 9px; opacity: 0.55; letter-spacing: 0.06em;
+      font-size: 10px; opacity: 0.8; letter-spacing: 0.06em;
       margin-left: 5px; text-transform: none; font-weight: normal;
     }
 
@@ -171,7 +171,7 @@
       display: block; width: 100%; min-height: 380px;
       background: #0b0c12; color: var(--text);
       font-family: 'JetBrains Mono', 'Menlo', monospace;
-      font-size: 13px; line-height: 1.6; padding: 16px;
+      font-size: 14px; line-height: 1.65; padding: 16px;
       border: none; resize: vertical; outline: none; tab-size: 2;
     }
     .yaml-editor:focus { box-shadow: inset 0 0 0 1px var(--accent2); }
@@ -286,7 +286,7 @@
     }
     .log-header button:hover { color: var(--text); }
     .log-pre {
-      margin: 0; padding: 10px 14px; height: 220px;
+      margin: 0; padding: 10px 14px; height: 260px;
       overflow-y: auto; font-size: 11px; line-height: 1.5;
       color: var(--muted); background: #0b0c12;
       white-space: pre-wrap; word-break: break-all;
@@ -370,6 +370,15 @@
       8%   { opacity: 1; }
       92%  { opacity: 1; }
       100% { left: 100%; opacity: 0; }
+    }
+
+    /* ── Focus rings ── */
+    .btn-apply:focus-visible,
+    .btn-secondary:focus-visible,
+    .btn-danger:focus-visible,
+    .select-template:focus-visible {
+      outline: 2px solid var(--accent2);
+      outline-offset: 2px;
     }
   </style>
 </head>
@@ -469,8 +478,11 @@
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-agent" class="col-pane" style="display:none">
       <p class="col-hint">
-        Configuring <code>otel-collector-agent</code> in Lab 3 agent mode.
-        Change the exporters to forward to <code>otel-collector-gateway:4317</code>, then Apply &amp; Restart.
+        Configuring <code>otel-collector-agent</code> as the <strong>forwarding agent</strong> in the agent→gateway pattern.
+        This is the same container and the same <code>collector-config.yaml</code> as the Collector tab — the distinction is conceptual.
+        Load the <strong>Lab 3 — Agent forwarding</strong> template to reconfigure it as a forwarder that sends upstream to
+        <code>otel-collector-gateway:4317</code> instead of exporting directly to the backend.
+        <span class="shortcut">(Ctrl+S / ⌘S applies)</span>
       </p>
 
       <div id="agent-k8s-content">

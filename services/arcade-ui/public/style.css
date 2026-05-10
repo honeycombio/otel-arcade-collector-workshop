@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
 :root {
   --bg: #0c0d12;
   --panel: #16182040;
@@ -50,7 +52,7 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--accent);
-  text-shadow: 0 0 14px #ff5dcd44;
+  text-shadow: 0 0 20px #ff5dcd55;
   text-decoration: none;
   line-height: 1.4;
   border-bottom: 1px solid var(--border);
@@ -61,16 +63,16 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 0 8px;
 }
 
 .sidebar-section {
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--muted);
-  opacity: 0.55;
+  opacity: 0.75;
   padding: 14px 10px 3px;
 }
 .sidebar-nav > .sidebar-section:not(:first-child) {
@@ -82,16 +84,17 @@ body {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 8px 10px;
+  padding: 8px 10px 8px 8px;
   border-radius: 6px;
   font-size: 13px;
   color: var(--muted);
   text-decoration: none;
   transition: background 100ms ease, color 100ms ease;
   letter-spacing: 0.02em;
+  border-left: 2px solid transparent;
 }
 .sidebar-item:hover { background: #1d2030; color: var(--text); }
-.sidebar-item.active { background: #1d2030; color: var(--accent2); }
+.sidebar-item.active { background: #1d2030; color: var(--accent2); border-left-color: var(--accent2); }
 
 .sidebar-icon {
   font-size: 13px;
@@ -201,12 +204,12 @@ a { color: var(--accent2); text-decoration: none; }
   text-transform: uppercase;
   margin: 0 0 4px;
   color: var(--accent);
-  text-shadow: 0 0 18px #ff5dcd55;
+  text-shadow: 0 0 24px #ff5dcd66;
 }
 
 .tagline {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   margin: 0 0 32px;
   letter-spacing: 0.06em;
 }
@@ -214,7 +217,7 @@ a { color: var(--accent2); text-decoration: none; }
 .lobby {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
+  gap: 20px;
 }
 
 .card {
@@ -228,6 +231,7 @@ a { color: var(--accent2); text-decoration: none; }
 .card:hover {
   transform: translateY(-2px);
   border-color: var(--accent);
+  box-shadow: 0 4px 28px rgba(255, 93, 205, 0.12);
 }
 .card h2 {
   margin: 0 0 6px;
@@ -278,6 +282,7 @@ a { color: var(--accent2); text-decoration: none; }
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 6px;
+  transition: background 100ms ease, border-color 100ms ease;
 }
 .btn:hover { background: #5dffea18; }
 
@@ -420,7 +425,7 @@ a { color: var(--accent2); text-decoration: none; }
 .lb-age {
   margin-left: auto;
   font-size: 11px;
-  color: var(--border);
+  color: var(--muted);
 }
 .lb-table {
   width: 100%;
@@ -438,10 +443,11 @@ a { color: var(--accent2); text-decoration: none; }
 }
 .lb-table td {
   padding: 6px 8px;
-  border-bottom: 1px dashed var(--border);
+  border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 .lb-table tr:last-child td { border-bottom: none; }
+.lb-table tbody tr:hover { background: rgba(255, 255, 255, 0.028); cursor: default; }
 .lb-table td:first-child { color: var(--muted); width: 28px; }
 .lb-table td:nth-child(4) { color: var(--accent3); text-align: right; }
 .lb-empty {
@@ -736,6 +742,8 @@ a { color: var(--accent2); text-decoration: none; }
   background: rgba(8, 9, 16, 0.82);
   display: flex; align-items: center; justify-content: center;
   animation: goFadeIn 200ms ease both;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 .game-over-card {
   background: #161820;
@@ -746,6 +754,7 @@ a { color: var(--accent2); text-decoration: none; }
   text-align: center;
   animation: goSlideUp 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
   position: relative;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(93, 255, 234, 0.06);
 }
 .game-over-title {
   font-size: 22px; font-weight: bold;
@@ -792,6 +801,18 @@ a { color: var(--accent2); text-decoration: none; }
   animation: confettiFall linear both;
 }
 
+/* ── Focus rings ───────────────────────────────────────────── */
+.btn:focus-visible,
+.profile-save-btn:focus-visible,
+.game-over-btn:focus-visible,
+.bid-btn:focus-visible,
+.dash-accept-btn:focus-visible,
+.diff-btn:focus-visible,
+.cache-option:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
+}
+
 /* ── Random lobby card ─────────────────────────────────────── */
 .card--random {
   border-color: var(--accent3);
@@ -800,6 +821,7 @@ a { color: var(--accent2); text-decoration: none; }
 .card--random:hover {
   border-color: var(--accent3);
   background: rgba(255, 217, 93, 0.07);
+  box-shadow: 0 4px 28px rgba(255, 217, 93, 0.12);
 }
 .card--random h2 { color: var(--accent3); }
 .card-badge--random {
@@ -906,6 +928,8 @@ a { color: var(--accent2); text-decoration: none; }
   background: rgba(12, 13, 18, 0.88);
   display: flex; align-items: center; justify-content: center;
   z-index: 200;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 .difficulty-picker-card {
   background: var(--panel-solid);
