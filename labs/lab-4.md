@@ -16,7 +16,7 @@ Put the Collector under load and use Honeycomb to investigate its own health —
 
 The Collector instruments itself with OpenTelemetry. It exports metrics about its own pipeline state — how many spans are being received, how many are queued, how many are being dropped, how much memory it's using.
 
-These self-metrics flow through the same Prometheus endpoint the Collector exposes at `:8888/metrics`, and if you've wired the `otlp/backend` exporter into your service pipelines, some of them also land in Honeycomb as metric data points.
+These self-metrics flow through the same Prometheus endpoint the Collector exposes at `:8888/metrics`, and if you've wired the `otlp_grpc/backend` exporter into your service pipelines, some of them also land in Honeycomb as metric data points.
 
 The Visualizer's **Collector Health** panel shows a live view of queue depth and throughput. Honeycomb lets you query this data historically and set alerts.
 

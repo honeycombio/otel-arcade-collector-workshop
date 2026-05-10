@@ -7,7 +7,7 @@ Write a working OpenTelemetry Collector configuration that receives telemetry fr
 ## Prerequisites
 
 - The app is running (`make local-up`, then `make local-status` to confirm)
-- A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp/backend` exporter will log auth errors.
+- A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp_grpc/backend` exporter will log auth errors.
 - Open the arcade UI at **http://localhost:3000**
 
 ---
@@ -45,11 +45,11 @@ As you read, try to answer:
 - Which receiver protocol does the arcade use to send telemetry?
 - Where does telemetry go when it leaves the Collector?
 - What do the processors do, and why are they ordered the way they are?
-- What is the `otlphttp/visualizer` exporter for?
+- What is the `otlp_http/visualizer` exporter for?
 
 ### 3. Understand the variable substitution
 
-Find the `otlp/backend` exporter. The `x-honeycomb-team` header uses `${env:HONEYCOMB_API_KEY}` — the Collector substitutes this at startup from the container's environment, which was set when you ran `make local-up`.
+Find the `otlp_grpc/backend` exporter. The `x-honeycomb-team` header uses `${env:HONEYCOMB_API_KEY}` — the Collector substitutes this at startup from the container's environment, which was set when you ran `make local-up`.
 
 You don't need to edit the exporter config. If your key was in `.env` before `make local-up`, it's already in use.
 

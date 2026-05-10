@@ -46,6 +46,7 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | Gateway is broken / stuck | `make local-teardown-gateway` — then redeploy from the Gateway tab |
 | Everything is broken, keep my data | `make local-reset` |
 | Everything is broken, start fresh | `make local-down && make local-up` |
+| `local-up` worked but Collector ports unreachable | `make local-down && make local-up` |
 | Validate a config before applying | `make collector-validate CONFIG=collector-config.yaml` |
 
 **`make local-reset-collector`** — restores `collector-config.yaml` to the Lab 1 baseline and restarts the agent. Use this when your config is so broken the Collector won't start.

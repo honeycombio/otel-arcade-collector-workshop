@@ -37,7 +37,7 @@ Find the commented `tail_sampling` block. Uncomment it, then replace `[batch]` w
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 ```
 
 Apply the config. Start the load generator (TelemetryGen → Load Generator → Start at 10 RPS).
@@ -63,17 +63,17 @@ Find the commented `routing` connector block. Uncomment it, add `routing` to the
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp/backend, otlphttp/visualizer, routing]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing]
 
     traces/standard:
       receivers: [routing]
       processors: [batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     traces/errors:
       receivers: [routing]
       processors: [batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 ```
 
 Apply the config. The Visualizer topology should now show three trace pipelines: `traces`, `traces/standard`, and `traces/errors`.
@@ -95,11 +95,11 @@ Find the commented `servicegraph` connector block. Uncomment it, add `servicegra
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp/backend, otlphttp/visualizer, routing, servicegraph]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing, servicegraph]
 
     metrics/servicegraph:
       receivers: [servicegraph]
-      exporters: [otlp/backend]
+      exporters: [otlp_grpc/backend]
 ```
 
 Apply the config. Open Honeycomb and look for metrics with the `traces_service_graph_` prefix:

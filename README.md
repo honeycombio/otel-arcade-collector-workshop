@@ -189,17 +189,19 @@ make local-down                           # stop everything and wipe state
 
 ## Troubleshooting
 
-**The Visualizer topology is empty.** Your Collector config probably doesn't have the `otlphttp/visualizer` exporter in its pipelines, or the Collector isn't running. Check `make local-logs SVC=otel-collector-agent`.
+**The Visualizer topology is empty.** Your Collector config probably doesn't have the `otlp_http/visualizer` exporter in its pipelines, or the Collector isn't running. Check `make local-logs SVC=otel-collector-agent`.
 
 **The Collector crashes after I apply my config.** Open the Logs panel on the active tab of the ⚙ Collector page — it streams live output and will show the parse or validation error.
 
-**I'm getting auth errors to the backend.** If you haven't set `HONEYCOMB_API_KEY` in your `.env`, remove `otlp/backend` from your pipeline exporters for now. Everything else keeps working.
+**I'm getting auth errors to the backend.** If you haven't set `HONEYCOMB_API_KEY` in your `.env`, remove `otlp_grpc/backend` from your pipeline exporters for now. Everything else keeps working.
 
 **I don't know where to start on Lab 2.** Open the Visualizer feed and look at what's highlighted orange. Click on a span and read its attributes. The template in the Load dropdown for Lab 2 has scaffolding with hints.
 
 **My config was valid YAML but the Collector still crashed.** YAML syntax and OTel config semantics are different things. `make collector-validate` checks both — run it before applying.
 
 **I changed `collector-config.yaml` in my editor but the Collector didn't restart.** Enable **IDE Watch Mode** on the Deploy & Configure page, or run `make local-restart-collector`.
+
+**`make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 8888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
 
 ---
 

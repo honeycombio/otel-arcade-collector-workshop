@@ -62,7 +62,7 @@ Read through what changed:
 - What exporters are present? What's missing compared to Lab 2?
 - Where is the agent now sending traces, metrics, and logs?
 - Which processors are still running on the agent?
-- What is the endpoint for the `otlp/gateway` exporter? Does that hostname match the container name you just deployed?
+- What is the endpoint for the `otlp_grpc/gateway` exporter? Does that hostname match the container name you just deployed?
 
 Apply the config (Ctrl+S). Watch the Logs panel for errors.
 
