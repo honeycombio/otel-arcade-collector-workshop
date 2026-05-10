@@ -33,11 +33,11 @@ data:
     exporters:
       debug:
         verbosity: detailed
-      otlp/backend:
+      otlp_grpc/backend:
         endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
         headers:
           x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
-      otlphttp/visualizer:
+      otlp_http/visualizer:
         endpoint: http://visualizer.workshop-tools.svc.cluster.local:4318
         encoding: json
         tls:
@@ -56,12 +56,12 @@ data:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug, otlp/backend, otlphttp/visualizer]
+          exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug, otlp/backend, otlphttp/visualizer]
+          exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug, otlp/backend, otlphttp/visualizer]
+          exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
