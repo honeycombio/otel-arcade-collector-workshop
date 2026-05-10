@@ -685,17 +685,17 @@ processors:
 
 # ── Exporters ────────────────────────────────────────────────────────
 # Exporters define where telemetry goes OUT.
-# otlp/backend  → Honeycomb (credentials come from the .env file at the repo root).
-# otlphttp/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
 # debug         → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -719,15 +719,15 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
     lab2: `# OTel Arcade — Lab 2: OTTL transforms.
@@ -786,11 +786,11 @@ processors:
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -798,7 +798,7 @@ exporters:
     tls:
       insecure: true
   # Sends pre-transform spans to the Visualizer's Split (Before→After) view.
-  otlphttp/visualizer-raw:
+  otlp_http/visualizer-raw:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -821,21 +821,21 @@ service:
     traces/raw:
       receivers: [otlp]
       processors: [memory_limiter]
-      exporters: [otlphttp/visualizer-raw]
+      exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
       # Once you have statements to apply, add transform/normalize to this list.
       # For Fix 3, also add filter/drop_probes before batch.
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
     lab3: `# OTel Arcade — Lab 3: Agent → Gateway.
@@ -887,17 +887,17 @@ processors:
           - delete_key(attributes, "app.name")
 
 # ── Exporters ────────────────────────────────────────────────────────
-# otlp/gateway: forwards to the gateway instead of Honeycomb directly.
+# otlp_grpc/gateway: forwards to the gateway instead of Honeycomb directly.
 #   The gateway's DNS name on the Docker network is otel-collector-gateway.
-# otlphttp/visualizer-raw: still needed for the Split (Before→After) view.
+# otlp_http/visualizer-raw: still needed for the Split (Before→After) view.
 exporters:
   debug:
     verbosity: basic
-  otlp/gateway:
+  otlp_grpc/gateway:
     endpoint: otel-collector-gateway:4317
     tls:
       insecure: true
-  otlphttp/visualizer-raw:
+  otlp_http/visualizer-raw:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -921,19 +921,19 @@ service:
     traces/raw:
       receivers: [otlp]
       processors: [memory_limiter]
-      exporters: [otlphttp/visualizer-raw]
+      exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
-      exporters: [debug, otlp/gateway]
+      exporters: [debug, otlp_grpc/gateway]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/gateway]
+      exporters: [debug, otlp_grpc/gateway]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/gateway]
+      exporters: [debug, otlp_grpc/gateway]
 `
   };
 
@@ -963,11 +963,11 @@ processors:
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -988,15 +988,15 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
     lab5: `# OTel Arcade — Lab 5: Advanced Gateway Patterns.
 # Builds on Lab 3. Uncomment each exercise block one at a time.
@@ -1066,11 +1066,11 @@ connectors:
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -1094,32 +1094,32 @@ service:
       # Exercise 1: replace [batch] with [tail_sampling] above
       # Exercise 2: add routing to exporters list
       # Exercise 3: add servicegraph to exporters list
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # ── Exercise 2: uncomment after adding routing connector ─────────────────
     # traces/standard:
     #   receivers: [routing]
     #   processors: [batch]
-    #   exporters: [debug, otlp/backend, otlphttp/visualizer]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     # traces/errors:
     #   receivers: [routing]
     #   processors: [batch]
-    #   exporters: [debug, otlp/backend, otlphttp/visualizer]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # ── Exercise 3: uncomment after adding servicegraph connector ─────────────
     # metrics/servicegraph:
     #   receivers: [servicegraph]
-    #   exporters: [otlp/backend]
+    #   exporters: [otlp_grpc/backend]
 `,
   };
 
