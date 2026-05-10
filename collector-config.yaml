@@ -1,12 +1,15 @@
-# OTel Arcade — Lab 2: OTTL transforms.
+# OTel Arcade — Lab 1: Your first Collector pipeline.
 #
-# Fix the five deliberate telemetry problems using the transform and filter
-# processors. Uncomment each statement one at a time and apply — the
-# Visualizer's smells counter drops to 0 when all five are working.
+# The Collector receives telemetry from the three arcade services and
+# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
+# play a game, and spans should appear in the Visualizer feed within seconds.
 #
-# The traces/raw pipeline powers the Split view (Before→After) in the
-# Visualizer feed so you can see exactly what each fix changes.
+# Edit here or open collector-config.yaml at the repo root in your IDE
+# (use IDE Watch Mode on this tab to auto-restart on every save).
 
+# ── Receivers ────────────────────────────────────────────────────────
+# Receivers are the entry point — they define how telemetry gets IN.
+# The arcade services emit OTLP over gRPC (4317) and HTTP (4318).
 receivers:
   otlp:
     protocols:
@@ -15,6 +18,10 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+# ── Processors ───────────────────────────────────────────────────────
+# Processors transform or filter data in flight, in the order listed.
+# memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
+# batch: buffers spans/metrics/logs and sends them together (better throughput).
 processors:
   memory_limiter:
     check_interval: 1s
@@ -24,57 +31,29 @@ processors:
     send_batch_size: 512
     timeout: 5s
 
-  # ── OTTL transform processor ──────────────────────────────────────
-  transform/normalize:
-    trace_statements:
-      - context: span
-        statements:
-          # Fix 1 — normalize raw SQL span names to a stable, low-cardinality value
-          # - replace_pattern(name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
-
-          # Fix 2 — redact player.id PII
-          # - set(attributes["player.id"], "***") where attributes["player.id"] != nil
-
-          # Fix 4 — truncate long attribute values (e.g. full browser user-agent strings)
-          # - truncate_all(attributes, 128)
-
-      - context: resource
-        statements:
-          # Fix 5 — remove the redundant app.name resource attribute
-          # - delete_key(attributes, "app.name")
-
-  # Fix 3 — drop /health and /ready probe spans entirely (filter, not transform)
-  # Uncomment below, then add filter/drop_probes before batch in the traces pipeline.
-  # filter/drop_probes:
-  #   error_mode: ignore
-  #   traces:
-  #     span:
-  #       - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
-
+# ── Exporters ────────────────────────────────────────────────────────
+# Exporters define where telemetry goes OUT.
+# otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# debug               → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
-      x-collector-source: agent
-    tls:
-      insecure: true
-  # Sends pre-transform spans to the Visualizer's Split (Before→After) view.
-  otlphttp/visualizer-raw:
-    endpoint: http://visualizer:4318
-    encoding: json
-    headers:
-      x-raw-channel: "true"
       x-collector-source: agent
     tls:
       insecure: true
 
+# ── Service ──────────────────────────────────────────────────────────
+# The service block wires everything together into named pipelines.
+# Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
     metrics:
@@ -85,22 +64,15 @@ service:
                 host: "0.0.0.0"
                 port: 8888
   pipelines:
-    # Captures spans BEFORE any transforms — powers the Split (Before→After) view.
-    traces/raw:
-      receivers: [otlp]
-      processors: [memory_limiter]
-      exporters: [otlphttp/visualizer-raw]
     traces:
       receivers: [otlp]
-      # Once you have statements to apply, add transform/normalize to this list.
-      # For Fix 3, also add filter/drop_probes before batch.
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]

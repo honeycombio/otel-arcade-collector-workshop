@@ -226,7 +226,10 @@ CONFIG ?= collector-config.yaml
 collector-validate:  ## Validate a Collector config YAML before applying. CONFIG=path/to/config.yaml
 	@test -f "$(CONFIG)" || { echo "no such file: $(CONFIG)"; exit 1; }
 	@echo "validating $(CONFIG) against $(COLLECTOR_IMAGE)"
-	docker run --rm -v "$(PWD):/conf:ro" $(COLLECTOR_IMAGE) validate --config=/conf/$(CONFIG)
+	docker run --rm \
+	  -e HONEYCOMB_API_KEY=dummy \
+	  -e OTEL_EXPORTER_ENDPOINT=api.honeycomb.io:443 \
+	  -v "$(PWD):/conf:ro" $(COLLECTOR_IMAGE) validate --config=/conf/$(CONFIG)
 	@echo "OK"
 
 .PHONY: collector-apply

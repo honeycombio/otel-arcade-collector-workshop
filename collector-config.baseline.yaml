@@ -33,17 +33,17 @@ processors:
 
 # ── Exporters ────────────────────────────────────────────────────────
 # Exporters define where telemetry goes OUT.
-# otlp/backend  → Honeycomb (credentials come from the .env file at the repo root).
-# otlphttp/visualizer → local Pipeline Visualizer (shows the live feed and topology).
-# debug         → Collector stdout (useful when reading logs).
+# otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# debug               → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
-  otlp/backend:
+  otlp_grpc/backend:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
-  otlphttp/visualizer:
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
@@ -67,12 +67,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp/backend, otlphttp/visualizer]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
