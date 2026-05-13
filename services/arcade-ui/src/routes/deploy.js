@@ -78,6 +78,17 @@ service:
       exporters: [debug, otlp/backend, otlphttp/visualizer]
 `;
 
+const PLACEHOLDER_GATEWAY_CONFIG =
+  '# OTel Arcade — Gateway Collector\n' +
+  '# Not deployed yet. Use ⚙ Deploy & Configure → Gateway tab to deploy.\n';
+
+function gatewayConfigHasPipelines() {
+  try {
+    const doc = yaml.load(fs.readFileSync(GATEWAY_CONFIG_PATH, 'utf8'));
+    return !!(doc?.service?.pipelines && Object.keys(doc.service.pipelines).length > 0);
+  } catch (_) { return false; }
+}
+
 // ── IDE Watch Mode state ──────────────────────────────────────────────────────
 
 const watchState = {
@@ -310,8 +321,8 @@ router.post('/api/deploy/gateway', async (req, res) => {
   }
 
   try {
-    // Write default config on first deploy.
-    if (!fs.existsSync(GATEWAY_CONFIG_PATH)) {
+    // Write default config when no pipelines are defined (initial/placeholder state).
+    if (!fs.existsSync(GATEWAY_CONFIG_PATH) || !gatewayConfigHasPipelines()) {
       fs.writeFileSync(GATEWAY_CONFIG_PATH, DEFAULT_GATEWAY_CONFIG, 'utf8');
     }
 
@@ -388,6 +399,7 @@ router.delete('/api/deploy/gateway', async (req, res) => {
     const existing = await inspectContainer(GATEWAY_CONTAINER_NAME);
     if (!existing) return res.status(404).json({ error: 'Gateway container not found.' });
     await removeContainer(GATEWAY_CONTAINER_NAME);
+    try { fs.writeFileSync(GATEWAY_CONFIG_PATH, PLACEHOLDER_GATEWAY_CONFIG, 'utf8'); } catch (_) {}
     res.json({ ok: true, message: 'Gateway container removed.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
