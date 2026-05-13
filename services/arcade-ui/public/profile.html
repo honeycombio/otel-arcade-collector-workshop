@@ -44,7 +44,11 @@
         <button id="api-key-toggle" class="btn" type="button" style="padding:4px 12px;font-size:11px" onclick="toggleKeyVisibility()">Show</button>
         <span id="key-saved" style="font-size:11px;color:var(--accent2);opacity:0;transition:opacity 300ms">saved</span>
       </div>
-      <p class="profile-hint">Pre-fills collector config templates in Deploy &amp; Configure.</p>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px">
+        <button id="api-key-apply" class="btn" type="button" style="padding:7px 18px;font-size:12px" onclick="applyApiKey()">Apply to Collector</button>
+        <span id="key-status" style="font-size:12px"></span>
+      </div>
+      <p class="profile-hint" style="margin-top:8px">Applies to the running collector and pre-fills config templates. The gateway uses this key when deployed.</p>
     </div>
   </div>
 
@@ -126,6 +130,7 @@
     var keyTimer = null;
     keyInput.addEventListener('input', function () {
       clearTimeout(keyTimer);
+      document.getElementById('key-status').textContent = '';
       keyTimer = setTimeout(function () {
         var val = keyInput.value.trim();
         if (val) {
@@ -137,6 +142,36 @@
       }, 400);
     });
   });
+
+  async function applyApiKey() {
+    var val = document.getElementById('api-key').value.trim();
+    if (!val) return;
+    var btn    = document.getElementById('api-key-apply');
+    var status = document.getElementById('key-status');
+    btn.disabled    = true;
+    status.style.color = 'var(--muted)';
+    status.textContent = 'Applying…';
+    try {
+      var r    = await fetch('/api/settings/honeycomb-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: val }),
+      });
+      var data = await r.json();
+      if (!r.ok) {
+        status.style.color = 'var(--error, #ff5d5d)';
+        status.textContent = data.error || 'Error applying key';
+      } else {
+        status.style.color = 'var(--accent2)';
+        var label = data.team ? data.team + (data.environment ? ' / ' + data.environment : '') : 'Connected';
+        status.textContent = '✓ ' + label + (data.restarted ? '' : ' (collector already up to date)');
+      }
+    } catch (err) {
+      status.style.color = 'var(--error, #ff5d5d)';
+      status.textContent = 'Request failed — is the server running?';
+    }
+    btn.disabled = false;
+  }
   </script>
 </body>
 </html>

@@ -165,6 +165,68 @@ router.post('/api/collector/restart', async (req, res) => {
   }
 });
 
+router.post('/api/settings/honeycomb-key', async (req, res) => {
+  const { apiKey } = req.body || {};
+  if (!apiKey || typeof apiKey !== 'string') {
+    return res.status(400).json({ error: 'apiKey (string) required' });
+  }
+
+  // Validate against Honeycomb auth API.
+  let team = null;
+  let environment = null;
+  let validated = false;
+  try {
+    const authRes = await fetch('https://api.honeycomb.io/1/auth', {
+      headers: { 'X-Honeycomb-Team': apiKey },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (authRes.status === 401) {
+      return res.status(401).json({ error: 'Invalid API key — check your Honeycomb settings' });
+    }
+    if (authRes.ok) {
+      const data = await authRes.json();
+      team        = data.team        && data.team.name;
+      environment = data.environment && data.environment.name;
+      validated   = true;
+    }
+  } catch (_) {
+    // Network error — proceed without validation.
+  }
+
+  // Substitute literal key for ${env:HONEYCOMB_API_KEY} in the current config.
+  let config;
+  try {
+    config = fs.readFileSync(CONFIG_PATH, 'utf8');
+  } catch (err) {
+    return res.status(500).json({ error: `Could not read config: ${err.message}` });
+  }
+
+  const updated = config.replace(/\$\{env:HONEYCOMB_API_KEY\}/g, apiKey);
+  let restarted = false;
+
+  if (updated !== config) {
+    writeInProgress = true;
+    try {
+      fs.writeFileSync(CONFIG_PATH, updated, 'utf8');
+    } catch (err) {
+      return res.status(500).json({ error: `Could not write config: ${err.message}` });
+    } finally {
+      setImmediate(() => { writeInProgress = false; });
+    }
+
+    try {
+      await restartContainer(CONTAINER_NAME);
+    } catch (err) {
+      return res.status(500).json({ error: `Collector restart failed: ${err.message}` });
+    }
+
+    await waitForCollector(15000);
+    restarted = true;
+  }
+
+  res.json({ ok: true, team, environment, validated, restarted });
+});
+
 // SSE endpoint — streams Collector container logs to the browser.
 router.get('/api/collector/logs', (req, res) => {
   res.set({
