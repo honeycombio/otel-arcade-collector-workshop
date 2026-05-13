@@ -14,7 +14,7 @@ WORKDIR /app
 ENV NODE_ENV=production \
     PORT=8090 \
     OTLP_PORT=4318 \
-    COLLECTOR_METRICS_URL=http://otel-collector:8888/metrics \
+    COLLECTOR_METRICS_URL=http://otel-collector-agent:8888/metrics \
     SCRAPE_INTERVAL_MS=5000
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/server ./server

@@ -20,13 +20,13 @@ data:
             endpoint: 0.0.0.0:4318
 
     processors:
-      batch:
-        send_batch_size: 512
-        timeout: 5s
       memory_limiter:
         check_interval: 1s
         limit_mib: 512
         spike_limit_mib: 128
+      batch:
+        send_batch_size: 512
+        timeout: 5s
       # TODO Lab 2: add `transform` here to normalize span names and redact
       # player.id. The Visualizer will stop highlighting orange when this works.
 

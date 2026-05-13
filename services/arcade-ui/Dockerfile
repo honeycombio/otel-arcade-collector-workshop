@@ -11,7 +11,7 @@ RUN apk add --no-cache curl && \
       "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl" && \
     chmod +x /usr/local/bin/kubectl
 ENV NODE_ENV=production \
-    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 \
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-agent:4317 \
     OTEL_SERVICE_NAME=arcade-ui \
     SCORE_API_URL=http://score-api:8080 \
     LEADERBOARD_URL=http://leaderboard:5000 \

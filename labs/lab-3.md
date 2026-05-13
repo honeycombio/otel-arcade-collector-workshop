@@ -41,7 +41,7 @@ The agent and gateway containers are on the same Docker network (`arcade`), so t
 
 ### 1. Deploy the gateway
 
-In the sidebar, go to **⚙ Collector → Gateway** tab.
+In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab.
 
 The tab shows "Gateway not deployed" with a **Deploy** button. Click it. The arcade-ui will start a new Collector container (`otel-collector-gateway`) using `gateway-config.yaml` as its config.
 

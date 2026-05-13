@@ -29,7 +29,7 @@ Processors transform data *inside* a pipeline. **Connectors** sit *between* pipe
 
 ### Exercise 1 — Tail Sampling
 
-In the sidebar, go to **⚙ Collector → Gateway** tab. Load the **Lab 5 — Sampling & Connectors** template.
+In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab. Load the **Lab 5 — Sampling & Connectors** template.
 
 Find the commented `tail_sampling` block. Uncomment it, then replace `[batch]` with `[tail_sampling]` in the traces pipeline processors:
 

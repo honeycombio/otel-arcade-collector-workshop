@@ -29,7 +29,7 @@ Those pieces are wired together in a **service > pipelines** block. A pipeline i
 
 ### 1. Open the Collector editor
 
-In the arcade sidebar, click **⚙ Collector**. You'll see the config editor on the **Collector** tab.
+In the arcade sidebar, click **⚙ Deploy & Configure**. You'll see the config editor on the **Collector** tab.
 
 The editor shows the current `collector-config.yaml`. This is what the running Collector is using — any changes you apply here restart the Collector with the new config.
 

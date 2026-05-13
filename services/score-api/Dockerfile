@@ -15,7 +15,7 @@ COPY --from=builder /out/score-api /app/score-api
 USER app
 EXPOSE 8080
 ENV SCORE_API_ADDR=:8080 \
-    OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317 \
+    OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector-agent:4317 \
     OTEL_SERVICE_NAME=score-api \
     SCORE_API_DB=/tmp/scores.db
 ENTRYPOINT ["/app/score-api"]

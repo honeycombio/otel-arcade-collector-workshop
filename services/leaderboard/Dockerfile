@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317 \
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector-agent:4317 \
     OTEL_SERVICE_NAME=leaderboard \
     LEADERBOARD_DB=/tmp/leaderboard.db \
     PORT=5000
