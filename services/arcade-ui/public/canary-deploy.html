@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Canary Deploy — OTel Arcade</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="shell game-shell">
+    <h1 class="brand">Canary Deploy</h1>
+    <div class="scorebar">
+      <span>round: <b id="round-num">1</b></span>
+      <span>canary: <b id="canary-pct">0</b>%</span>
+      <span>score: <b id="score">0</b></span>
+      <span>player: <b id="player"></b></span>
+    </div>
+    <p class="game-hint">Each round send 8 requests. v1 (stable) always succeeds. v2 (canary) may ERROR — it scores more but risks points. Increase canary % each round to maximise your score.</p>
+    <div id="deploy-area"></div>
+  </div>
+  <script src="/js/nav.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/canary-deploy.js"></script>
+</body>
+</html>

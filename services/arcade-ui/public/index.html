@@ -12,7 +12,7 @@
     <p class="tagline">Pick a game. Telemetry happens.</p>
 
     <div class="lobby">
-      <a class="card card--random" href="#" onclick="event.preventDefault();var g=['memory','typing','whackamole','reaction','target-shooter','word-scramble','math-sprint','simon-says','speed-tap','wave-defender','bid-wars','hot-cache','pixel-sort','chain-reaction','deadline-dash'];window.location.href='/'+g[Math.floor(Math.random()*g.length)]+'.html'">
+      <a class="card card--random" href="#" onclick="event.preventDefault();var g=['memory','typing','whackamole','reaction','target-shooter','word-scramble','math-sprint','simon-says','speed-tap','wave-defender','bid-wars','hot-cache','pixel-sort','chain-reaction','deadline-dash','power-surge','vault-sync','laser-grid','canary-deploy','pulse'];window.location.href='/'+g[Math.floor(Math.random()*g.length)]+'.html'">
         <h2>Random</h2>
         <p>Not sure what to play? Let the scheduler decide.</p>
         <span class="card-badge card-badge--random">? surprise</span>
@@ -84,6 +84,31 @@
         <h2>Deadline Dash</h2>
         <p>Accept delivery orders before their countdown expires. Fulfillment steps that run late produce DEADLINE_EXCEEDED spans.</p>
         <span class="card-badge">timeout spans</span>
+      </a>
+      <a class="card" href="/power-surge.html">
+        <h2>Power Surge</h2>
+        <p>Four circuit nodes cycle through CLOSED, OPEN, and HALF-OPEN. Click CLOSED nodes to score — OPEN rejects fast, HALF-OPEN probes may succeed or reopen.</p>
+        <span class="card-badge">circuit-breaker spans</span>
+      </a>
+      <a class="card" href="/vault-sync.html">
+        <h2>Vault Sync</h2>
+        <p>Coordinate a three-vault heist with a two-phase commit. One mole vault aborts the transaction and triggers parallel rollback spans.</p>
+        <span class="card-badge">2PC spans</span>
+      </a>
+      <a class="card" href="/laser-grid.html">
+        <h2>Laser Grid</h2>
+        <p>Shoot asteroids before they land. Fire too fast and your token bucket depletes: shots throttle then reject, producing ERROR spans with no children.</p>
+        <span class="card-badge">rate-limit spans</span>
+      </a>
+      <a class="card" href="/canary-deploy.html">
+        <h2>Canary Deploy</h2>
+        <p>Send batches of requests at increasing canary %. Stable v1 always succeeds; v2 canary spans sometimes ERROR. Watch your error rate before committing the rollout.</p>
+        <span class="card-badge">canary spans</span>
+      </a>
+      <a class="card" href="/pulse.html">
+        <h2>Pulse</h2>
+        <p>Publish events that fan out to four named subscribers — metrics, audit, notify, cache. Each has its own latency and failure rate. Watch which ones lag or drop events.</p>
+        <span class="card-badge">pub-sub spans</span>
       </a>
     </div>
 

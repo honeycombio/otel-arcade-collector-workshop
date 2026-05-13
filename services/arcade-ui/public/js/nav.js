@@ -6,7 +6,9 @@
     '/reaction.html', '/target-shooter.html', '/word-scramble.html',
     '/math-sprint.html', '/simon-says.html', '/speed-tap.html',
     '/wave-defender.html', '/bid-wars.html', '/hot-cache.html',
-    '/pixel-sort.html', '/chain-reaction.html', '/deadline-dash.html'];
+    '/pixel-sort.html', '/chain-reaction.html', '/deadline-dash.html',
+    '/power-surge.html', '/vault-sync.html', '/laser-grid.html',
+    '/canary-deploy.html', '/pulse.html'];
 
   var AVATARS = {
     robot: '🤖', alien: '👾', fox: '🦊', dragon: '🐉',

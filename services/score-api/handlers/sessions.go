@@ -250,6 +250,16 @@ func computeScore(ctx context.Context, sess *models.Session, difficulty string) 
 		gameMult = 1.4
 	case "hot-cache":
 		gameMult = 1.2
+	case "power-surge":
+		gameMult = 1.3
+	case "vault-sync":
+		gameMult = 1.5
+	case "laser-grid":
+		gameMult = 1.2
+	case "canary-deploy":
+		gameMult = 1.4
+	case "pulse":
+		gameMult = 1.3
 	}
 	diffMult := difficultyMultiplier(difficulty)
 	final := int(float64(rawScore) * gameMult * diffMult)

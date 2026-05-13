@@ -55,7 +55,7 @@ Start by playing a game, then open the Visualizer and watch what shows up. You'l
 
 ## The games
 
-There are 15 games plus a **Random** card (always top-left in the lobby) that picks one at random. Play any of them to generate telemetry. Each produces a slightly different trace shape.
+There are 20 games plus a **Random** card (always top-left in the lobby) that picks one at random. Play any of them to generate telemetry. Each produces a slightly different trace shape.
 
 | Game | Trace shape |
 |---|---|
@@ -74,8 +74,13 @@ There are 15 games plus a **Random** card (always top-left in the lobby) that pi
 | **Pixel Sort** | **Scatter-gather spans** — parallel partitions followed by an explicit merge span |
 | **Chain Reaction** | **Saga spans** — sequential steps; wrong click triggers compensating rollback spans |
 | **Deadline Dash** | **Timeout spans** — fulfillment steps that miss the order deadline get `DEADLINE_EXCEEDED` status |
+| **Power Surge** | **Circuit-breaker spans** — `circuit.handle` alone (CLOSED = ok, OPEN = ERROR); HALF-OPEN adds a `circuit.probe` child |
+| **Vault Sync** | **Two-phase commit spans** — parallel prepare → commit + confirm (success) or abort + rollback (failure) |
+| **Laser Grid** | **Rate-limit spans** — permitted: `shot.fire → shot.process`; throttled: adds `rate.backoff`; rejected: `shot.fire` ERROR alone |
+| **Canary Deploy** | **Traffic-split spans** — `deploy.route` → `service.v1.handle` (stable) or `service.v2.handle` (canary, 30% ERROR) |
+| **Pulse** | **Pub-sub spans** — `event.publish` fans out to four named subscriber spans, each with distinct latency and failure rate |
 
-The last six games are specifically designed to show distributed systems patterns that are harder to see in the first nine. To see these trace shapes in the Visualizer, play those games — the TelemetryGen session generator uses the original nine.
+The last eleven games are specifically designed to show distributed systems patterns that are harder to see in the first nine. To see these trace shapes in the Visualizer, play those games — the TelemetryGen session generator uses the original nine.
 
 ---
 
