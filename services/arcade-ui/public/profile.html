@@ -30,6 +30,22 @@
       </div>
       <p class="profile-hint">Appears on the leaderboard and in the sidebar.</p>
     </div>
+
+    <div class="profile-section">
+      <label class="profile-label" for="api-key">Honeycomb API key</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input
+          class="profile-input"
+          id="api-key"
+          type="password"
+          placeholder="Your Honeycomb ingest key"
+          autocomplete="off"
+        />
+        <button id="api-key-toggle" class="btn" type="button" style="padding:4px 12px;font-size:11px" onclick="toggleKeyVisibility()">Show</button>
+        <span id="key-saved" style="font-size:11px;color:var(--accent2);opacity:0;transition:opacity 300ms">saved</span>
+      </div>
+      <p class="profile-hint">Pre-fills collector config templates in Deploy &amp; Configure.</p>
+    </div>
   </div>
 
   <script src="/js/nav.js"></script>
@@ -69,11 +85,23 @@
     renderGrid();
   }
 
-  function flashSaved() {
-    var el = document.getElementById('name-saved');
+  function flashSaved(id) {
+    var el = document.getElementById(id);
     el.style.opacity = '1';
     clearTimeout(el._t);
     el._t = setTimeout(function () { el.style.opacity = '0'; }, 1200);
+  }
+
+  function toggleKeyVisibility() {
+    var input = document.getElementById('api-key');
+    var btn   = document.getElementById('api-key-toggle');
+    if (input.type === 'password') {
+      input.type  = 'text';
+      btn.textContent = 'Hide';
+    } else {
+      input.type  = 'password';
+      btn.textContent = 'Show';
+    }
   }
 
   // Restore saved state on load and wire up auto-save
@@ -88,7 +116,24 @@
       nameTimer = setTimeout(function () {
         var name = input.value.trim();
         if (name) localStorage.setItem('arcade.player_name', name);
-        flashSaved();
+        flashSaved('name-saved');
+      }, 400);
+    });
+
+    var keyInput  = document.getElementById('api-key');
+    keyInput.value = localStorage.getItem('arcade.honeycomb_api_key') || '';
+
+    var keyTimer = null;
+    keyInput.addEventListener('input', function () {
+      clearTimeout(keyTimer);
+      keyTimer = setTimeout(function () {
+        var val = keyInput.value.trim();
+        if (val) {
+          localStorage.setItem('arcade.honeycomb_api_key', val);
+        } else {
+          localStorage.removeItem('arcade.honeycomb_api_key');
+        }
+        flashSaved('key-saved');
       }, 400);
     });
   });

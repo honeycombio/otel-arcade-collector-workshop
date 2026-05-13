@@ -333,11 +333,12 @@ router.post('/api/deploy/gateway', async (req, res) => {
     // Create and start the gateway container on the shared arcade network.
     // NetworkingConfig (not HostConfig.NetworkMode) is required to set a network alias,
     // so the agent can reach the gateway as "otel-collector-gateway" via Docker DNS.
+    const honeycombKey = (req.body && req.body.apiKey) || process.env.HONEYCOMB_API_KEY || '';
     await createContainer(GATEWAY_CONTAINER_NAME, {
       Image: GATEWAY_IMAGE,
       Cmd:   ['--config=/etc/otelcol-contrib/config.yaml'],
       Env: [
-        `HONEYCOMB_API_KEY=${process.env.HONEYCOMB_API_KEY || ''}`,
+        `HONEYCOMB_API_KEY=${honeycombKey}`,
         `OTEL_EXPORTER_ENDPOINT=${process.env.OTEL_EXPORTER_ENDPOINT || 'api.honeycomb.io:443'}`,
       ],
       HostConfig: {

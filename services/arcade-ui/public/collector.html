@@ -1127,7 +1127,7 @@ service:
     var tmpl = GATEWAY_TEMPLATES[key];
     if (!tmpl) return;
     document.getElementById('gateway-template-select').value = '';
-    document.getElementById('gateway-editor').value = tmpl;
+    document.getElementById('gateway-editor').value = applyStoredKeys(tmpl);
     lintYaml('gateway');
     setStatus('gateway', '', 'Template loaded — click Apply & Restart to deploy.');
   }
@@ -1425,12 +1425,18 @@ service:
     scheduleLint('gateway');
   });
 
+  function applyStoredKeys(yaml) {
+    var key = localStorage.getItem('arcade.honeycomb_api_key') || '';
+    if (key) yaml = yaml.replace(/\$\{env:HONEYCOMB_API_KEY\}/g, key);
+    return yaml;
+  }
+
   function loadTemplate(key) {
     document.getElementById('template-select').value = '';
     if (!key || !TEMPLATES[key]) return;
     var editor = document.getElementById('local-editor');
     if (editor.value && editor.value !== localSaved) saveDraft(editor.value);
-    editor.value = TEMPLATES[key];
+    editor.value = applyStoredKeys(TEMPLATES[key]);
     setStatus('local', '', 'Template loaded — click Apply & Restart to deploy.');
     lintYaml('local');
   }
@@ -1438,7 +1444,7 @@ service:
   function loadAgentTemplate(key) {
     document.getElementById('agent-template-select').value = '';
     if (!key || !TEMPLATES[key]) return;
-    document.getElementById('agent-editor').value = TEMPLATES[key];
+    document.getElementById('agent-editor').value = applyStoredKeys(TEMPLATES[key]);
     setStatus('agent', '', 'Template loaded — click Apply & Restart to deploy.');
     lintYaml('agent');
   }
@@ -1672,7 +1678,11 @@ service:
     msg.className = 'status-msg';
     msg.textContent = 'Deploying…';
     try {
-      var r    = await fetch('/api/deploy/gateway', { method: 'POST' });
+      var r    = await fetch('/api/deploy/gateway', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: localStorage.getItem('arcade.honeycomb_api_key') || '' }),
+      });
       var data = await r.json();
       if (!r.ok) {
         dot.className   = 'status-dot err';
