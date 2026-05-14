@@ -110,11 +110,11 @@ async function handleExternalChange() {
 function updateEnvFile(filePath, key, value) {
   let content = '';
   try { content = fs.readFileSync(filePath, 'utf8'); } catch (_) {}
-  const line = `${key}=${value}`;
-  const re   = new RegExp(`^${key}=.*$`, 'm');
+  const safeLine = `${key}=${value.replace(/[\r\n]/g, '')}`;
+  const re       = new RegExp(`^${key}=.*$`, 'm');
   content = re.test(content)
-    ? content.replace(re, line)
-    : content.trimEnd() + '\n' + line + '\n';
+    ? content.replace(re, safeLine)
+    : content.trimEnd() + '\n' + safeLine + '\n';
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
@@ -183,6 +183,8 @@ router.post('/api/settings/honeycomb-key', async (req, res) => {
   const { apiKey } = req.body || {};
   if (!apiKey || typeof apiKey !== 'string')
     return res.status(400).json({ error: 'apiKey (string) required' });
+  if (!/^[A-Za-z0-9_\-]{8,128}$/.test(apiKey))
+    return res.status(400).json({ error: 'API key must be 8–128 alphanumeric characters' });
 
   // Validate against Honeycomb auth API.
   let team = null, environment = null, validated = false;
