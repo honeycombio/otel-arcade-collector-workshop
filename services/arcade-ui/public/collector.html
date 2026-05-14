@@ -453,7 +453,7 @@
           <option value="lab2">Lab 2 — OTTL transforms</option>
           <option value="lab3">Lab 3 — Agent forwarding</option>
         </select>
-        <button class="btn-secondary" onclick="formatYaml('local')" title="Normalize whitespace: tabs → spaces, trim trailing spaces">Format</button>
+        <button class="btn-secondary" onclick="formatYaml('local')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
       </div>
 
       <div class="yaml-error-banner" id="local-yaml-error">
@@ -555,7 +555,7 @@
               <option value="lab3">↺ Reset to Lab 3 baseline</option>
               <option value="lab5">Lab 5 — Sampling &amp; Connectors</option>
             </select>
-            <button class="btn-secondary" onclick="formatYaml('gateway')" title="Normalize whitespace: tabs → spaces, trim trailing spaces">Format</button>
+            <button class="btn-secondary" onclick="formatYaml('gateway')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
           </div>
 
           <div class="yaml-error-banner" id="gateway-yaml-error">
@@ -1693,6 +1693,27 @@ service:
     }
   }
 
+  function normalizeIndent(content) {
+    var lines = content.split('\n');
+    var indents = [];
+    lines.forEach(function (line) {
+      var trimmed = line.replace(/^\s+/, '');
+      if (!trimmed || trimmed.charAt(0) === '#') return;
+      var indent = line.length - trimmed.length;
+      if (indent > 0 && indents.indexOf(indent) === -1) indents.push(indent);
+    });
+    if (indents.length === 0) return content;
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+    var unit = indents.reduce(gcd);
+    if (unit <= 2) return content;
+    return lines.map(function (line) {
+      var trimmed = line.replace(/^\s+/, '');
+      if (!trimmed) return line;
+      var indent = line.length - trimmed.length;
+      return Array(Math.round(indent / unit) + 1).join('  ') + trimmed;
+    }).join('\n');
+  }
+
   function formatYaml(pane) {
     var ta = document.getElementById(pane + '-editor');
     if (!ta) return;
@@ -1702,6 +1723,7 @@ service:
       .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .replace(/\n*$/, '\n');
+    formatted = normalizeIndent(formatted);
     if (formatted !== ta.value) {
       ta.value = formatted;
       ta.dispatchEvent(new Event('input'));
