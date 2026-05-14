@@ -354,7 +354,10 @@ router.post('/api/deploy/gateway', async (req, res) => {
     });
 
     await startContainer(GATEWAY_CONTAINER_NAME);
-    res.json({ ok: true, message: 'Gateway container started.' });
+    const warning = !honeycombKey
+      ? 'No Honeycomb API key set — gateway will not export to Honeycomb. Set HONEYCOMB_API_KEY in .env and redeploy.'
+      : undefined;
+    res.json({ ok: true, message: 'Gateway container started.', warning });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

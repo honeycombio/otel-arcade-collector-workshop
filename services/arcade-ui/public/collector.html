@@ -228,8 +228,9 @@
     .status-dot.err  { background: #ff5d76; }
     .status-dot.busy { background: #ffa64d; animation: pulse 1.2s infinite; }
     .status-msg { word-break: break-word; }
-    .status-msg.err { color: #ff5d76; }
-    .status-msg.ok  { color: #6dd17a; }
+    .status-msg.err  { color: #ff5d76; }
+    .status-msg.ok   { color: #6dd17a; }
+    .status-msg.warn { color: #ffa64d; }
 
     /* ── IDE Watch Mode toggle ──────────────────────────────────── */
     .watch-toggle-bar {
@@ -305,6 +306,7 @@
     .log-line-err  { color: #ff5d76; }
     .log-line-warn { color: #ffa64d; }
     .log-line-ok   { color: #6dd17a; }
+    .log-error     { color: #ffa64d; font-style: italic; }
 
     /* ── Architecture diagram ─────────────────────────────────── */
     .arch-section { margin-bottom: 28px; }
@@ -1572,8 +1574,8 @@ service:
         btn.disabled    = false;
       } else {
         dot.className   = 'status-dot ok';
-        msg.className   = 'status-msg ok';
-        msg.textContent = data.message;
+        msg.className   = data.warning ? 'status-msg warn' : 'status-msg ok';
+        msg.textContent = data.warning ? data.warning : data.message;
         await loadKubeStatus();
         openLogs('gateway');
       }
@@ -1616,7 +1618,15 @@ service:
       pre.scrollTop = pre.scrollHeight;
       while (pre.childNodes.length > 600) pre.removeChild(pre.firstChild);
     };
-    src.onerror = function () { src.close(); logSources[which] = null; };
+    src.onerror = function () {
+      src.close();
+      logSources[which] = null;
+      var notice = document.createElement('span');
+      notice.className = 'log-error';
+      notice.textContent = '— Logs disconnected. Click Logs to reconnect. —\n';
+      pre.appendChild(notice);
+      pre.scrollTop = pre.scrollHeight;
+    };
   }
 
   function toggleLogs(which) {

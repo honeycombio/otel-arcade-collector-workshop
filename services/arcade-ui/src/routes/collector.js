@@ -160,10 +160,10 @@ router.post('/api/collector/config', async (req, res) => {
   }
 
   // Wait for the Collector to come back up.
-  const ok = await waitForCollector(15000);
+  const ok = await waitForCollector(25000);
   if (!ok) {
     return res.status(500).json({
-      error: 'Collector did not come back up within 15 s — check `docker compose logs otel-collector-agent` for errors.',
+      error: 'Collector did not come back up within 25 s — check the Logs panel below for errors.',
     });
   }
 

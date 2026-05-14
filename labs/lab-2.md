@@ -126,3 +126,13 @@ OTTL contexts: `span` attributes use `attributes["key"]`; resource attributes us
 
 - Use the **TelemetryGen** page (`/telemetrygen.html`) to fire a specific span with controlled attributes. This is useful for testing whether your OTTL expression handles an edge case correctly — you don't have to play the game to trigger the exact attribute value you're working with.
 - Try the **Logs** and **Metrics** signal tabs in the feed. Are there any smells in those signals worth fixing?
+
+### Bonus: two more deliberate smells
+
+Two games hide extra problems that the smells counter doesn't track. If you've finished the five required fixes and want more, these are worth finding.
+
+**Simon Says** — play a round and find the `sequence_shown` event span in the Visualizer. Look at its attributes. One of them reveals the full Simon Says sequence to any observer of the telemetry. How would you redact or remove it?
+
+**Word Scramble** — play a round with a wrong guess. Find the `guess_wrong` span. One attribute exposes the correct answer, even when the player failed. What OTTL statement would remove it?
+
+Neither of these is tracked by the smells counter — fixing them is optional. Use the split view to verify that your transforms are working: the Before column should show the raw attribute, and the After column should show it redacted or absent.
