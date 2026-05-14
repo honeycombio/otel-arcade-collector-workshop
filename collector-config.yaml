@@ -35,14 +35,14 @@ processors:
 # Exporters define where telemetry goes OUT.
 # otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
 # otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
-# debug         → Collector stdout (useful when reading logs).
+# debug               → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
   otlp_grpc/backend:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
-      x-honeycomb-team: TYqMIJb3yluOkxoVHCfwIB
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -58,7 +58,6 @@ service:
   telemetry:
     logs:
       level: info
-      encoding: json
       processors:
         - batch:
             exporter:
@@ -83,18 +82,6 @@ service:
               otlp:
                 protocol: http/protobuf
                 endpoint: https://api.honeycomb.io/v1/metrics
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
-    traces:
-      processors:
-        - batch:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/traces
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}

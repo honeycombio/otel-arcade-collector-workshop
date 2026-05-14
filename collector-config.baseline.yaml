@@ -58,7 +58,6 @@ service:
   telemetry:
     logs:
       level: info
-      encoding: json
       processors:
         - batch:
             exporter:
@@ -83,18 +82,6 @@ service:
               otlp:
                 protocol: http/protobuf
                 endpoint: https://api.honeycomb.io/v1/metrics
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
-    traces:
-      processors:
-        - batch:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/traces
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
