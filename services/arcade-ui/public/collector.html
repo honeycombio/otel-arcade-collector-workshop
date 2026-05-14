@@ -392,9 +392,8 @@
 
     <div class="col-layout">
     <div class="col-tabs">
-      <button class="col-tab active" id="tab-local"   onclick="showTab('local')">Collector <span class="tab-lab">Labs 1–2</span></button>
-      <button class="col-tab"        id="tab-agent"   onclick="showTab('agent')">
-        <span class="tab-dot" id="tab-dot-agent"></span>Agent <span class="tab-lab">Lab 3</span>
+      <button class="col-tab active" id="tab-local"   onclick="showTab('local')">
+        <span class="tab-dot" id="tab-dot-local"></span>Collector <span class="tab-lab">Labs 1–3</span>
       </button>
       <button class="col-tab"        id="tab-gateway" onclick="showTab('gateway')">
         <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 3</span>
@@ -406,11 +405,19 @@
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-local" class="col-pane">
       <p class="col-hint">
-        Configuring <code>otel-collector-agent</code> — your single Collector for Labs 1 and 2.
+        Configuring <code>otel-collector-agent</code> — your Collector for all labs.
+        In Labs 1 &amp; 2 it exports directly to the backend. In Lab 3, load the
+        <strong>Lab 3 — Agent forwarding</strong> template to reconfigure it as a forwarding agent
+        that sends upstream to the gateway instead.
         Use <strong>Built-in Editor</strong> to edit here, or switch to <strong>IDE Watch Mode</strong>
         to edit <code>collector-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
         <span class="shortcut">(Built-in: Ctrl+S / ⌘S applies)</span>
       </p>
+
+      <div class="ds-status">
+        <span class="ds-dot" id="local-ds-dot"></span>
+        <span id="local-ds-msg">Loading…</span>
+      </div>
 
       <div class="watch-toggle-bar">
         <span class="watch-toggle-label">Edit mode</span>
@@ -433,6 +440,7 @@
           <option value="">Load starter…</option>
           <option value="lab1">↺ Lab 1 — baseline</option>
           <option value="lab2">Lab 2 — OTTL transforms</option>
+          <option value="lab3">Lab 3 — Agent forwarding</option>
         </select>
         <button class="btn-secondary" onclick="formatYaml('local')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
       </div>
@@ -470,79 +478,6 @@
           <button onclick="toggleLogs('local')" title="Close">✕</button>
         </div>
         <pre class="log-pre" id="local-log-output"></pre>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         AGENT TAB — docker-compose agent container, Lab 3
-    ══════════════════════════════════════════════════════════ -->
-    <div id="pane-agent" class="col-pane" style="display:none">
-      <p class="col-hint">
-        Configuring <code>otel-collector-agent</code> as the <strong>forwarding agent</strong> in the agent→gateway pattern.
-        This is the same container and the same <code>collector-config.yaml</code> as the Collector tab — the distinction is conceptual.
-        Load the <strong>Lab 3 — Agent forwarding</strong> template to reconfigure it as a forwarder that sends upstream to
-        <code>otel-collector-gateway:4317</code> instead of exporting directly to the backend.
-        <span class="shortcut">(Ctrl+S / ⌘S applies)</span>
-      </p>
-
-      <div id="agent-k8s-content">
-        <div class="ds-status">
-          <span class="ds-dot" id="agent-ds-dot"></span>
-          <span id="agent-ds-msg">Loading…</span>
-        </div>
-
-        <div class="watch-toggle-bar">
-          <span class="watch-toggle-label">Edit mode</span>
-          <div class="watch-toggle-switch">
-            <button id="agent-mode-builtin" class="active" onclick="setWatchMode('agent', false)">Built-in Editor</button>
-            <button id="agent-mode-ide"                    onclick="setWatchMode('agent', true)">IDE Watch Mode</button>
-          </div>
-        </div>
-        <div class="ide-watch-overlay" id="agent-ide-overlay">
-          <div class="watch-pulse"></div>
-          <div>Watching for changes&hellip;</div>
-          <div class="watch-filename">collector-config.yaml</div>
-          <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
-          <div class="watch-synced" id="agent-watch-synced"></div>
-        </div>
-
-        <div class="config-toolbar">
-          <span class="toolbar-label">Template</span>
-          <select class="select-template" id="agent-template-select" onchange="loadAgentTemplate(this.value)">
-            <option value="">Load starter…</option>
-            <option value="lab3">Lab 3 — Agent forwarding</option>
-          </select>
-          <button class="btn-secondary" onclick="formatYaml('agent')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
-        </div>
-
-        <div class="yaml-error-banner" id="agent-yaml-error">
-          <span class="yaml-error-loc" id="agent-yaml-error-loc" onclick="jumpToYamlError('agent')"></span>
-          <span class="yaml-error-msg" id="agent-yaml-error-msg"></span>
-        </div>
-
-        <div class="editor-wrap">
-          <textarea class="yaml-editor" id="agent-editor" spellcheck="false"
-            autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-        </div>
-
-        <div class="config-actions">
-          <button class="btn-apply"     id="agent-btn-apply"   onclick="applyAgentConfig()">Apply &amp; Restart</button>
-          <button class="btn-secondary" id="agent-btn-restart" onclick="restartAgent()">Restart</button>
-          <button class="btn-secondary" id="agent-btn-reset"   onclick="resetAgent()">Revert</button>
-          <button class="btn-secondary" onclick="toggleLogs('agent')">Logs ▾</button>
-          <div class="status-bar">
-            <span class="status-dot" id="agent-dot"></span>
-            <span class="status-msg" id="agent-msg"></span>
-          </div>
-        </div>
-
-        <div class="log-panel" id="agent-log-panel">
-          <div class="log-header">
-            <span>Agent Logs</span>
-            <button onclick="toggleLogs('agent')" title="Close">✕</button>
-          </div>
-          <pre class="log-pre" id="agent-log-output"></pre>
-        </div>
       </div>
     </div>
 
@@ -1175,7 +1110,7 @@ service:
     if (archState.gatewayDeployed) {
       html += '<div class="arch-col">'
         + '<div class="arch-col-label">Agent</div>'
-        + collectorNode('OTel Agent', 'docker-compose', 'agent')
+        + collectorNode('OTel Agent', 'docker-compose', 'local')
         + '</div>';
       html += makeConnector();
       html += '<div class="arch-col">'
@@ -1203,7 +1138,6 @@ service:
 
   // ── State ─────────────────────────────────────────────────────────────────
   var localSaved   = '';
-  var agentSaved   = '';
   var gatewaySaved = '';
   var logSources   = {};
   var draftKey     = 'arcade-collector-draft';
@@ -1213,17 +1147,15 @@ service:
   var activeTab    = 'local';
 
   // ── IDE Watch Mode state ──────────────────────────────────────────────────
-  var watchModeActive = { local: false, agent: false, gateway: false };
+  var watchModeActive = { local: false, gateway: false };
   var watchPollers    = {};
 
   var WATCH_APIS = {
     local:   '/api/collector/watch',
-    agent:   '/api/deploy/agent/watch',
     gateway: '/api/deploy/gateway/watch',
   };
   var CONFIG_FETCH_URLS = {
     local:   '/api/collector/config',
-    agent:   '/api/deploy/agent/config',
     gateway: '/api/deploy/gateway/config',
   };
 
@@ -1270,7 +1202,7 @@ service:
     var btnIde     = document.getElementById(tab + '-mode-ide');
 
     // Gateway tab has its editor inside gateway-config-section; toolbar is also there.
-    // For local/agent we find the toolbar directly in the pane.
+    // For local we find the toolbar directly in the pane.
     var pane    = document.getElementById('pane-' + tab);
     var toolbar = pane ? pane.querySelector('.config-toolbar') : null;
 
@@ -1320,7 +1252,6 @@ service:
       if (editor && data.config !== undefined) {
         editor.value = data.config;
         if (tab === 'local')   localSaved   = data.config;
-        if (tab === 'agent')   agentSaved   = data.config;
         if (tab === 'gateway') gatewaySaved = data.config;
         scheduleLint(tab);
       }
@@ -1331,7 +1262,7 @@ service:
 
   // ── Tab switching ──────────────────────────────────────────────────────────
   function showTab(which) {
-    ['local', 'agent', 'gateway'].forEach(function (t) {
+    ['local', 'gateway'].forEach(function (t) {
       document.getElementById('pane-' + t).style.display = t === which ? '' : 'none';
       document.getElementById('tab-' + t).classList.toggle('active', t === which);
     });
@@ -1417,10 +1348,6 @@ service:
     scheduleLint('local');
   });
 
-  document.getElementById('agent-editor').addEventListener('input', function () {
-    scheduleLint('agent');
-  });
-
   document.getElementById('gateway-editor').addEventListener('input', function () {
     scheduleLint('gateway');
   });
@@ -1441,14 +1368,6 @@ service:
     lintYaml('local');
   }
 
-  function loadAgentTemplate(key) {
-    document.getElementById('agent-template-select').value = '';
-    if (!key || !TEMPLATES[key]) return;
-    document.getElementById('agent-editor').value = applyStoredKeys(TEMPLATES[key]);
-    setStatus('agent', '', 'Template loaded — click Apply & Restart to deploy.');
-    lintYaml('agent');
-  }
-
   // ── Restart helpers ───────────────────────────────────────────────────────
   async function restartLocal() {
     setBusy('local', true);
@@ -1466,24 +1385,6 @@ service:
       setStatus('local', 'err', 'Request failed: ' + err.message);
     }
     setBusy('local', false);
-  }
-
-  async function restartAgent() {
-    setBusy('agent', true);
-    setStatus('agent', 'busy', 'Restarting…');
-    openLogs('agent');
-    try {
-      var r    = await fetch('/api/deploy/agent/restart', { method: 'POST' });
-      var data = await r.json();
-      if (!r.ok) {
-        setStatus('agent', 'err', data.error || 'Unknown error');
-      } else {
-        setStatus('agent', 'ok', 'Restarted (' + new Date().toLocaleTimeString() + ')');
-      }
-    } catch (err) {
-      setStatus('agent', 'err', 'Request failed: ' + err.message);
-    }
-    setBusy('agent', false);
   }
 
   async function teardownGateway() {
@@ -1563,7 +1464,7 @@ service:
       archState.agentDeployed   = !!(data.agent   && data.agent.deployed);
       archState.gatewayDeployed = !!(data.gateway && data.gateway.deployed);
       renderArchDiagram();
-      setDsStatus('agent',   data.agent);
+      setDsStatus('local',   data.agent);
       setDsStatus('gateway', data.gateway);
       var notDeployed   = document.getElementById('gateway-not-deployed');
       var configSection = document.getElementById('gateway-config-section');
@@ -1579,50 +1480,6 @@ service:
     } catch (_) {
       return false;
     }
-  }
-
-  // ── AGENT TAB ─────────────────────────────────────────────────────────────
-  async function loadAgentConfig() {
-    setStatus('agent', 'busy', 'Loading…');
-    try {
-      var r    = await fetch('/api/deploy/agent/config');
-      var data = await r.json();
-      if (!r.ok) throw new Error(data.error || r.statusText);
-      agentSaved = data.config;
-      document.getElementById('agent-editor').value = agentSaved;
-      setStatus('agent', '', '');
-      lintYaml('agent');
-    } catch (err) {
-      setStatus('agent', 'err', 'Could not load: ' + err.message);
-    }
-  }
-
-  function resetAgent() {
-    document.getElementById('agent-editor').value = agentSaved;
-    setStatus('agent', '', '');
-  }
-
-  async function applyAgentConfig() {
-    var config = document.getElementById('agent-editor').value;
-    setBusy('agent', true);
-    setStatus('agent', 'busy', 'Applying…');
-    openLogs('agent');
-    try {
-      var r    = await fetch('/api/deploy/agent/config', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ config }),
-      });
-      var data = await r.json();
-      if (!r.ok) {
-        setStatus('agent', 'err', data.error || 'Unknown error');
-      } else {
-        agentSaved = config;
-        setStatus('agent', 'ok', data.message + ' (' + new Date().toLocaleTimeString() + ')');
-      }
-    } catch (err) {
-      setStatus('agent', 'err', 'Request failed: ' + err.message);
-    }
-    setBusy('agent', false);
   }
 
   // ── GATEWAY TAB ───────────────────────────────────────────────────────────
@@ -1812,7 +1669,7 @@ service:
   }
 
   // ── Tab key → 2 spaces in all editors ─────────────────────────────────────
-  ['local-editor', 'agent-editor', 'gateway-editor'].forEach(function (id) {
+  ['local-editor', 'gateway-editor'].forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('keydown', function (e) {
@@ -1830,7 +1687,6 @@ service:
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       if (activeTab === 'local'   && !watchModeActive['local'])   applyLocalConfig();
-      if (activeTab === 'agent'   && !watchModeActive['agent'])   applyAgentConfig();
       if (activeTab === 'gateway' && !watchModeActive['gateway']) applyGatewayConfig();
     }
   });
@@ -1838,13 +1694,11 @@ service:
   // ── Init ──────────────────────────────────────────────────────────────────
   renderArchDiagram();
   loadLocalConfig();
-  loadKubeStatus().then(function () {
-    loadAgentConfig();
-  });
+  loadKubeStatus();
   statusPoller = setInterval(loadKubeStatus, 5000);
 
   // Restore IDE Watch Mode preferences from localStorage.
-  ['local', 'agent', 'gateway'].forEach(function (tab) {
+  ['local', 'gateway'].forEach(function (tab) {
     if (localStorage.getItem('arcade-watch-mode-' + tab) === '1') {
       setWatchMode(tab, true);
     }

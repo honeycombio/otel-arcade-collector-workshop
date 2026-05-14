@@ -35,14 +35,14 @@ processors:
 # Exporters define where telemetry goes OUT.
 # otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
 # otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
-# debug               → Collector stdout (useful when reading logs).
+# debug         → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
   otlp_grpc/backend:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
-      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+      x-honeycomb-team: TYqMIJb3yluOkxoVHCfwIB
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -56,13 +56,50 @@ exporters:
 # Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
+    logs:
+      level: info
+      encoding: json
+      processors:
+        - batch:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                endpoint: https://api.honeycomb.io/v1/logs
+                headers:
+                  - name: x-honeycomb-team
+                    value: ${env:HONEYCOMB_API_KEY}
+                  - name: x-honeycomb-dataset
+                    value: otel-collector
     metrics:
+      level: detailed
       readers:
         - pull:
             exporter:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
+        - periodic:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                endpoint: https://api.honeycomb.io/v1/metrics
+                headers:
+                  - name: x-honeycomb-team
+                    value: ${env:HONEYCOMB_API_KEY}
+                  - name: x-honeycomb-dataset
+                    value: otel-collector
+    traces:
+      processors:
+        - batch:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                endpoint: https://api.honeycomb.io/v1/traces
+                headers:
+                  - name: x-honeycomb-team
+                    value: ${env:HONEYCOMB_API_KEY}
+                  - name: x-honeycomb-dataset
+                    value: otel-collector
   pipelines:
     traces:
       receivers: [otlp]

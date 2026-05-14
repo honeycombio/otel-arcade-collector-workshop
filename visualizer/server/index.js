@@ -47,15 +47,15 @@ function reloadConfig(key, filePath) {
   broadcast({ type: 'config', payload: cachedConfigs });
 }
 
-// Watch a config file and reload on change (debounced 600 ms).
+// Watch a config file and reload on change.
+// Uses fs.watchFile (stat polling) instead of fs.watch (inotify) because
+// inotify events are not propagated across the macOS↔Docker FUSE boundary,
+// making fs.watch unreliable on bind-mounted volumes. watchFile also handles
+// files that don't exist yet (e.g. gateway-config.yaml before first deploy).
 function watchConfig(filePath, key) {
-  let timer = null;
-  try {
-    fs.watch(filePath, () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => reloadConfig(key, filePath), 600);
-    });
-  } catch (_) { /* file not present yet — no watch */ }
+  fs.watchFile(filePath, { persistent: false, interval: 1000 }, () => {
+    reloadConfig(key, filePath);
+  });
 }
 
 watchConfig(AGENT_CONFIG_PATH,   'agent');
