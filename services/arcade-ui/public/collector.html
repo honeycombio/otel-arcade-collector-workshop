@@ -166,9 +166,20 @@
     .editor-wrap {
       position: relative; border: 1px solid var(--border);
       border-radius: 8px; overflow: hidden;
+      display: flex;
+    }
+    .line-numbers {
+      background: #0b0c12; color: #3d4060;
+      font-family: 'JetBrains Mono', 'Menlo', monospace;
+      font-size: 14px; line-height: 1.65;
+      padding: 16px 10px 16px 12px;
+      text-align: right; user-select: none;
+      border-right: 1px solid var(--border);
+      min-width: 42px; flex-shrink: 0;
+      overflow-y: hidden; white-space: pre;
     }
     .yaml-editor {
-      display: block; width: 100%; min-height: 380px;
+      display: block; flex: 1; min-width: 0; min-height: 380px;
       background: #0b0c12; color: var(--text);
       font-family: 'JetBrains Mono', 'Menlo', monospace;
       font-size: 14px; line-height: 1.65; padding: 16px;
@@ -442,7 +453,7 @@
           <option value="lab2">Lab 2 — OTTL transforms</option>
           <option value="lab3">Lab 3 — Agent forwarding</option>
         </select>
-        <button class="btn-secondary" onclick="formatYaml('local')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
+        <button class="btn-secondary" onclick="formatYaml('local')" title="Normalize whitespace: tabs → spaces, trim trailing spaces">Format</button>
       </div>
 
       <div class="yaml-error-banner" id="local-yaml-error">
@@ -457,6 +468,7 @@
       </div>
 
       <div class="editor-wrap">
+        <div class="line-numbers" id="local-line-numbers">1</div>
         <textarea class="yaml-editor" id="local-editor" spellcheck="false"
           autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
       </div>
@@ -543,7 +555,7 @@
               <option value="lab3">↺ Reset to Lab 3 baseline</option>
               <option value="lab5">Lab 5 — Sampling &amp; Connectors</option>
             </select>
-            <button class="btn-secondary" onclick="formatYaml('gateway')" title="Convert tabs to spaces and trim trailing whitespace">Format</button>
+            <button class="btn-secondary" onclick="formatYaml('gateway')" title="Normalize whitespace: tabs → spaces, trim trailing spaces">Format</button>
           </div>
 
           <div class="yaml-error-banner" id="gateway-yaml-error">
@@ -552,6 +564,7 @@
           </div>
 
           <div class="editor-wrap">
+            <div class="line-numbers" id="gateway-line-numbers">1</div>
             <textarea class="yaml-editor" id="gateway-editor" spellcheck="false"
               autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
           </div>
@@ -1064,6 +1077,7 @@ service:
     document.getElementById('gateway-template-select').value = '';
     document.getElementById('gateway-editor').value = applyStoredKeys(tmpl);
     lintYaml('gateway');
+    updateLineNumbers('gateway');
     setStatus('gateway', '', 'Template loaded — click Apply & Restart to deploy.');
   }
 
@@ -1254,6 +1268,7 @@ service:
         if (tab === 'local')   localSaved   = data.config;
         if (tab === 'gateway') gatewaySaved = data.config;
         scheduleLint(tab);
+        updateLineNumbers(tab);
       }
       var syncEl = document.getElementById(tab + '-watch-synced');
       if (syncEl) syncEl.textContent = 'Last synced ' + new Date().toLocaleTimeString();
@@ -1335,10 +1350,12 @@ service:
     var draft = localStorage.getItem(draftKey);
     if (draft) document.getElementById('local-editor').value = draft;
     document.getElementById('draft-banner').style.display = 'none';
+    updateLineNumbers('local');
   }
   function discardDraft() {
     clearDraft();
     document.getElementById('local-editor').value = localSaved;
+    updateLineNumbers('local');
   }
 
   document.getElementById('local-editor').addEventListener('input', function () {
@@ -1346,10 +1363,12 @@ service:
     clearTimeout(draftTimer);
     draftTimer = setTimeout(function () { saveDraft(document.getElementById('local-editor').value); }, 300);
     scheduleLint('local');
+    updateLineNumbers('local');
   });
 
   document.getElementById('gateway-editor').addEventListener('input', function () {
     scheduleLint('gateway');
+    updateLineNumbers('gateway');
   });
 
   function applyStoredKeys(yaml) {
@@ -1366,6 +1385,7 @@ service:
     editor.value = applyStoredKeys(TEMPLATES[key]);
     setStatus('local', '', 'Template loaded — click Apply & Restart to deploy.');
     lintYaml('local');
+    updateLineNumbers('local');
   }
 
   // ── Restart helpers ───────────────────────────────────────────────────────
@@ -1420,6 +1440,7 @@ service:
       setStatus('local', '', '');
       checkForDraft(localSaved);
       lintYaml('local');
+      updateLineNumbers('local');
     } catch (err) {
       setStatus('local', 'err', 'Could not load: ' + err.message);
     }
@@ -1429,6 +1450,7 @@ service:
     document.getElementById('local-editor').value = localSaved;
     clearDraft();
     setStatus('local', '', '');
+    updateLineNumbers('local');
   }
 
   async function applyLocalConfig() {
@@ -1493,6 +1515,7 @@ service:
       document.getElementById('gateway-editor').value = gatewaySaved;
       setStatus('gateway', '', '');
       lintYaml('gateway');
+      updateLineNumbers('gateway');
     } catch (err) {
       setStatus('gateway', 'err', 'Could not load: ' + err.message);
     }
@@ -1501,6 +1524,7 @@ service:
   function resetGateway() {
     document.getElementById('gateway-editor').value = gatewaySaved;
     setStatus('gateway', '', '');
+    updateLineNumbers('gateway');
   }
 
   async function applyGatewayConfig() {
@@ -1604,6 +1628,24 @@ service:
     }
   }
 
+  // ── Line numbers ─────────────────────────────────────────────────────────
+  function updateLineNumbers(pane) {
+    var ta = document.getElementById(pane + '-editor');
+    var ln = document.getElementById(pane + '-line-numbers');
+    if (!ta || !ln) return;
+    var count = ta.value.split('\n').length;
+    var nums = [];
+    for (var i = 1; i <= count; i++) nums.push(i);
+    ln.textContent = nums.join('\n');
+    ln.scrollTop = ta.scrollTop;
+  }
+
+  ['local', 'gateway'].forEach(function (pane) {
+    var ta = document.getElementById(pane + '-editor');
+    if (!ta) return;
+    ta.addEventListener('scroll', function () { updateLineNumbers(pane); });
+  });
+
   // ── YAML lint & format ───────────────────────────────────────────────────
   var lintTimers = {};
 
@@ -1663,9 +1705,12 @@ service:
     if (formatted !== ta.value) {
       ta.value = formatted;
       ta.dispatchEvent(new Event('input'));
+      updateLineNumbers(pane);
       setStatus(pane, 'ok', 'Formatted');
-      setTimeout(function () { setStatus(pane, '', ''); }, 2000);
+    } else {
+      setStatus(pane, 'ok', 'Already clean');
     }
+    setTimeout(function () { setStatus(pane, '', ''); }, 2000);
   }
 
   // ── Tab key → 2 spaces in all editors ─────────────────────────────────────
