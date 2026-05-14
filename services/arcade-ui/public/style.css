@@ -583,6 +583,7 @@ a { color: var(--accent2); text-decoration: none; }
 .tap-rate { font-size: 22px; color: var(--accent3); min-height: 32px; }
 
 /* ── Wave Defender ─────────────────────────────────────────── */
+#tracks { width: 100%; }
 .wave-track {
   position: relative;
   width: 100%;
