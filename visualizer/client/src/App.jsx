@@ -56,7 +56,7 @@ export default function App() {
         selected={selectedCollector}
         onSelect={setSelectedCollector}
         pipelineConfig={configs?.[selectedCollector] || null}
-        metrics={activeMetrics.metrics}
+        metrics={activeMetrics?.metrics}
       />
 
       <TelemetryFeed
@@ -66,7 +66,7 @@ export default function App() {
       />
 
       <CollectorHealth
-        metrics={activeMetrics.metrics}
+        metrics={activeMetrics?.metrics}
         connected={collectorOk}
         label={selectedCollector === 'gateway' ? 'Gateway' : 'Agent'}
       />
