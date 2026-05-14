@@ -102,9 +102,15 @@ function broadcast(msg) {
 
 // ── OTLP/HTTP receiver (separate port) ─────────────────────────────────────
 const receiver = makeReceiver({ broadcast });
-receiver.app.listen(OTLP_PORT, () => {
+// keepAliveTimeout must exceed the Collector's batch.timeout (default 5s) to
+// prevent the Node.js 18+ default 5s keep-alive timeout from racing with
+// in-flight requests from the Go HTTP client, which causes EOF / connection
+// reset errors on the Collector side.
+const otlpServer = receiver.app.listen(OTLP_PORT, () => {
   console.log(`visualizer OTLP/HTTP receiver listening on :${OTLP_PORT}`);
 });
+otlpServer.keepAliveTimeout = 65000;
+otlpServer.headersTimeout   = 66000;
 
 // ── Service graph broadcaster ───────────────────────────────────────────────
 setInterval(() => {
