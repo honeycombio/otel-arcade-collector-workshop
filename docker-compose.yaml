@@ -74,9 +74,11 @@ services:
       LOADGEN_IMAGE: otel-arcade-loadgen
       HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}
       OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-api.honeycomb.io:443}
+      ENV_FILE_PATH: /app/.env
     volumes:
       - ./collector-config.yaml:/app/collector-config.yaml
       - ./gateway-config.yaml:/app/gateway-config.yaml
+      - ./.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "3000:3000"

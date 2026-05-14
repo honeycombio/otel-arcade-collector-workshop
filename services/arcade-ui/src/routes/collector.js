@@ -9,6 +9,7 @@ const CONFIG_PATH    = process.env.COLLECTOR_CONFIG_PATH    || '/app/collector-c
 const CONTAINER_NAME = process.env.COLLECTOR_CONTAINER_NAME || 'otel-arcade-otel-collector-agent-1';
 const DOCKER_SOCKET  = '/var/run/docker.sock';
 const METRICS_URL    = process.env.COLLECTOR_METRICS_URL    || 'http://otel-collector-agent:8888/metrics';
+const ENV_FILE_PATH  = process.env.ENV_FILE_PATH            || '';
 
 // ── IDE Watch Mode state ─────────────────────────────────────────
 let watchEnabled    = false;
@@ -104,6 +105,19 @@ async function handleExternalChange() {
   catch (e) { console.error('[watch] Restart failed:', e.message); }
 }
 
+// ── Helpers ─────────────────────────────────────────────────────
+
+function updateEnvFile(filePath, key, value) {
+  let content = '';
+  try { content = fs.readFileSync(filePath, 'utf8'); } catch (_) {}
+  const line = `${key}=${value}`;
+  const re   = new RegExp(`^${key}=.*$`, 'm');
+  content = re.test(content)
+    ? content.replace(re, line)
+    : content.trimEnd() + '\n' + line + '\n';
+  fs.writeFileSync(filePath, content, 'utf8');
+}
+
 // ── Routes ──────────────────────────────────────────────────────
 
 router.get('/api/collector/config', (req, res) => {
@@ -167,61 +181,72 @@ router.post('/api/collector/restart', async (req, res) => {
 
 router.post('/api/settings/honeycomb-key', async (req, res) => {
   const { apiKey } = req.body || {};
-  if (!apiKey || typeof apiKey !== 'string') {
+  if (!apiKey || typeof apiKey !== 'string')
     return res.status(400).json({ error: 'apiKey (string) required' });
-  }
 
   // Validate against Honeycomb auth API.
-  let team = null;
-  let environment = null;
-  let validated = false;
+  let team = null, environment = null, validated = false;
   try {
     const authRes = await fetch('https://api.honeycomb.io/1/auth', {
       headers: { 'X-Honeycomb-Team': apiKey },
       signal: AbortSignal.timeout(5000),
     });
-    if (authRes.status === 401) {
+    if (authRes.status === 401)
       return res.status(401).json({ error: 'Invalid API key — check your Honeycomb settings' });
-    }
     if (authRes.ok) {
       const data = await authRes.json();
-      team        = data.team        && data.team.name;
-      environment = data.environment && data.environment.name;
+      team        = data.team?.name        || null;
+      environment = data.environment?.name || null;
       validated   = true;
     }
-  } catch (_) {
-    // Network error — proceed without validation.
-  }
+  } catch (_) { /* network error — proceed without validation */ }
 
-  // Substitute literal key for ${env:HONEYCOMB_API_KEY} in the current config.
-  let config;
+  let originalConfig;
   try {
-    config = fs.readFileSync(CONFIG_PATH, 'utf8');
+    originalConfig = fs.readFileSync(CONFIG_PATH, 'utf8');
   } catch (err) {
     return res.status(500).json({ error: `Could not read config: ${err.message}` });
   }
 
-  const updated = config.replace(/\$\{env:HONEYCOMB_API_KEY\}/g, apiKey);
+  const configWithKey = originalConfig.replace(/\$\{env:HONEYCOMB_API_KEY\}/g, apiKey);
+  const needsRestart  = configWithKey !== originalConfig;
   let restarted = false;
 
-  if (updated !== config) {
+  if (needsRestart) {
+    // Write the literal key so the Collector reads it on restart.
     writeInProgress = true;
     try {
-      fs.writeFileSync(CONFIG_PATH, updated, 'utf8');
+      fs.writeFileSync(CONFIG_PATH, configWithKey, 'utf8');
     } catch (err) {
-      return res.status(500).json({ error: `Could not write config: ${err.message}` });
-    } finally {
       setImmediate(() => { writeInProgress = false; });
+      return res.status(500).json({ error: `Could not write config: ${err.message}` });
     }
+    setImmediate(() => { writeInProgress = false; });
 
     try {
       await restartContainer(CONTAINER_NAME);
     } catch (err) {
+      // Restore placeholder even on restart failure.
+      writeInProgress = true;
+      try { fs.writeFileSync(CONFIG_PATH, originalConfig, 'utf8'); } catch (_) {}
+      setImmediate(() => { writeInProgress = false; });
       return res.status(500).json({ error: `Collector restart failed: ${err.message}` });
     }
 
+    // Container has started and read the config. Restore the env-var placeholder
+    // so the literal key is never left in a git-tracked file.
+    writeInProgress = true;
+    try { fs.writeFileSync(CONFIG_PATH, originalConfig, 'utf8'); } catch (_) {}
+    setImmediate(() => { writeInProgress = false; });
+
     await waitForCollector(15000);
     restarted = true;
+  }
+
+  // Persist to .env so future make local-up / make local-restart-collector
+  // also use the new key without the student manually editing the file.
+  if (ENV_FILE_PATH) {
+    try { updateEnvFile(ENV_FILE_PATH, 'HONEYCOMB_API_KEY', apiKey); } catch (_) {}
   }
 
   res.json({ ok: true, team, environment, validated, restarted });
