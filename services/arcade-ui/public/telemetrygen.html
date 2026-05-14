@@ -119,6 +119,15 @@
     }
     .btn-stop:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
     .btn-stop:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .tgen-group-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--muted); margin: 14px 0 6px;
+    }
+    .tgen-group-note {
+      font-size: 11px; color: var(--muted); margin: 8px 0 0;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -187,19 +196,45 @@
 
     <h2 class="brand" style="font-size:15px;margin:0 0 6px">Game Session Presets</h2>
     <p class="tgen-tagline" style="margin-bottom:16px">
-      Simulate complete game sessions across all three services — each session produces
+      Simulate complete game sessions for all 20 games, across all three services — each session produces
       realistic multi-span traces with all deliberate telemetry smells intact.
     </p>
 
-    <div class="session-grid" id="session-grid">
-      <button class="btn-session" onclick="genSession('memory', 5)">5 × Memory Match</button>
-      <button class="btn-session" onclick="genSession('typing', 5)">5 × Typing Speed</button>
-      <button class="btn-session" onclick="genSession('whackamole', 5)">5 × Whack-a-Mole</button>
-      <button class="btn-session" onclick="genSession('reaction', 5)">5 × Reaction Timer</button>
-      <button class="btn-session" onclick="genSession('math-sprint', 5)">5 × Math Sprint</button>
-      <button class="btn-session" onclick="genSession('simon-says', 5)">5 × Simon Says</button>
-      <button class="btn-session" onclick="genSession('mixed', 10)">10 × Mixed (all games)</button>
-      <button class="btn-session" onclick="genSession('mixed', 50)">50 × Mixed (load volume)</button>
+    <div id="session-grid">
+      <p class="tgen-group-label">Original games</p>
+      <div class="session-grid">
+        <button class="btn-session" onclick="genSession('memory', 5)">5 × Memory Match</button>
+        <button class="btn-session" onclick="genSession('typing', 5)">5 × Typing Speed</button>
+        <button class="btn-session" onclick="genSession('whackamole', 5)">5 × Whack-a-Mole</button>
+        <button class="btn-session" onclick="genSession('reaction', 5)">5 × Reaction Timer</button>
+        <button class="btn-session" onclick="genSession('target-shooter', 5)">5 × Target Shooter</button>
+        <button class="btn-session" onclick="genSession('word-scramble', 5)">5 × Word Scramble</button>
+        <button class="btn-session" onclick="genSession('math-sprint', 5)">5 × Math Sprint</button>
+        <button class="btn-session" onclick="genSession('simon-says', 5)">5 × Simon Says</button>
+        <button class="btn-session" onclick="genSession('speed-tap', 5)">5 × Speed Tap</button>
+      </div>
+
+      <p class="tgen-group-label" style="margin-top:18px">Advanced games</p>
+      <div class="session-grid">
+        <button class="btn-session" onclick="genSession('wave-defender', 5)">5 × Wave Defender</button>
+        <button class="btn-session" onclick="genSession('bid-wars', 5)">5 × Bid Wars</button>
+        <button class="btn-session" onclick="genSession('hot-cache', 5)">5 × Hot Cache</button>
+        <button class="btn-session" onclick="genSession('pixel-sort', 5)">5 × Pixel Sort</button>
+        <button class="btn-session" onclick="genSession('chain-reaction', 5)">5 × Chain Reaction</button>
+        <button class="btn-session" onclick="genSession('deadline-dash', 5)">5 × Deadline Dash</button>
+        <button class="btn-session" onclick="genSession('power-surge', 5)">5 × Power Surge</button>
+        <button class="btn-session" onclick="genSession('vault-sync', 5)">5 × Vault Sync</button>
+        <button class="btn-session" onclick="genSession('laser-grid', 5)">5 × Laser Grid</button>
+        <button class="btn-session" onclick="genSession('canary-deploy', 5)">5 × Canary Deploy</button>
+        <button class="btn-session" onclick="genSession('pulse', 5)">5 × Pulse</button>
+      </div>
+      <p class="tgen-group-note">These sessions use simplified simulations — to see the actual fan-out, retry, or circuit-breaker trace shapes, play those games in the arcade.</p>
+
+      <p class="tgen-group-label" style="margin-top:18px">Volume</p>
+      <div class="session-grid">
+        <button class="btn-session" onclick="genSession('mixed', 10)">10 × Mixed (all 20 games)</button>
+        <button class="btn-session" onclick="genSession('mixed', 50)">50 × Mixed (load volume)</button>
+      </div>
     </div>
 
     <div class="tgen-status" style="margin-top:12px">

@@ -157,13 +157,28 @@ const PLAYER_IDS = ['u_load01', 'u_load02', 'u_load03', 'u_load04', 'u_load05'];
 const UA_STRING  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.2478.97';
 
 const GAME_CFG = {
-  memory:       { events: () => randInt(8, 20),  eventType: 'flip',      score: () => randInt(100, 600)  },
-  typing:       { events: () => randInt(4, 12),  eventType: 'progress',  score: () => randInt(200, 1500) },
-  whackamole:   { events: () => randInt(10, 30), eventType: 'hit',       score: () => randInt(50, 400)   },
-  reaction:     { events: () => 5,               eventType: 'trial',     score: () => randInt(600, 950)  },
-  'math-sprint':{ events: () => 10,              eventType: 'answer',    score: () => randInt(50, 100)   },
-  'simon-says': { events: () => randInt(5, 15),  eventType: 'sequence',  score: () => randInt(100, 800)  },
-  'speed-tap':  { events: () => randInt(6, 12),  eventType: 'tap_burst', score: () => randInt(80, 180)   },
+  // Original 9
+  memory:           { events: () => randInt(8, 20),  eventType: 'flip',        score: () => randInt(100, 600)  },
+  typing:           { events: () => randInt(4, 12),  eventType: 'progress',    score: () => randInt(200, 1500) },
+  whackamole:       { events: () => randInt(10, 30), eventType: 'hit',         score: () => randInt(50, 400)   },
+  reaction:         { events: () => 5,               eventType: 'trial',       score: () => randInt(600, 950)  },
+  'target-shooter': { events: () => randInt(8, 20),  eventType: 'shot',        score: () => randInt(200, 900)  },
+  'word-scramble':  { events: () => randInt(5, 10),  eventType: 'guess',       score: () => randInt(100, 500)  },
+  'math-sprint':    { events: () => 10,              eventType: 'answer',      score: () => randInt(50, 100)   },
+  'simon-says':     { events: () => randInt(5, 15),  eventType: 'sequence',    score: () => randInt(100, 800)  },
+  'speed-tap':      { events: () => randInt(6, 12),  eventType: 'tap_burst',   score: () => randInt(80, 180)   },
+  // Advanced games
+  'wave-defender':  { events: () => randInt(3, 8),   eventType: 'wave',        score: () => randInt(200, 1200) },
+  'bid-wars':       { events: () => randInt(5, 15),  eventType: 'bid',         score: () => randInt(100, 600)  },
+  'hot-cache':      { events: () => randInt(10, 20), eventType: 'answer',      score: () => randInt(200, 800)  },
+  'pixel-sort':     { events: () => randInt(3, 8),   eventType: 'partition',   score: () => randInt(150, 500)  },
+  'chain-reaction': { events: () => randInt(5, 12),  eventType: 'step',        score: () => randInt(200, 700)  },
+  'deadline-dash':  { events: () => randInt(4, 10),  eventType: 'order',       score: () => randInt(100, 600)  },
+  'power-surge':    { events: () => randInt(8, 20),  eventType: 'surge',       score: () => randInt(200, 900)  },
+  'vault-sync':     { events: () => randInt(3, 7),   eventType: 'transaction', score: () => randInt(300, 900)  },
+  'laser-grid':     { events: () => randInt(10, 25), eventType: 'shot',        score: () => randInt(100, 500)  },
+  'canary-deploy':  { events: () => randInt(5, 15),  eventType: 'request',     score: () => randInt(200, 700)  },
+  pulse:            { events: () => randInt(8, 16),  eventType: 'event',       score: () => randInt(300, 800)  },
 };
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
