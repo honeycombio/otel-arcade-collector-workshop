@@ -56,6 +56,8 @@ exporters:
 
 service:
   telemetry:
+    resource:
+      service.name: otel-collector-gateway
     metrics:
       readers:
         - pull:
