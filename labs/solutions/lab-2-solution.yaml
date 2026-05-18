@@ -1,0 +1,109 @@
+# OTel Arcade — Lab 2 solution.
+#
+# All five OTTL transforms applied:
+#   1. Normalize raw SQL span names → db.query
+#   2. Redact player.id PII → ***
+#   3. Drop /health and /ready probe spans
+#   4. Truncate long attribute values (e.g. browser user-agent strings)
+#   5. Remove redundant app.name resource attribute
+#
+# The traces/raw pipeline powers the Split (Before→After) view in the
+# Visualizer feed so you can see exactly what each transform changes.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+  # Fix 3 — drop /health and /ready probe spans entirely.
+  # Uses the filter processor (not transform) because we're removing spans,
+  # not modifying them.
+  filter/drop_probes:
+    error_mode: ignore
+    traces:
+      span:
+        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
+
+  # Fixes 1, 2, 4, 5 — normalize telemetry quality problems.
+  transform/normalize:
+    trace_statements:
+      - context: span
+        statements:
+          # Fix 1 — replace raw SQL span names with a stable, low-cardinality value
+          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          # Fix 2 — redact player.id PII
+          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
+          # Fix 4 — truncate long attribute values (browser user-agent can be 200+ chars)
+          - truncate_all(span.attributes, 128)
+      - context: resource
+        statements:
+          # Fix 5 — remove redundant app.name (duplicates service.name)
+          - delete_key(resource.attributes, "app.name")
+
+exporters:
+  debug:
+    verbosity: basic
+  otlp_grpc/backend:
+    endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+  otlp_http/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+  # Sends pre-transform spans to the Visualizer's Split (Before→After) view.
+  otlp_http/visualizer-raw:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-raw-channel: "true"
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    resource:
+      attributes:
+        - name: service.name
+          value: otel-collector-agent
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    # Captures spans BEFORE any transforms — powers the Split (Before→After) view.
+    traces/raw:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp_http/visualizer-raw]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]

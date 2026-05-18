@@ -712,18 +712,18 @@ processors:
       - context: span
         statements:
           # Fix 1 — normalize raw SQL span names to a stable, low-cardinality value
-          # - replace_pattern(name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          # - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
 
           # Fix 2 — redact player.id PII
-          # - set(attributes["player.id"], "***") where attributes["player.id"] != nil
+          # - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
 
           # Fix 4 — truncate long attribute values (e.g. full browser user-agent strings)
-          # - truncate_all(attributes, 128)
+          # - truncate_all(span.attributes, 128)
 
       - context: resource
         statements:
           # Fix 5 — remove the redundant app.name resource attribute
-          # - delete_key(attributes, "app.name")
+          # - delete_key(resource.attributes, "app.name")
 
   # Fix 3 — drop /health and /ready probe spans entirely (filter, not transform)
   # Uncomment below, then add filter/drop_probes before batch in the traces pipeline.
@@ -829,12 +829,12 @@ processors:
     trace_statements:
       - context: span
         statements:
-          - replace_pattern(name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
-          - set(attributes["player.id"], "***") where attributes["player.id"] != nil
-          - truncate_all(attributes, 128)
+          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
+          - truncate_all(span.attributes, 128)
       - context: resource
         statements:
-          - delete_key(attributes, "app.name")
+          - delete_key(resource.attributes, "app.name")
 
 # ── Exporters ────────────────────────────────────────────────────────
 # otlp_grpc/gateway: forwards to the gateway instead of Honeycomb directly.
@@ -1003,11 +1003,11 @@ connectors:
   #       pipelines: [traces/errors]
 
   # ── Exercise 3: Service Graph ─────────────────────────────────────────────
-  # Uncomment, then add [servicegraph] to traces pipeline exporters,
-  # and uncomment the metrics/servicegraph pipeline at the bottom.
+  # Uncomment, then add [service_graph] to traces pipeline exporters,
+  # and uncomment the metrics/service_graph pipeline at the bottom.
   # Check Honeycomb for traces_service_graph_* metrics.
   #
-  # servicegraph:
+  # service_graph:
   #   latency_histogram_buckets: [5ms, 25ms, 100ms, 500ms, 1s]
   #   store:
   #     ttl: 2s
@@ -1043,7 +1043,7 @@ service:
       processors: [memory_limiter, batch]
       # Exercise 1: replace [batch] with [tail_sampling] above
       # Exercise 2: add routing to exporters list
-      # Exercise 3: add servicegraph to exporters list
+      # Exercise 3: add service_graph to exporters list
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     metrics:
@@ -1066,9 +1066,9 @@ service:
     #   processors: [batch]
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
-    # ── Exercise 3: uncomment after adding servicegraph connector ─────────────
-    # metrics/servicegraph:
-    #   receivers: [servicegraph]
+    # ── Exercise 3: uncomment after adding service_graph connector ─────────────
+    # metrics/service_graph:
+    #   receivers: [service_graph]
     #   exporters: [otlp_grpc/backend]
 `,
   };

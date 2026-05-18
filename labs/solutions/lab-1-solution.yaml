@@ -1,14 +1,12 @@
-# OTel Arcade — Lab 1: Your first Collector pipeline.
+# OTel Arcade — Lab 1 solution.
 #
-# The Collector receives telemetry from the three arcade services and
-# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
-# play a game, and spans should appear in the Visualizer feed within seconds.
+# A complete working pipeline: receives OTLP from the arcade services,
+# exports to Honeycomb and the Pipeline Visualizer.
 #
-# Edit here or open collector-agent-config.yaml at the repo root in your IDE
-# (use IDE Watch Mode on this tab to auto-restart on every save).
+# Apply this config, play a game, and spans should appear in the
+# Visualizer feed within seconds.
 
 # ── Receivers ────────────────────────────────────────────────────────
-# Receivers are the entry point — they define how telemetry gets IN.
 # The arcade services emit OTLP over gRPC (4317) and HTTP (4318).
 receivers:
   otlp:
@@ -19,8 +17,7 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 # ── Processors ───────────────────────────────────────────────────────
-# Processors transform or filter data in flight, in the order listed.
-# memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
+# memory_limiter: hard cap on RAM — prevents OOM crashes under load.
 # batch: buffers spans/metrics/logs and sends them together (better throughput).
 processors:
   memory_limiter:
@@ -32,10 +29,9 @@ processors:
     timeout: 5s
 
 # ── Exporters ────────────────────────────────────────────────────────
-# Exporters define where telemetry goes OUT.
-# otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
-# otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
-# debug               → Collector stdout (useful when reading logs).
+# otlp_grpc/backend  → Honeycomb (credentials from the .env file at the repo root).
+# otlp_http/visualizer → local Pipeline Visualizer (live feed and topology).
+# debug               → Collector stdout.
 exporters:
   debug:
     verbosity: basic
@@ -52,8 +48,6 @@ exporters:
       insecure: true
 
 # ── Service ──────────────────────────────────────────────────────────
-# The service block wires everything together into named pipelines.
-# Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
     resource:

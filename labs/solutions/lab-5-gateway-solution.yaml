@@ -1,0 +1,139 @@
+# OTel Arcade — Lab 5 solution (gateway config).
+#
+# Exercises 1 and 3 are applied here. Exercise 2 (routing connector)
+# is documented in the comments below — wire it in separately once you
+# have confirmed Exercises 1 and 3 are working.
+#
+# Apply this via ⚙ Deploy & Configure → Gateway tab.
+# Prerequisites: Lab 3 complete (gateway deployed).
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+  # ── Exercise 1: Tail Sampling ─────────────────────────────────────
+  # Buffers traces for up to 5s before making a keep/drop decision.
+  # Policies evaluate in order; first match wins.
+  #
+  # keep_errors      — always keep traces with any ERROR status span
+  # keep_slow_traces — keep traces that took more than 500ms end-to-end
+  # sample_the_rest  — keep 10% of everything else
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: keep_errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: keep_slow_traces
+        type: latency
+        latency:
+          threshold_ms: 500
+      - name: sample_the_rest
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+# ── Exercise 2: Routing connector (add manually) ──────────────────────
+#
+# The routing connector fans traces to different downstream pipelines
+# based on a condition. It acts as both an exporter (from the main
+# traces pipeline) and a receiver (feeding the named pipelines).
+#
+# To wire it in:
+#   1. Add the routing connector to the connectors block:
+#
+#      connectors:
+#        routing:
+#          default_pipelines: [traces/standard]
+#          error_mode: ignore
+#          table:
+#            - context: span
+#              statement: <your condition here>
+#              pipelines: [traces/errors]
+#
+#   2. Add `routing` to the traces pipeline exporters list below.
+#   3. Uncomment the traces/standard and traces/errors pipelines at the bottom.
+#
+# ── Exercise 3: Service Graph connector ───────────────────────────────
+connectors:
+  # Consumes traces and emits service dependency metrics.
+  # After enabling this, query traces_service_graph_* in Honeycomb.
+  service_graph:
+    latency_histogram_buckets: [5ms, 25ms, 100ms, 500ms, 1s]
+    store:
+      ttl: 2s
+      max_items: 1000
+
+exporters:
+  debug:
+    verbosity: basic
+  otlp_grpc/backend:
+    endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+  otlp_http/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: gateway
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    resource:
+      attributes:
+        - name: service.name
+          value: otel-collector-gateway
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, tail_sampling]
+      # Exercise 2: also add `routing` to exporters once wired in
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, service_graph]
+
+    # Exercise 2: uncomment these two pipelines after adding the routing connector
+    # traces/standard:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    # traces/errors:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
+    # Exercise 3: pipeline fed by the service_graph connector
+    metrics/service_graph:
+      receivers: [service_graph]
+      exporters: [otlp_grpc/backend]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
