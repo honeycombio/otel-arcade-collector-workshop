@@ -127,7 +127,7 @@ Each tab has an **Edit mode** toggle: **Built-in Editor** or **IDE Watch Mode**.
 
 In **IDE Watch Mode**:
 - The in-browser editor steps aside and shows a watch status indicator
-- Edit `collector-config.yaml` (or `gateway-config.yaml`) directly in VS Code or any editor — it's at the **repo root**
+- Edit `collector-agent-config.yaml` (or `collector-gateway-config.yaml`) directly in VS Code or any editor — it's at the **repo root**
 - Every time you save the file, the Collector restarts automatically
 - The topology in the Visualizer updates within a second
 
@@ -188,7 +188,7 @@ make local-smoke                          # quick end-to-end health check
 make local-down                           # stop everything and wipe state
 ```
 
-> **Important:** `make local-up` rebuilds application services but does **not** restart the Collector. If you've changed `collector-config.yaml` directly, use `make local-restart-collector` or the Apply & Restart button in the browser. IDE Watch Mode handles this automatically.
+> **Important:** `make local-up` rebuilds application services but does **not** restart the Collector. If you've changed `collector-agent-config.yaml` directly, use `make local-restart-collector` or the Apply & Restart button in the browser. IDE Watch Mode handles this automatically.
 
 ---
 
@@ -204,7 +204,7 @@ make local-down                           # stop everything and wipe state
 
 **My config was valid YAML but the Collector still crashed.** YAML syntax and OTel config semantics are different things. `make collector-validate` checks both — run it before applying.
 
-**I changed `collector-config.yaml` in my editor but the Collector didn't restart.** Enable **IDE Watch Mode** on the Deploy & Configure page, or run `make local-restart-collector`.
+**I changed `collector-agent-config.yaml` in my editor but the Collector didn't restart.** Enable **IDE Watch Mode** on the Deploy & Configure page, or run `make local-restart-collector`.
 
 **`make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 8888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
 

@@ -423,7 +423,7 @@
         <strong>Lab 3 — Agent forwarding</strong> template to reconfigure it as a forwarding agent
         that sends upstream to the gateway instead.
         Use <strong>Built-in Editor</strong> to edit here, or switch to <strong>IDE Watch Mode</strong>
-        to edit <code>collector-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
+        to edit <code>collector-agent-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
         <span class="shortcut">(Built-in: Ctrl+S / ⌘S applies)</span>
       </p>
 
@@ -442,7 +442,7 @@
       <div class="ide-watch-overlay" id="local-ide-overlay">
         <div class="watch-pulse"></div>
         <div>Watching for changes&hellip;</div>
-        <div class="watch-filename">collector-config.yaml</div>
+        <div class="watch-filename">collector-agent-config.yaml</div>
         <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
         <div class="watch-synced" id="local-watch-synced"></div>
       </div>
@@ -545,7 +545,7 @@
           <div class="ide-watch-overlay" id="gateway-ide-overlay">
             <div class="watch-pulse"></div>
             <div>Watching for changes&hellip;</div>
-            <div class="watch-filename">gateway-config.yaml</div>
+            <div class="watch-filename">collector-gateway-config.yaml</div>
             <div style="font-size:11px;opacity:0.55">repo root &mdash; open in VS Code, edit, and save</div>
             <div class="watch-synced" id="gateway-watch-synced"></div>
           </div>
@@ -606,7 +606,7 @@
 # exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
 # play a game, and spans should appear in the Visualizer feed within seconds.
 #
-# Edit here or open collector-config.yaml at the repo root in your IDE
+# Edit here or open collector-agent-config.yaml at the repo root in your IDE
 # (use IDE Watch Mode on this tab to auto-restart on every save).
 
 # ── Receivers ────────────────────────────────────────────────────────
@@ -798,7 +798,7 @@ service:
 #   2. Apply this config (Agent tab → Apply & Restart, or save in IDE Watch Mode)
 #   3. Watch the Visualizer topology update to show the two-hop pipeline
 #
-# Edit here or open collector-config.yaml at the repo root in your IDE.
+# Edit here or open collector-agent-config.yaml at the repo root in your IDE.
 
 # ── Receivers ────────────────────────────────────────────────────────
 receivers:

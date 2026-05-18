@@ -56,7 +56,7 @@ docker-push:  ## Push all images to IMAGE_REGISTRY.
 
 ## ── Local dev (Docker Compose) ──────────────────────────────────────────
 # Typical first-time flow: `make local-init` → `make local-up` → `make local-status`.
-# Typical iteration loop:  edit collector-config.yaml → `make local-restart-collector`.
+# Typical iteration loop:  edit collector-agent-config.yaml → `make local-restart-collector`.
 
 SVC ?= otel-collector-agent
 
@@ -119,7 +119,7 @@ local-logs:  ## Follow logs for one service. Default SVC=otel-collector-agent. O
 	docker compose logs -f $(SVC)
 
 .PHONY: local-restart-collector
-local-restart-collector:  ## Validate collector-config.yaml, then restart the Collector to pick up changes.
+local-restart-collector:  ## Validate collector-agent-config.yaml, then restart the Collector to pick up changes.
 	$(MAKE) collector-validate
 	docker compose restart otel-collector-agent
 	@echo
@@ -128,8 +128,8 @@ local-restart-collector:  ## Validate collector-config.yaml, then restart the Co
 	@docker compose logs --tail=15 otel-collector-agent || true
 
 .PHONY: local-reset-collector
-local-reset-collector:  ## Reset collector-config.yaml to the Lab 1 baseline and restart the agent.
-	cp collector-config.baseline.yaml collector-config.yaml
+local-reset-collector:  ## Reset collector-agent-config.yaml to the Lab 1 baseline and restart the agent.
+	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart otel-collector-agent
 	@echo
 	@echo "Collector config reset to baseline. Recent logs:"
@@ -148,7 +148,7 @@ local-teardown-gateway:  ## Force-remove the gateway container (safe to run even
 .PHONY: local-reset
 local-reset:  ## Soft reset: remove gateway, restore baseline collector config, restart all services (keeps data).
 	$(MAKE) local-teardown-gateway
-	cp collector-config.baseline.yaml collector-config.yaml
+	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart
 	@echo
 	@echo "Stack restarted with baseline collector config. Gateway removed."
@@ -220,7 +220,7 @@ k8s-port-forward:  ## Port-forward arcade-ui (3000) and visualizer (8090).
 	wait
 
 ## ── Workshop helpers ────────────────────────────────────────────────────
-CONFIG ?= collector-config.yaml
+CONFIG ?= collector-agent-config.yaml
 
 .PHONY: collector-validate
 collector-validate:  ## Validate a Collector config YAML before applying. CONFIG=path/to/config.yaml

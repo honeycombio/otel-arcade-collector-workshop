@@ -5,7 +5,7 @@ const yaml = require('js-yaml');
 
 const router = express.Router();
 
-const CONFIG_PATH    = process.env.COLLECTOR_CONFIG_PATH    || '/app/collector-config.yaml';
+const CONFIG_PATH    = process.env.COLLECTOR_CONFIG_PATH    || '/app/collector-agent-config.yaml';
 const CONTAINER_NAME = process.env.COLLECTOR_CONTAINER_NAME || 'otel-arcade-otel-collector-agent-1';
 const DOCKER_SOCKET  = '/var/run/docker.sock';
 const METRICS_URL    = process.env.COLLECTOR_METRICS_URL    || 'http://otel-collector-agent:8888/metrics';
@@ -299,7 +299,7 @@ router.post('/api/collector/watch', (req, res) => {
   watchEnabled = enabled;
   if (enabled) {
     startWatcher();
-    res.json({ ok: true, message: 'Watch mode enabled. Save collector-config.yaml in your IDE to auto-restart.' });
+    res.json({ ok: true, message: 'Watch mode enabled. Save collector-agent-config.yaml in your IDE to auto-restart.' });
   } else {
     stopWatcher();
     res.json({ ok: true, message: 'Watch mode disabled.' });

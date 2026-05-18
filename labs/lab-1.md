@@ -31,9 +31,9 @@ Those pieces are wired together in a **service > pipelines** block. A pipeline i
 
 In the arcade sidebar, click **⚙ Deploy & Configure**. You'll see the config editor on the **Collector** tab.
 
-The editor shows the current `collector-config.yaml`. This is what the running Collector is using — any changes you apply here restart the Collector with the new config.
+The editor shows the current `collector-agent-config.yaml`. This is what the running Collector is using — any changes you apply here restart the Collector with the new config.
 
-> **Prefer editing in VS Code?** Click the **IDE Watch Mode** toggle at the top of the tab. The editor steps aside and watches for file saves. Open `collector-config.yaml` at the repo root in your IDE — saving it automatically restarts the Collector. Switch back to **Built-in Editor** at any time.
+> **Prefer editing in VS Code?** Click the **IDE Watch Mode** toggle at the top of the tab. The editor steps aside and watches for file saves. Open `collector-agent-config.yaml` at the repo root in your IDE — saving it automatically restarts the Collector. Switch back to **Built-in Editor** at any time.
 
 ### 2. Load the Lab 1 template
 

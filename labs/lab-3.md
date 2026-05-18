@@ -43,9 +43,9 @@ The agent and gateway containers are on the same Docker network (`arcade`), so t
 
 In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab.
 
-The tab shows "Gateway not deployed" with a **Deploy** button. Click it. The arcade-ui will start a new Collector container (`otel-collector-gateway`) using `gateway-config.yaml` as its config.
+The tab shows "Gateway not deployed" with a **Deploy** button. Click it. The arcade-ui will start a new Collector container (`otel-collector-gateway`) using `collector-gateway-config.yaml` as its config.
 
-Wait for the Gateway tab to show the gateway as running, then look at `gateway-config.yaml` in the editor. This is what the gateway is currently doing:
+Wait for the Gateway tab to show the gateway as running, then look at `collector-gateway-config.yaml` in the editor. This is what the gateway is currently doing:
 - What is it receiving?
 - What is it exporting to?
 - What processors does it run?
@@ -54,7 +54,7 @@ The gateway ships with a baseline config. You'll leave it mostly as-is for this 
 
 ### 2. Reconfigure the agent
 
-Now switch to the **Agent** tab. You'll see the same editor interface for `collector-config.yaml`.
+Now switch to the **Agent** tab. You'll see the same editor interface for `collector-agent-config.yaml`.
 
 Click **Load template → Lab 3 — Agent forwarding** in the Agent tab's toolbar. This replaces your Lab 2 config with an agent config designed to forward to a gateway rather than export directly to Honeycomb.
 

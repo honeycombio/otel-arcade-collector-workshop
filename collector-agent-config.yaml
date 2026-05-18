@@ -4,7 +4,7 @@
 # exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
 # play a game, and spans should appear in the Visualizer feed within seconds.
 #
-# Edit here or open collector-config.yaml at the repo root in your IDE
+# Edit here or open collector-agent-config.yaml at the repo root in your IDE
 # (use IDE Watch Mode on this tab to auto-restart on every save).
 
 # ── Receivers ────────────────────────────────────────────────────────

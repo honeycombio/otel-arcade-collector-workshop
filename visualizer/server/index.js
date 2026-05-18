@@ -13,8 +13,8 @@ const OTLP_PORT              = parseInt(process.env.OTLP_PORT            || '431
 const COLLECTOR_METRICS_URL  = process.env.COLLECTOR_METRICS_URL         || 'http://otel-collector:8888/metrics';
 const GATEWAY_METRICS_URL    = process.env.GATEWAY_METRICS_URL           || '';
 const SCRAPE_INTERVAL_MS     = parseInt(process.env.SCRAPE_INTERVAL_MS   || '5000', 10);
-const AGENT_CONFIG_PATH      = process.env.COLLECTOR_CONFIG_PATH         || '/app/collector-config.yaml';
-const GATEWAY_CONFIG_PATH    = process.env.GATEWAY_CONFIG_PATH           || '/app/gateway-config.yaml';
+const AGENT_CONFIG_PATH      = process.env.COLLECTOR_CONFIG_PATH         || '/app/collector-agent-config.yaml';
+const GATEWAY_CONFIG_PATH    = process.env.GATEWAY_CONFIG_PATH           || '/app/collector-gateway-config.yaml';
 
 // ── Config parser ─────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ function reloadConfig(key, filePath) {
 // Uses fs.watchFile (stat polling) instead of fs.watch (inotify) because
 // inotify events are not propagated across the macOS↔Docker FUSE boundary,
 // making fs.watch unreliable on bind-mounted volumes. watchFile also handles
-// files that don't exist yet (e.g. gateway-config.yaml before first deploy).
+// files that don't exist yet (e.g. collector-gateway-config.yaml before first deploy).
 function watchConfig(filePath, key) {
   fs.watchFile(filePath, { persistent: false, interval: 1000 }, () => {
     reloadConfig(key, filePath);

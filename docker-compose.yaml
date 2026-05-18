@@ -12,7 +12,7 @@ services:
       HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}
       OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-api.honeycomb.io:443}
     volumes:
-      - ./collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ./collector-agent-config.yaml:/etc/otelcol-contrib/config.yaml:ro
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
@@ -61,23 +61,23 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-agent:4317
       SCORE_API_URL: http://score-api:8080
       LEADERBOARD_URL: http://leaderboard:5000
-      COLLECTOR_CONFIG_PATH: /app/collector-config.yaml
+      COLLECTOR_CONFIG_PATH: /app/collector-agent-config.yaml
       COLLECTOR_CONTAINER_NAME: otel-arcade-otel-collector-agent-1
       COLLECTOR_METRICS_URL: http://otel-collector-agent:8888/metrics
       COLLECTOR_OTLP_HTTP: http://otel-collector-agent:4318
       PORT: "3000"
       GATEWAY_CONTAINER_NAME: otel-arcade-otel-collector-gateway-1
       GATEWAY_NETWORK: otel-arcade_arcade
-      GATEWAY_CONFIG_PATH: /app/gateway-config.yaml
-      GATEWAY_CONFIG_HOST_PATH: ${PWD}/gateway-config.yaml
+      GATEWAY_CONFIG_PATH: /app/collector-gateway-config.yaml
+      GATEWAY_CONFIG_HOST_PATH: ${PWD}/collector-gateway-config.yaml
       LOADGEN_CONTAINER_NAME: otel-arcade-loadgen-1
       LOADGEN_IMAGE: otel-arcade-loadgen
       HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}
       OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-api.honeycomb.io:443}
       ENV_FILE_PATH: /app/.env
     volumes:
-      - ./collector-config.yaml:/app/collector-config.yaml
-      - ./gateway-config.yaml:/app/gateway-config.yaml
+      - ./collector-agent-config.yaml:/app/collector-agent-config.yaml
+      - ./collector-gateway-config.yaml:/app/collector-gateway-config.yaml
       - ./.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -105,11 +105,11 @@ services:
       COLLECTOR_METRICS_URL: http://otel-collector-agent:8888/metrics
       GATEWAY_METRICS_URL: http://otel-collector-gateway:8888/metrics
       SCRAPE_INTERVAL_MS: "5000"
-      COLLECTOR_CONFIG_PATH: /app/collector-config.yaml
-      GATEWAY_CONFIG_PATH: /app/gateway-config.yaml
+      COLLECTOR_CONFIG_PATH: /app/collector-agent-config.yaml
+      GATEWAY_CONFIG_PATH: /app/collector-gateway-config.yaml
     volumes:
-      - ./collector-config.yaml:/app/collector-config.yaml:ro
-      - ./gateway-config.yaml:/app/gateway-config.yaml:ro
+      - ./collector-agent-config.yaml:/app/collector-agent-config.yaml:ro
+      - ./collector-gateway-config.yaml:/app/collector-gateway-config.yaml:ro
     ports:
       - "8090:8090"
       # Visualizer's OTLP receiver is reached by the Collector via the

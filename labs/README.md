@@ -47,9 +47,9 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | Everything is broken, keep my data | `make local-reset` |
 | Everything is broken, start fresh | `make local-down && make local-up` |
 | `local-up` worked but Collector ports unreachable | `make local-down && make local-up` |
-| Validate a config before applying | `make collector-validate CONFIG=collector-config.yaml` |
+| Validate a config before applying | `make collector-validate CONFIG=collector-agent-config.yaml` |
 
-**`make local-reset-collector`** — restores `collector-config.yaml` to the Lab 1 baseline and restarts the agent. Use this when your config is so broken the Collector won't start.
+**`make local-reset-collector`** — restores `collector-agent-config.yaml` to the Lab 1 baseline and restarts the agent. Use this when your config is so broken the Collector won't start.
 
 **`make local-reset`** — removes the gateway container, restores the baseline collector config, and restarts all services. Does **not** wipe game data (scores/sessions are preserved).
 

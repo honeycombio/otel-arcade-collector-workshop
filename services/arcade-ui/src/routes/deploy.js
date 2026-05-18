@@ -11,9 +11,9 @@ const DOCKER_SOCKET            = '/var/run/docker.sock';
 const GATEWAY_IMAGE            = process.env.COLLECTOR_IMAGE              || 'otel/opentelemetry-collector-contrib:0.151.0';
 const GATEWAY_CONTAINER_NAME   = process.env.GATEWAY_CONTAINER_NAME       || 'otel-arcade-otel-collector-gateway-1';
 const GATEWAY_NETWORK          = process.env.GATEWAY_NETWORK              || 'otel-arcade_arcade';
-const GATEWAY_CONFIG_PATH      = process.env.GATEWAY_CONFIG_PATH          || '/app/gateway-config.yaml';
+const GATEWAY_CONFIG_PATH      = process.env.GATEWAY_CONFIG_PATH          || '/app/collector-gateway-config.yaml';
 const GATEWAY_CONFIG_HOST_PATH = process.env.GATEWAY_CONFIG_HOST_PATH     || '';
-const AGENT_CONFIG_PATH        = process.env.COLLECTOR_CONFIG_PATH        || '/app/collector-config.yaml';
+const AGENT_CONFIG_PATH        = process.env.COLLECTOR_CONFIG_PATH        || '/app/collector-agent-config.yaml';
 const AGENT_CONTAINER_NAME     = process.env.COLLECTOR_CONTAINER_NAME     || 'otel-arcade-otel-collector-agent-1';
 const LOADGEN_CONTAINER_NAME   = process.env.LOADGEN_CONTAINER_NAME       || 'otel-arcade-loadgen-1';
 const LOADGEN_IMAGE            = process.env.LOADGEN_IMAGE                || 'otel-arcade-loadgen';
@@ -483,7 +483,7 @@ router.post('/api/deploy/agent/watch', (req, res) => {
   watchState.agent.enabled = enabled;
   if (enabled) {
     startWatcher(watchState.agent);
-    res.json({ ok: true, message: 'Watch mode enabled. Save collector-config.yaml in your IDE to auto-restart.' });
+    res.json({ ok: true, message: 'Watch mode enabled. Save collector-agent-config.yaml in your IDE to auto-restart.' });
   } else {
     stopWatcher(watchState.agent);
     res.json({ ok: true, message: 'Watch mode disabled.' });
@@ -503,7 +503,7 @@ router.post('/api/deploy/gateway/watch', (req, res) => {
   watchState.gateway.enabled = enabled;
   if (enabled) {
     startWatcher(watchState.gateway);
-    res.json({ ok: true, message: 'Watch mode enabled. Save gateway-config.yaml in your IDE to auto-restart.' });
+    res.json({ ok: true, message: 'Watch mode enabled. Save collector-gateway-config.yaml in your IDE to auto-restart.' });
   } else {
     stopWatcher(watchState.gateway);
     res.json({ ok: true, message: 'Watch mode disabled.' });
