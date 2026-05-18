@@ -44,6 +44,20 @@ const sdk = new NodeSDK({
 
 sdk.start();
 
+// Bridge console output to the OTel LoggerProvider so arcade-ui logs reach the Collector.
+// Must run after sdk.start() so the LoggerProvider is registered.
+const { logs, SeverityNumber } = require('@opentelemetry/api-logs');
+const _otelLogger = logs.getLogger('arcade-ui');
+const _bridge = (severityNumber, args) => {
+  _otelLogger.emit({ body: args.map(String).join(' '), severityNumber });
+};
+const _origLog   = console.log.bind(console);
+const _origWarn  = console.warn.bind(console);
+const _origError = console.error.bind(console);
+console.log   = (...args) => { _origLog(...args);   _bridge(SeverityNumber.INFO,  args); };
+console.warn  = (...args) => { _origWarn(...args);  _bridge(SeverityNumber.WARN,  args); };
+console.error = (...args) => { _origError(...args); _bridge(SeverityNumber.ERROR, args); };
+
 function shutdown() {
   sdk.shutdown().catch(() => {}).finally(() => process.exit(0));
 }
