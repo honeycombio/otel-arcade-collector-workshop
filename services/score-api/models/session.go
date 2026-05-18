@@ -13,14 +13,6 @@ type Session struct {
 	EventsCount int        `json:"events_count"`
 }
 
-type Event struct {
-	ID        int64     `json:"id"`
-	SessionID string    `json:"session_id"`
-	Type      string    `json:"type"`
-	Data      string    `json:"data"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
 type CreateSessionRequest struct {
 	Game       string `json:"game"`
 	PlayerID   string `json:"player_id"`
@@ -29,5 +21,5 @@ type CreateSessionRequest struct {
 
 type CreateEventRequest struct {
 	Type string                 `json:"type"`
-	Data map[string]interface{} `json:"data"`
+	Data map[string]any `json:"data"`
 }

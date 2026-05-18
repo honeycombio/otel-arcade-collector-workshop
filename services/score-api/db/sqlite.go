@@ -141,7 +141,7 @@ func (s *Store) GetSession(ctx context.Context, id string) (*models.Session, err
 }
 
 func (s *Store) AppendEvent(ctx context.Context, sessionID, eventType string, data map[string]any) (int64, error) {
-	blob, _ := json.Marshal(data)
+	blob, _ := json.Marshal(data) // map[string]any from request body; marshal cannot fail
 	displaySQL := fmt.Sprintf(
 		"INSERT INTO events (session_id, event_type, data) VALUES ('%s','%s','%s')",
 		sessionID, eventType, string(blob),

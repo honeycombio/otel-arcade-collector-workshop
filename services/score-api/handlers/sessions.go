@@ -152,7 +152,7 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 			attribute.String("event.type", body.Type),
 		))
 
-		writeJSON(w, http.StatusCreated, map[string]interface{}{
+		writeJSON(w, http.StatusCreated, map[string]any{
 			"id":         eventID,
 			"session_id": sess.ID,
 			"type":       body.Type,
@@ -174,7 +174,7 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 		var body struct {
 			Difficulty string `json:"difficulty"`
 		}
-		json.NewDecoder(req.Body).Decode(&body) //nolint:errcheck
+		_ = json.NewDecoder(req.Body).Decode(&body)
 		if body.Difficulty == "" {
 			body.Difficulty = "medium"
 		}
@@ -278,7 +278,7 @@ func computeScore(ctx context.Context, sess *models.Session, difficulty string) 
 }
 
 func forwardToLeaderboard(ctx context.Context, sc *models.Score) {
-	body, _ := json.Marshal(map[string]interface{}{
+	body, _ := json.Marshal(map[string]any{
 		"session_id":  sc.SessionID,
 		"game":        sc.Game,
 		"player_id":   sc.PlayerID,
