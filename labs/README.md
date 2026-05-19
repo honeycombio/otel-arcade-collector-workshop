@@ -49,9 +49,12 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | `local-up` worked but Collector ports unreachable | `make local-down && make local-up` |
 | Validate a config before applying | `make collector-validate CONFIG=collector-agent-config.yaml` |
 
-**`make local-reset-collector`** — restores `collector-agent-config.yaml` to the complete working baseline (`collector-agent-config.baseline.yaml`) and restarts the agent. Use this when your config is so broken the Collector won't start.
+**`make local-reset-collector`** — restores `collector-agent-config.yaml` to the Lab 1 baseline (`collector-agent-config.baseline.yaml`) and restarts the agent.
 
-> **Note:** On a fresh `make local-up`, the Collector not starting is intentional — the config ships with empty pipelines as the Lab 1 exercise. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
+- **Labs 1–2:** use this when your config is so broken the Collector won't start.
+- **Labs 3–4:** use **⚙ Deploy & Configure → Agent tab → Load template** (Lab 3 or Lab 4) instead — `make local-reset-collector` resets all the way to Lab 1, wiping your Lab 2 transforms and Lab 3 gateway config.
+
+> **Note:** On a fresh `make local-up`, the Collector starts with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the Lab 1 exercise: wire up the exporters. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
 
 **`make local-reset`** — removes the gateway container, restores the baseline collector config, and restarts all services. Does **not** wipe game data (scores/sessions are preserved).
 

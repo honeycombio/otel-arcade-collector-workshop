@@ -56,6 +56,8 @@ The gateway ships with a baseline config. You'll leave it mostly as-is for this 
 
 Now switch to the **Agent** tab. You'll see the same editor interface for `collector-agent-config.yaml`.
 
+Before loading the template, confirm your Lab 2 config has been applied (Ctrl+S). Loading a template replaces the current editor content.
+
 Click **Load template → Lab 3 — Agent forwarding** in the Agent tab's toolbar. This replaces your Lab 2 config with an agent config designed to forward to a gateway rather than export directly to Honeycomb.
 
 Read through what changed:

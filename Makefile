@@ -84,7 +84,7 @@ local-up:  ## Build and start the full stack. Also pre-builds the loadgen image 
 	  cp .env.example .env; \
 	  echo "✓ created .env from .env.example (set HONEYCOMB_API_KEY to export to Honeycomb)"; \
 	fi
-	docker compose build loadgen
+	docker compose build loadgen  # Pre-build so the browser Load Generator button works without a separate make step.
 	docker compose up -d --build
 	@echo
 	@echo "  Arcade UI:   http://localhost:3000"

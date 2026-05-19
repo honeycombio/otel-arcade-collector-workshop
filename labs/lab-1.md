@@ -81,6 +81,8 @@ If the feed is empty, check:
 
 Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, and `leaderboard` should be arriving.
 
+*(Requires `HONEYCOMB_API_KEY` set in `.env` before `make local-up`. If you skipped it, the Visualizer feed from Step 5 is the success check — Honeycomb export is optional for this lab.)*
+
 ---
 
 ## What success looks like
