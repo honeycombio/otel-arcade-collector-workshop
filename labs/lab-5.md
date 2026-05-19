@@ -80,6 +80,8 @@ Apply the config. The Visualizer topology should now show three trace pipelines:
 
 The `routing` connector is what makes a connector different from a processor: it appears as an **exporter** in `traces` and as a **receiver** in both output pipelines. It bridges them.
 
+Look for the `default_pipelines` field in the `routing` connector definition — it controls where unmatched traces go, and is the subject of the first question below.
+
 Questions to explore:
 - What is `default_pipelines` for? What happens when no routing rule matches?
 - What attribute would you use to route `score-api` traces to a different pipeline than `leaderboard`?

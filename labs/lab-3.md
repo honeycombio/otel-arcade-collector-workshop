@@ -76,7 +76,7 @@ If the Gateway tab shows "not deployed yet", the Visualizer may need a moment to
 docker ps | grep otel-arcade
 ```
 
-You should see both `otel-arcade-otel-collector-agent-1` and `otel-arcade-otel-collector-gateway-1`.
+You should see both the agent container (typically `otel-arcade-otel-collector-agent-1`) and the gateway container (typically `otel-arcade-otel-collector-gateway-1`). The prefix before `otel-collector` matches your Docker Compose project name — it will be the same prefix as your other arcade containers.
 
 The **Collector health** panel at the bottom of the Visualizer also switches when you change tabs — use it to compare the agent's and gateway's self-metrics side by side.
 
