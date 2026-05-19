@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/style.css" />
   <script src="/js/js-yaml.min.js"></script>
   <style>
-    .col-shell { max-width: 960px; padding: 28px 24px 40px; }
+    .col-shell { max-width: 1200px; padding: 28px 24px 40px; }
 
     /* ── layout ── */
     .col-layout { display: flex; align-items: flex-start; }
@@ -184,6 +184,7 @@
       font-family: 'JetBrains Mono', 'Menlo', monospace;
       font-size: 14px; line-height: 1.65; padding: 16px;
       border: none; resize: vertical; outline: none; tab-size: 2;
+      white-space: pre; overflow-x: auto;
     }
     .yaml-editor:focus { box-shadow: inset 0 0 0 1px var(--accent2); }
 
@@ -474,7 +475,7 @@
       <div class="editor-wrap">
         <div class="line-numbers" id="local-line-numbers">1</div>
         <textarea class="yaml-editor" id="local-editor" spellcheck="false"
-          autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+          autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off"></textarea>
       </div>
 
       <div class="config-actions">
@@ -570,7 +571,7 @@
           <div class="editor-wrap">
             <div class="line-numbers" id="gateway-line-numbers">1</div>
             <textarea class="yaml-editor" id="gateway-editor" spellcheck="false"
-              autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+              autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off"></textarea>
           </div>
           <div class="config-actions">
             <button class="btn-apply"     id="gateway-btn-apply"    onclick="applyGatewayConfig()">Apply &amp; Restart</button>
