@@ -56,23 +56,6 @@ exporters:
 # Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
-    resource:
-      attributes:
-        - name: service.name
-          value: otel-collector-agent
-    logs:
-      level: info
-      processors:
-        - batch:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/logs
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
     metrics:
       level: detailed
       readers:
@@ -81,16 +64,6 @@ service:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
-        - periodic:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/metrics
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
   pipelines:
     traces:
       receivers: [otlp]

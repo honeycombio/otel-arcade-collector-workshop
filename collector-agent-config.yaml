@@ -1,16 +1,14 @@
-# OTel Arcade — Lab 3: Agent → Gateway.
+# OTel Arcade — Lab 1: Your first Collector pipeline.
 #
-# The agent no longer exports directly to Honeycomb. Instead it forwards
-# all telemetry to the gateway, which handles final export and fan-out.
+# The components below are defined but not yet connected. Your job is to
+# wire them into named pipelines in the service.pipelines section at the bottom.
 #
-# Steps:
-#   1. Deploy the gateway first (Gateway tab → Deploy Gateway)
-#   2. Apply this config (Agent tab → Apply & Restart, or save in IDE Watch Mode)
-#   3. Watch the Visualizer topology update to show the two-hop pipeline
-#
-# Edit here or open collector-agent-config.yaml at the repo root in your IDE.
+# Edit here or open collector-agent-config.yaml at the repo root in your IDE
+# (use IDE Watch Mode on this tab to auto-restart on every save).
 
 # ── Receivers ────────────────────────────────────────────────────────
+# Receivers are the entry point — they define how telemetry gets IN.
+# The arcade services emit OTLP over gRPC (4317) and HTTP (4318).
 receivers:
   otlp:
     protocols:
@@ -20,8 +18,9 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 # ── Processors ───────────────────────────────────────────────────────
-# Same transforms from Lab 2 — the agent still cleans up telemetry
-# before forwarding. The gateway receives already-normalized data.
+# Processors transform or filter data in flight, in the order listed.
+# memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
+# batch: buffers spans/metrics/logs and sends them together (better throughput).
 processors:
   memory_limiter:
     check_interval: 1s
@@ -30,67 +29,32 @@ processors:
   batch:
     send_batch_size: 512
     timeout: 5s
-  filter/drop_probes:
-    error_mode: ignore
-    traces:
-      span:
-        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
-  transform/normalize:
-    trace_statements:
-      - context: span
-        statements:
-          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
-          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
-          - truncate_all(span.attributes, 128)
-      - context: resource
-        statements:
-          - delete_key(resource.attributes, "app.name")
 
 # ── Exporters ────────────────────────────────────────────────────────
-# otlp_grpc/gateway: forwards to the gateway instead of Honeycomb directly.
-#   The gateway's DNS name on the Docker network is otel-collector-gateway.
-# otlp_http/visualizer-raw: still needed for the Split (Before→After) view.
+# Exporters define where telemetry goes OUT.
+# otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
+# otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
+# debug               → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
-  otlp_grpc/gateway:
-    endpoint: otel-collector-gateway:4317
-    tls:
-      insecure: true
-  otlp_http/visualizer-raw:
+  otlp_grpc/backend:
+    endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+  otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
     headers:
-      x-raw-channel: "true"
       x-collector-source: agent
     tls:
       insecure: true
 
 # ── Service ──────────────────────────────────────────────────────────
+# The service block wires everything together into named pipelines.
+# Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
-    # ── Lab 4 Exercise 1: Tag the Collector in Honeycomb ──────────────────
-    # Without service.name, self-metrics arrive unidentified — indistinguishable
-    # from app metrics. Uncomment to tag every metric and log from this Collector.
-    # resource:
-    #   attributes:
-    #     - name: service.name
-    #       value: otel-collector-agent
-
-    # ── Lab 4 Exercise 3: Push Collector logs to Honeycomb ───────────────
-    # logs:
-    #   level: info
-    #   processors:
-    #     - batch:
-    #         exporter:
-    #           otlp:
-    #             protocol: http/protobuf
-    #             endpoint: https://api.honeycomb.io/v1/logs
-    #             headers:
-    #               - name: x-honeycomb-team
-    #                 value: ${env:HONEYCOMB_API_KEY}
-    #               - name: x-honeycomb-dataset
-    #                 value: otel-collector
     metrics:
       level: detailed
       readers:
@@ -99,35 +63,19 @@ service:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
-        # ── Lab 4 Exercise 2: Push Collector metrics to Honeycomb ─────────
-        # The Visualizer scrapes from the pull reader above — real-time only.
-        # Add a periodic reader to push otelcol_* metrics to Honeycomb so you
-        # can query pipeline health historically and build alerts.
-        # - periodic:
-        #     exporter:
-        #       otlp:
-        #         protocol: http/protobuf
-        #         endpoint: https://api.honeycomb.io/v1/metrics
-        #         headers:
-        #           - name: x-honeycomb-team
-        #             value: ${env:HONEYCOMB_API_KEY}
-        #           - name: x-honeycomb-dataset
-        #             value: otel-collector
   pipelines:
-    # traces/raw: captures spans BEFORE transforms — powers the Split view.
-    traces/raw:
-      receivers: [otlp]
-      processors: [memory_limiter]
-      exporters: [otlp_http/visualizer-raw]
+    # These pipelines receive OTLP telemetry and currently only log to debug output.
+    # Your job: add the exporters that send data to the Visualizer and Honeycomb.
+    # Available exporters: debug · otlp_grpc/backend · otlp_http/visualizer
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
-      exporters: [debug, otlp_grpc/gateway]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/gateway]
+      exporters: [debug]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/gateway]
+      exporters: [debug]
