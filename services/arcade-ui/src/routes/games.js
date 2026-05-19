@@ -1,5 +1,7 @@
 const express = require('express');
 const { trace, context, SpanStatusCode } = require('@opentelemetry/api');
+const { logs, SeverityNumber } = require('@opentelemetry/api-logs');
+const logger = logs.getLogger('arcade-ui/games');
 
 const router = express.Router();
 const tracer = trace.getTracer('arcade-ui/games');
@@ -70,6 +72,11 @@ router.post('/api/games/:gameId/start', async (req, res) => {
   try {
     const r = await forward('POST', '/sessions', { game: gameId, player_id: playerId, player_name: playerName });
     span.setAttribute('game.session.id', r.body && r.body.id);
+    logger.emit({
+      body: 'game started',
+      severityNumber: SeverityNumber.INFO,
+      attributes: { 'game.name': gameId, 'game.session.id': r.body && r.body.id },
+    });
     res.status(r.status).json(r.body);
   } catch (err) {
     span.recordException(err);
@@ -120,6 +127,11 @@ router.post('/api/games/:gameId/complete', async (req, res) => {
     'game.difficulty': difficulty,
   });
   try {
+    logger.emit({
+      body: 'game completed',
+      severityNumber: SeverityNumber.INFO,
+      attributes: { 'game.name': gameId, 'game.session.id': sessionId },
+    });
     const r = await forward('POST', `/sessions/${sessionId}/complete`, { difficulty });
     res.status(r.status).json(r.body);
   } catch (err) {
@@ -150,6 +162,11 @@ router.get('/api/leaderboard', async (req, res) => {
     const text = await fetchRes.text();
     let json;
     try { json = JSON.parse(text); } catch { json = []; }
+    logger.emit({
+      body: 'leaderboard fetched',
+      severityNumber: SeverityNumber.INFO,
+      attributes: { 'leaderboard.game': game || 'all', 'leaderboard.limit': limit },
+    });
     res.status(fetchRes.status).json(json);
   } catch (err) {
     span.recordException(err);
