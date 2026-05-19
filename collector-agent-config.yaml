@@ -1,8 +1,7 @@
 # OTel Arcade — Lab 1: Your first Collector pipeline.
 #
-# The Collector receives telemetry from the three arcade services and
-# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
-# play a game, and spans should appear in the Visualizer feed within seconds.
+# The components below are defined but not yet connected. Your job is to
+# wire them into named pipelines in the service.pipelines section at the bottom.
 #
 # Edit here or open collector-agent-config.yaml at the repo root in your IDE
 # (use IDE Watch Mode on this tab to auto-restart on every save).
@@ -35,7 +34,7 @@ processors:
 # Exporters define where telemetry goes OUT.
 # otlp_grpc/backend  → Honeycomb (credentials come from the .env file at the repo root).
 # otlp_http/visualizer → local Pipeline Visualizer (shows the live feed and topology).
-# debug               → Collector stdout (useful when reading logs).
+# debug         → Collector stdout (useful when reading logs).
 exporters:
   debug:
     verbosity: basic
@@ -56,51 +55,31 @@ exporters:
 # Each pipeline routes one signal type: receivers → processors → exporters.
 service:
   telemetry:
-    resource:
-      attributes:
-        - name: service.name
-          value: otel-collector-agent
-    logs:
-      level: info
-      processors:
-        - batch:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/logs
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
     metrics:
-      level: detailed
       readers:
         - pull:
             exporter:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
-        - periodic:
-            exporter:
-              otlp:
-                protocol: http/protobuf
-                endpoint: https://api.honeycomb.io/v1/metrics
-                headers:
-                  - name: x-honeycomb-team
-                    value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
   pipelines:
+    # Wire the components above into one pipeline per signal type.
+    # Each pipeline takes lists of component names from the sections above.
+    #
+    # Example — a minimal traces pipeline:
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [memory_limiter, batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     traces:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []
     metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []
     logs:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []

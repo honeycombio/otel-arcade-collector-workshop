@@ -6,7 +6,8 @@ Write a working OpenTelemetry Collector configuration that receives telemetry fr
 
 ## Prerequisites
 
-- The app is running (`make local-up`, then `make local-status` to confirm)
+- The app services are running (`make local-up`, then `make local-status` to confirm the four ✓ health checks)
+- The Collector is **not** running yet — the config starts with empty pipelines. That's the exercise: Lab 1 is done when the Collector starts.
 - A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp_grpc/backend` exporter will log auth errors.
 - Open the arcade UI at **http://localhost:3000**
 
@@ -31,22 +32,22 @@ Those pieces are wired together in a **service > pipelines** block. A pipeline i
 
 In the arcade sidebar, click **⚙ Deploy & Configure**. You'll see the config editor on the **Collector** tab.
 
-The editor shows the current `collector-agent-config.yaml`. This is what the running Collector is using — any changes you apply here restart the Collector with the new config.
+The editor shows the current `collector-agent-config.yaml`. This is the config the Collector will use — your job is to complete it.
 
 > **Prefer editing in VS Code?** Click the **IDE Watch Mode** toggle at the top of the tab. The editor steps aside and watches for file saves. Open `collector-agent-config.yaml` at the repo root in your IDE — saving it automatically restarts the Collector. Switch back to **Built-in Editor** at any time.
 
-### 2. Load the starter template
+### 2. Read the starter config
 
-Click **Load template → ↺ Lab 1 — baseline** to load the starter config.
-
-Read through it before writing anything. The config defines receivers, processors, and exporters — but the `service.pipelines` section is intentionally empty. The components are *defined* but not yet *connected*.
+The editor already shows the Lab 1 starter. Read through it: receivers, processors, and exporters are defined — but `service.pipelines` is intentionally empty. The components are *defined* but not yet *connected*.
 
 As you read, try to answer:
 - What signal types does the arcade send? (check how many exporters there are and where they go)
 - What are the three exporters for?
 - What does the `${env:HONEYCOMB_API_KEY}` syntax do?
 
-> **IDE Watch Mode:** Load the template and press **Apply & Restart** once from the built-in editor first — this writes the starter config to disk. Then switch to IDE Watch Mode and open `collector-agent-config.yaml` in your IDE to fill in the pipelines there.
+If you accidentally modify the editor and need to reset, use **Load template → ↺ Lab 1 — baseline**.
+
+> **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already the Lab 1 starter. Fill in the pipelines there; each save auto-restarts the Collector.
 
 ### 3. Wire the pipelines
 
