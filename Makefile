@@ -80,6 +80,10 @@ local-init:  ## First-time setup: check Docker, create .env, pre-pull the Collec
 
 .PHONY: local-up
 local-up:  ## Build and start the full stack. Also pre-builds the loadgen image for the browser Load Generator.
+	@if [ ! -f .env ]; then \
+	  cp .env.example .env; \
+	  echo "✓ created .env from .env.example (set HONEYCOMB_API_KEY to export to Honeycomb)"; \
+	fi
 	docker compose build loadgen
 	docker compose up -d --build
 	@echo
