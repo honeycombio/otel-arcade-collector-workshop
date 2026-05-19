@@ -7,9 +7,8 @@ These are complete, working configs for each lab. **Try the lab yourself first**
 | `lab-1-solution.yaml` | Lab 1 — complete OTLP → Honeycomb pipeline |
 | `lab-2-solution.yaml` | Lab 2 — all five OTTL transforms applied |
 | `lab-3-agent-solution.yaml` | Lab 3 — agent forwarding to gateway |
+| `lab-4-agent-solution.yaml` | Lab 4 — self-telemetry wired to Honeycomb |
 | `lab-5-gateway-solution.yaml` | Lab 5 — tail sampling + routing + service graph |
-
-Lab 4 has no solution file — it's observational (no config to write).
 
 ## How to apply a solution
 

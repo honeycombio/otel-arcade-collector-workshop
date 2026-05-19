@@ -9,7 +9,7 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | [Lab 1](lab-1.md) | Your First Collector Pipeline | ~40 min |
 | [Lab 2](lab-2.md) | Cleaning Up Telemetry with OTTL | ~50 min |
 | [Lab 3](lab-3.md) | Agent → Gateway Architecture | ~30 min |
-| [Lab 4](lab-4.md) | Collector Self-Telemetry *(stretch)* | open-ended |
+| [Lab 4](lab-4.md) | Collector Self-Telemetry | ~40 min |
 | [Lab 5](lab-5.md) | Advanced Gateway Patterns *(stretch)* | ~50 min |
 
 ## Before you start

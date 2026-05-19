@@ -150,8 +150,8 @@ Look at what's in the feed. Some of it probably shouldn't be there, or shouldn't
 **Lab 3** — Gateway architecture
 Introduce the agent→gateway pattern. Open **⚙ Deploy & Configure**, switch to the **Gateway** tab and click **Deploy Gateway**, then switch to the **Agent** tab and update the config to forward to `otel-collector-gateway:4317` instead of exporting directly.
 
-**Lab 4 (stretch)** — Collector self-telemetry
-Put the Collector under load using TelemetryGen's Load Generator or `make local-loadgen`, then explore what it reports about itself. The Visualizer health panel shows queue depth and throughput in real time.
+**Lab 4** — Collector self-telemetry
+Configure the Collector to ship its own metrics and logs to Honeycomb via `service.telemetry`. Then put it under load and query pipeline health — queue depth, throughput, dropped spans — historically in Honeycomb rather than just in the live Visualizer panel.
 
 **Lab 5 (stretch)** — Advanced gateway patterns
 Three exercises on the gateway: tail sampling, routing connector, and service graph connector. The Visualizer's Service Graph panel shows the topology from Lab 1 onward.

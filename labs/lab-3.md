@@ -78,7 +78,7 @@ docker ps | grep otel-arcade
 
 You should see both the agent container (typically `otel-arcade-otel-collector-agent-1`) and the gateway container (typically `otel-arcade-otel-collector-gateway-1`). The prefix before `otel-collector` matches your Docker Compose project name — it will be the same prefix as your other arcade containers.
 
-The **Collector health** panel at the bottom of the Visualizer also switches when you change tabs — use it to compare the agent's and gateway's self-metrics side by side.
+The **Collector health** panel at the bottom of the Visualizer also switches when you change tabs — use it to compare the agent's and gateway's self-metrics side by side. In Lab 4 you'll configure the agent to push these same metrics to Honeycomb so you can query them historically.
 
 ### 4. Verify end-to-end flow
 

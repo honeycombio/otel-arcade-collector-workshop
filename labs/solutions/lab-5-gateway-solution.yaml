@@ -100,6 +100,7 @@ service:
         - name: service.name
           value: otel-collector-gateway
     metrics:
+      level: detailed
       readers:
         - pull:
             exporter:
