@@ -26,8 +26,8 @@
     { label: 'Games',            href: '/',                   icon: '🎮', activeOn: GAME_PATHS },
     { label: 'Leaderboard',      href: '/leaderboard.html',   icon: '🏆', activeOn: ['/leaderboard.html'] },
     { type: 'section', label: 'Collector' },
-    { label: 'Visualizer',       href: '/visualizer.html',    icon: '◈',  activeOn: ['/visualizer.html'] },
     { label: 'Deploy & Configure', href: '/collector.html',   icon: '⚙',  activeOn: ['/collector.html', '/deploy.html'] },
+    { label: 'Visualizer',       href: '/visualizer.html',    icon: '◈',  activeOn: ['/visualizer.html'] },
     { label: 'TelemetryGen',     href: '/telemetrygen.html',  icon: '⚡', activeOn: ['/telemetrygen.html'] },
   ];
 
