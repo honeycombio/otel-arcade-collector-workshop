@@ -35,34 +35,35 @@ The editor shows the current `collector-agent-config.yaml`. This is what the run
 
 > **Prefer editing in VS Code?** Click the **IDE Watch Mode** toggle at the top of the tab. The editor steps aside and watches for file saves. Open `collector-agent-config.yaml` at the repo root in your IDE — saving it automatically restarts the Collector. Switch back to **Built-in Editor** at any time.
 
-### 2. Load the Lab 1 template
+### 2. Load the starter template
 
-Click **Load template → ↺ Lab 1 — baseline** to load a working baseline config. Read through it before applying anything.
+Click **Load template → ↺ Lab 1 — baseline** to load the starter config.
 
-In IDE Watch Mode the file is already the Lab 1 baseline — open it in your editor and read it there.
+Read through it before writing anything. The config defines receivers, processors, and exporters — but the `service.pipelines` section is intentionally empty. The components are *defined* but not yet *connected*.
 
 As you read, try to answer:
-- Which receiver protocol does the arcade use to send telemetry?
-- Where does telemetry go when it leaves the Collector?
-- What do the processors do, and why are they ordered the way they are?
-- What is the `otlp_http/visualizer` exporter for?
+- What signal types does the arcade send? (check how many exporters there are and where they go)
+- What are the three exporters for?
+- What does the `${env:HONEYCOMB_API_KEY}` syntax do?
 
-### 3. Understand the variable substitution
+> **IDE Watch Mode:** Load the template and press **Apply & Restart** once from the built-in editor first — this writes the starter config to disk. Then switch to IDE Watch Mode and open `collector-agent-config.yaml` in your IDE to fill in the pipelines there.
 
-Find the `otlp_grpc/backend` exporter. The `x-honeycomb-team` header uses `${env:HONEYCOMB_API_KEY}` — the Collector substitutes this at startup from the container's environment, which was set when you ran `make local-up`.
+### 3. Wire the pipelines
 
-You don't need to edit the exporter config. If your key was in `.env` before `make local-up`, it's already in use.
+Fill in the `service.pipelines` section to connect the components. Each pipeline needs three keys: `receivers`, `processors`, and `exporters` — each a list of component names from the sections above.
 
-> **If you need to add or change the API key now:** Edit `.env`, then run this from the repo root — Apply & Restart alone is not enough, because env vars are only injected when the container is first created, not on restart:
+The commented example in the template shows the shape. Component names to use: `otlp`, `memory_limiter`, `batch`, `debug`, `otlp_grpc/backend`, `otlp_http/visualizer`.
+
+Wire all three signal types: `traces`, `metrics`, and `logs`.
+
+### 4. Apply and read the errors
+
+Press **Ctrl+S** (or **⌘S** on Mac) to apply. If any list is empty, the Collector will refuse to start — the Logs panel will name exactly which pipeline is misconfigured. Fix and re-apply.
+
+> **If you need to change the Honeycomb API key:** Edit `.env`, then recreate the container — Apply & Restart alone is not enough because env vars are injected only at container creation:
 > ```
 > docker compose up --force-recreate otel-collector-agent
 > ```
-
-### 4. Apply the config
-
-Press **Ctrl+S** (or **⌘S** on Mac) to apply the config. The Logs panel at the bottom of the page will show the Collector restarting and loading your config.
-
-Watch for any error lines in red. If the Collector fails to start, the Logs panel is your first debugging tool.
 
 ### 5. Verify in the Visualizer
 
@@ -82,6 +83,7 @@ Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, 
 
 ## What success looks like
 
+- You wrote the `service.pipelines` wiring yourself — not just loaded a complete config
 - The Visualizer feed shows live spans
 - The Pipeline panel shows your receiver → processor → exporter topology
 - Honeycomb is receiving traces from all three services *(if you have an API key set)*

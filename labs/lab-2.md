@@ -9,6 +9,8 @@ Use the OpenTelemetry Transformation Language (OTTL) to fix five real telemetry 
 - Lab 1 complete: the Collector is running and spans are flowing to the Visualizer
 - The Visualizer feed is showing live spans at **http://localhost:3000**
 
+> **Didn't finish Lab 1?** Run `make local-reset-collector` to restore a complete working baseline, then continue here.
+
 ---
 
 ## Concepts

@@ -602,9 +602,8 @@
   var TEMPLATES = {
     lab1: `# OTel Arcade — Lab 1: Your first Collector pipeline.
 #
-# The Collector receives telemetry from the three arcade services and
-# exports it to Honeycomb and the Pipeline Visualizer. Apply this config,
-# play a game, and spans should appear in the Visualizer feed within seconds.
+# The components below are defined but not yet connected. Your job is to
+# wire them into named pipelines in the service.pipelines section at the bottom.
 #
 # Edit here or open collector-agent-config.yaml at the repo root in your IDE
 # (use IDE Watch Mode on this tab to auto-restart on every save).
@@ -666,18 +665,26 @@ service:
                 host: "0.0.0.0"
                 port: 8888
   pipelines:
+    # Wire the components above into one pipeline per signal type.
+    # Each pipeline takes lists of component names from the sections above.
+    #
+    # Example — a minimal traces pipeline:
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [memory_limiter, batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     traces:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []
     metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []
     logs:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+      receivers: []
+      processors: []
+      exporters: []
 `,
 
     lab2: `# OTel Arcade — Lab 2: OTTL transforms.
