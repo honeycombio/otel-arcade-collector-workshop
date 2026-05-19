@@ -96,4 +96,4 @@ Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, 
 
 - Change the `debug` exporter's `verbosity` to `detailed` and re-apply. Look at the Logs panel to see the full span content.
 - Try applying a config with a syntax error — what happens? How do you recover?
-- Look at the Collector self-metrics on port **8888** (`http://localhost:8888/metrics`) — what can you learn about pipeline health from those numbers?
+- Look at the Collector self-metrics on port **9888** (`http://localhost:9888/metrics`) — what can you learn about pipeline health from those numbers?

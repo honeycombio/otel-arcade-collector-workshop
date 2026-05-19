@@ -34,9 +34,9 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | Profile | http://localhost:3000/profile.html |
 | Visualizer | http://localhost:3000 (Visualizer sidebar) |
 | TelemetryGen | http://localhost:3000/telemetrygen.html |
-| Collector self-metrics | http://localhost:8888/metrics |
+| Collector self-metrics | http://localhost:9888/metrics |
 | Score API health | http://localhost:8080/health |
-| Leaderboard health | http://localhost:5000/health |
+| Leaderboard health | http://localhost:5050/health |
 
 ## If something breaks
 
