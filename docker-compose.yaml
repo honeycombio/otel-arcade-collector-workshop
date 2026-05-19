@@ -16,7 +16,7 @@ services:
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Collector self-metrics (Prometheus)
+      - "9888:8888"   # Collector self-metrics (Prometheus)
     networks: [arcade]
 
   score-api:
@@ -44,7 +44,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector-agent:4317
       LEADERBOARD_DB: /tmp/leaderboard.db
     ports:
-      - "5000:5000"
+      - "5050:5000"
     depends_on: [otel-collector-agent]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]

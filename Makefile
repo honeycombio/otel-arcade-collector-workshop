@@ -90,7 +90,7 @@ local-up:  ## Build and start the full stack. Also pre-builds the loadgen image 
 	@echo "  Arcade UI:   http://localhost:3000"
 	@echo "  Visualizer:  http://localhost:8090"
 	@echo "  Score API:   http://localhost:8080"
-	@echo "  Leaderboard: http://localhost:5000"
+	@echo "  Leaderboard: http://localhost:5050"
 	@echo
 	@echo "Run \`make local-status\` once everything settles (~15s) to confirm health."
 
@@ -107,7 +107,7 @@ local-status:  ## Show container status and probe each public health endpoint.
 	@for entry in \
 	  "arcade-ui   http://localhost:3000/health" \
 	  "score-api   http://localhost:8080/health" \
-	  "leaderboard http://localhost:5000/health" \
+	  "leaderboard http://localhost:5050/health" \
 	  "visualizer  http://localhost:8090/health"; do \
 	    name=$$(echo $$entry | awk '{print $$1}'); \
 	    url=$$(echo $$entry | awk '{print $$2}'); \
@@ -183,9 +183,9 @@ local-smoke:  ## End-to-end smoke test: drives one session through arcade-ui →
 	  curl -sS -X POST "http://localhost:3000/api/games/memory/complete" \
 	    -H 'Content-Type: application/json' -H 'X-Player-Id: u_smoke01' \
 	    -d "{\"session_id\":\"$$id\"}" > /dev/null; \
-	  echo "4. GET /leaderboard?game=memory (via leaderboard :5000)"; \
+	  echo "4. GET /leaderboard?game=memory (via leaderboard :5050)"; \
 	  sleep 1; \
-	  curl -sS 'http://localhost:5000/leaderboard?game=memory&limit=3' | head -c 400; \
+	  curl -sS 'http://localhost:5050/leaderboard?game=memory&limit=3' | head -c 400; \
 	  echo; \
 	  echo; \
 	  echo "✓ end-to-end chain works. Open http://localhost:8090 to see the trace in the Visualizer."

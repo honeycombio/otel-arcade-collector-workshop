@@ -208,7 +208,7 @@ make local-down                           # stop everything and wipe state
 
 **I changed `collector-agent-config.yaml` in my editor but the Collector didn't restart.** Enable **IDE Watch Mode** on the Deploy & Configure page, or run `make local-restart-collector`.
 
-**`make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 8888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
+**`make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 9888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
 
 ---
 
@@ -219,5 +219,5 @@ make local-down                           # stop everything and wipe state
 | http://localhost:3000 | Arcade UI |
 | http://localhost:8090 | Pipeline Visualizer (standalone) |
 | http://localhost:8080 | Score API |
-| http://localhost:5000 | Leaderboard |
-| http://localhost:8888/metrics | Collector self-metrics (Prometheus text) |
+| http://localhost:5050 | Leaderboard |
+| http://localhost:9888/metrics | Collector self-metrics (Prometheus text) |
