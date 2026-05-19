@@ -42,7 +42,7 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 
 | Problem | Command |
 |---|---|
-| Collector won't start (bad config) | `make local-reset-collector` |
+| Collector won't start after editing config | `make local-reset-collector` |
 | Gateway is broken / stuck | `make local-teardown-gateway` — then redeploy from the Gateway tab |
 | Everything is broken, keep my data | `make local-reset` |
 | Everything is broken, start fresh | `make local-down && make local-up` |
@@ -50,6 +50,8 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | Validate a config before applying | `make collector-validate CONFIG=collector-agent-config.yaml` |
 
 **`make local-reset-collector`** — restores `collector-agent-config.yaml` to the complete working baseline (`collector-agent-config.baseline.yaml`) and restarts the agent. Use this when your config is so broken the Collector won't start.
+
+> **Note:** On a fresh `make local-up`, the Collector not starting is intentional — the config ships with empty pipelines as the Lab 1 exercise. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
 
 **`make local-reset`** — removes the gateway container, restores the baseline collector config, and restarts all services. Does **not** wipe game data (scores/sessions are preserved).
 

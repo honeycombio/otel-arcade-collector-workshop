@@ -19,11 +19,13 @@ HONEYCOMB_API_KEY=your-key-here
 If you don't have one yet, skip it. The Visualizer and Collector pipeline work without it; only the Honeycomb backend export is affected. Adding the key *after* `make local-up` requires recreating the container — see Lab 1 for details.
 
 ```bash
-make local-up     # build and start everything
-make local-status # confirm all services are healthy
+make local-up     # build and start the app services
+make local-status # confirm the four app services are healthy
 ```
 
 Once everything is up, open **http://localhost:3000** in your browser.
+
+> The Collector will show as exited on fresh start — that's expected. Lab 1's first task is to wire its pipelines so it starts.
 
 **Start here: [Lab 1 →](labs/lab-1.md)** — write your first Collector pipeline and watch telemetry flow through it.
 
@@ -180,7 +182,7 @@ make local-loadgen-stop  # stop it
 
 ```bash
 make local-restart-collector              # validate config and restart the Collector
-make local-reset-collector               # reset to Lab 1 baseline and restart
+make local-reset-collector               # reset to complete working baseline and restart
 make local-logs SVC=otel-collector-agent  # follow the Collector's logs in the terminal
 make local-logs SVC=score-api            # follow any other service's logs
 make collector-validate CONFIG=my-config.yaml  # validate a config file before applying
