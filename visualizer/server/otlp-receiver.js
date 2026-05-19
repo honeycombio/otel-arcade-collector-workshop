@@ -317,7 +317,7 @@ function makeReceiver({ broadcast }) {
 
   app.get('/health', (_req, res) => res.json({ status: 'ok', counters, lastReceivedAt }));
 
-  return { app, buffer, rawBuffer, sourceBuffers, counters, getLastReceivedAt: () => lastReceivedAt, getServiceGraph: serviceGraph.getGraph };
+  return { app, buffer, rawBuffer, counters, getServiceGraph: serviceGraph.getGraph };
 }
 
 module.exports = { makeReceiver };

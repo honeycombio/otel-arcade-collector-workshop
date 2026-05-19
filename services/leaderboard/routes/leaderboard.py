@@ -13,7 +13,7 @@ tracer = trace.get_tracer("leaderboard.queries")
 meter = metrics.get_meter("leaderboard.queries")
 
 query_duration = meter.create_histogram(
-    "leaderboard.query.duration",
+    "leaderboard.rankings.query.duration",
     unit="ms",
     description="Leaderboard query duration",
 )

@@ -17,7 +17,7 @@ scores_total = meter.create_counter(
     description="Total scores recorded by the leaderboard",
 )
 query_duration = meter.create_histogram(
-    "leaderboard.query.duration",
+    "leaderboard.scores.query.duration",
     unit="ms",
     description="Leaderboard query duration",
 )

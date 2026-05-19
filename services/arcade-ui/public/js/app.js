@@ -20,14 +20,6 @@
     return localStorage.getItem('arcade.player_name') || '';
   }
 
-  function getPlayerAvatar() {
-    return localStorage.getItem('arcade.player_avatar') || '';
-  }
-
-  function setPlayerName(name) {
-    if (name && name.trim()) localStorage.setItem('arcade.player_name', name.trim());
-  }
-
   async function api(method, url, body) {
     const opts = {
       method,
@@ -97,9 +89,6 @@
     document.body.appendChild(overlay);
   }
 
-  var DIFF_MULTIPLIERS = { easy: 1, medium: 2, hard: 3 };
-  var DIFF_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
-
   function chooseDifficulty() {
     return new Promise(function (resolve) {
       var last = localStorage.getItem('arcade.difficulty') || 'medium';
@@ -135,11 +124,8 @@
   window.Arcade = {
     getPlayerId,
     getPlayerName,
-    getPlayerAvatar,
-    setPlayerName,
     showGameOver,
     chooseDifficulty,
-    diffMultiplier: function (level) { return DIFF_MULTIPLIERS[level] || 2; },
     startGame(game) {
       return api('POST', `/api/games/${game}/start`, {});
     },
