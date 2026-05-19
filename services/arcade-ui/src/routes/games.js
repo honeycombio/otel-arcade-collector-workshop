@@ -139,6 +139,8 @@ router.post('/api/games/:gameId/complete', async (req, res) => {
     res.status(502).json({ error: 'score-api unreachable', detail: String(err) });
   } finally {
     span.end();
+    if (gameId === 'power-surge') circuitStore.delete(sessionId);
+    if (gameId === 'laser-grid')  tokenBucketStore.delete(sessionId);
   }
 });
 

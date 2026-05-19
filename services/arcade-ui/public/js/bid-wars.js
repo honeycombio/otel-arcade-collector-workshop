@@ -127,7 +127,7 @@
           price += Math.floor(Math.random() * 8) + 3;
           priceEl.textContent = '$' + price;
           btnPrice.textContent = price;
-          bidBtn.querySelector && (bidBtn.textContent = 'Place Bid — $' + price);
+          bidBtn.textContent = 'Place Bid — $' + price;
         }
 
         if (timeLeft <= 0) { clearInterval(ticker); resolve(); }

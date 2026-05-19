@@ -47,7 +47,7 @@ function DiffRows({ diff }) {
   return (
     <div className="diff-list">
       {diff.map((change, i) => (
-        <div key={i} className="diff-row">
+        <div key={change.field} className="diff-row">
           <span className="diff-field">{change.field}</span>
           <span className="diff-before">{change.before == null ? '(none)' : String(change.before).slice(0, 60)}</span>
           <span className="diff-arrow">→</span>
@@ -123,7 +123,7 @@ const FeedRow = memo(function FeedRow({ item, showDiff }) {
         {item.name || (!expanded && item.body)}
         <br />
         <span style={{ color: 'var(--muted)', fontSize: 11 }}>{pickAttrSummary(item)}</span>
-        {tags.map((t, i) => <span key={i} className={`tag ${t.kind}`}>{t.label}</span>)}
+        {tags.map((t) => <span key={t.label} className={`tag ${t.kind}`}>{t.label}</span>)}
       </span>
       <span className="dur">{item.kind === 'span' ? `${item.durationMs.toFixed(1)} ms` : ''}</span>
 
