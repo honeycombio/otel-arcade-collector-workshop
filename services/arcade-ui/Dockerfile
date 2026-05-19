@@ -5,11 +5,6 @@ RUN npm install --omit=dev --no-audit --no-fund
 
 FROM node:20-alpine
 WORKDIR /app
-RUN apk add --no-cache curl && \
-    KUBECTL_VER=$(curl -Ls https://dl.k8s.io/release/stable.txt) && \
-    curl -Lo /usr/local/bin/kubectl \
-      "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl" && \
-    chmod +x /usr/local/bin/kubectl
 ENV NODE_ENV=production \
     OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-agent:4317 \
     OTEL_SERVICE_NAME=arcade-ui \
