@@ -49,7 +49,7 @@ def get_leaderboard():
     elapsed_ms = (time.monotonic() - start) * 1000.0
     query_duration.record(elapsed_ms, attributes={"op": "top_scores"})
 
-    log.debug("served leaderboard", extra={"game": game, "limit": limit, "count": len(rows)})
+    log.info("served leaderboard", extra={"game": game, "limit": limit, "count": len(rows)})
 
     return jsonify([
         {

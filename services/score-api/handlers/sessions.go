@@ -152,6 +152,12 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 			attribute.String("event.type", body.Type),
 		))
 
+		slog.InfoContext(ctx, "session event recorded",
+			"session_id", sess.ID,
+			"game", sess.Game,
+			"event_type", body.Type,
+		)
+
 		writeJSON(w, http.StatusCreated, map[string]any{
 			"id":         eventID,
 			"session_id": sess.ID,
@@ -211,6 +217,13 @@ func RegisterSessions(r chi.Router, store *scoredb.Store) {
 
 		// Forward to Leaderboard. otelhttp.NewTransport injects W3C TraceContext.
 		go forwardToLeaderboard(context.WithoutCancel(ctx), row)
+
+		slog.InfoContext(ctx, "session completed",
+			"session_id", sess.ID,
+			"game", sess.Game,
+			"score", score,
+			"difficulty", body.Difficulty,
+		)
 
 		sess.Score = &score
 		now := time.Now().UTC()

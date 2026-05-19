@@ -99,6 +99,15 @@ router.post('/api/games/:gameId/events', async (req, res) => {
     'game.event.type': (req.body && req.body.type) || 'action',
   });
   try {
+    logger.emit({
+      body: `game event: ${(req.body && req.body.type) || 'action'}`,
+      severityNumber: SeverityNumber.INFO,
+      attributes: {
+        'game.name': gameId,
+        'game.session.id': sessionId,
+        'event.type': (req.body && req.body.type) || 'action',
+      },
+    });
     const r = await forward('POST', `/sessions/${sessionId}/events`, {
       type: (req.body && req.body.type) || 'action',
       data: (req.body && req.body.data) || {},

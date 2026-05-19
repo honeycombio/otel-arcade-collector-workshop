@@ -65,6 +65,6 @@ def create_score():
     query_duration.record(elapsed_ms, attributes={"op": "insert_score"})
     scores_total.add(1, attributes={"game.name": game})
 
-    log.debug("score recorded", extra={"session_id": session_id, "game": game, "player.id": player_id, "score": score, "rank": rank})
+    log.info("score recorded", extra={"session_id": session_id, "game": game, "player.id": player_id, "score": score, "rank": rank})
 
     return jsonify(id=new_id, rank=rank), 201
