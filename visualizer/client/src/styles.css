@@ -378,6 +378,20 @@ h3 {
 .split-btn.disabled { opacity: 0.35; cursor: default; }
 .split-btn:not(.disabled):not(.active):hover { border-color: var(--muted); color: var(--text); }
 
+.pause-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+}
+.pause-btn.active { background: rgba(255,93,118,0.12); border-color: var(--bad); color: var(--bad); }
+.pause-btn:not(.active):hover { border-color: var(--muted); color: var(--text); }
+
 /* ── Diff rows (inside a feed row) ──────────────────────────── */
 .row.has-diff { border-left: 3px solid var(--warn); }
 

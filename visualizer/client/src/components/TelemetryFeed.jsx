@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, memo } from 'react';
 
 const SQL_RE   = /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE)\b/i;
 const PROBE_RE  = /^(GET|POST) \/(health|ready)$/;
@@ -157,18 +157,45 @@ export function TelemetryFeed({ items, rawFeed = [] }) {
   const [serviceFilter, setServiceFilter] = useState('');
   const [searchText,    setSearchText]    = useState('');
 
-  const hasDiffData = rawFeed.length > 0;
+  const [paused,        setPaused]        = useState(false);
+  const [frozenItems,   setFrozenItems]   = useState([]);
+  const [frozenRawFeed, setFrozenRawFeed] = useState([]);
+  const [newCount,      setNewCount]      = useState(0);
+  const frozenTsRef = useRef(0);
+
+  useEffect(() => {
+    if (!paused) return;
+    setNewCount(items.filter((i) => i.ts > frozenTsRef.current).length);
+  }, [items, paused]);
+
+  function togglePause() {
+    if (paused) {
+      setPaused(false);
+      setNewCount(0);
+    } else {
+      frozenTsRef.current = items.length ? Math.max(...items.map((i) => i.ts)) : 0;
+      setFrozenItems([...items]);
+      setFrozenRawFeed([...rawFeed]);
+      setPaused(true);
+      setNewCount(0);
+    }
+  }
+
+  const displayItems   = paused ? frozenItems   : items;
+  const displayRawFeed = paused ? frozenRawFeed : rawFeed;
+
+  const hasDiffData = displayRawFeed.length > 0;
 
   // Unique services in the current items list
   const services = useMemo(
-    () => [...new Set(items.map((i) => i.service).filter(Boolean))].sort(),
-    [items]
+    () => [...new Set(displayItems.map((i) => i.service).filter(Boolean))].sort(),
+    [displayItems]
   );
 
   // Apply all filters: signal type → service → text search
   const filtered = useMemo(() => {
     const q = searchText.toLowerCase();
-    return items
+    return displayItems
       .filter((i) => signalTab === 'all' || i.kind === signalTab)
       .filter((i) => !serviceFilter || i.service === serviceFilter)
       .filter((i) => {
@@ -177,25 +204,25 @@ export function TelemetryFeed({ items, rawFeed = [] }) {
             || (i.body    && i.body.toLowerCase().includes(q))
             || (i.service && i.service.toLowerCase().includes(q));
       });
-  }, [items, signalTab, serviceFilter, searchText]);
+  }, [displayItems, signalTab, serviceFilter, searchText]);
 
   const rawFiltered = useMemo(() => {
-    return rawFeed
+    return displayRawFeed
       .filter((i) => signalTab === 'all' || i.kind === signalTab)
       .filter((i) => !serviceFilter || i.service === serviceFilter);
-  }, [rawFeed, signalTab, serviceFilter]);
+  }, [displayRawFeed, signalTab, serviceFilter]);
 
   const ordered    = filtered.slice().reverse();
   const rawOrdered = rawFiltered.slice().reverse();
 
   const tabs = [
-    { id: 'all',    label: 'All',     count: items.length },
-    { id: 'span',   label: 'Traces',  count: items.filter((i) => i.kind === 'span').length },
-    { id: 'log',    label: 'Logs',    count: items.filter((i) => i.kind === 'log').length },
-    { id: 'metric', label: 'Metrics', count: items.filter((i) => i.kind === 'metric').length },
+    { id: 'all',    label: 'All',     count: displayItems.length },
+    { id: 'span',   label: 'Traces',  count: displayItems.filter((i) => i.kind === 'span').length },
+    { id: 'log',    label: 'Logs',    count: displayItems.filter((i) => i.kind === 'log').length },
+    { id: 'metric', label: 'Metrics', count: displayItems.filter((i) => i.kind === 'metric').length },
   ];
 
-  const emptyMsg = items.length === 0
+  const emptyMsg = displayItems.length === 0
     ? 'No telemetry yet — make sure the Collector is running with an otlphttp/visualizer exporter pointed at http://visualizer:4318. Play a game or use TelemetryGen to generate traffic.'
     : filtered.length === 0
       ? 'No items match the current filters.'
@@ -249,6 +276,14 @@ export function TelemetryFeed({ items, rawFeed = [] }) {
           title={hasDiffData ? 'Toggle side-by-side before/after view' : 'Load the Lab 2 template to enable before/after comparison'}
         >
           Split
+        </button>
+
+        <button
+          className={`pause-btn ${paused ? 'active' : ''}`}
+          onClick={togglePause}
+          title={paused ? 'Resume live feed' : 'Pause feed to read entries'}
+        >
+          {paused ? `Resume${newCount ? ` (${newCount} new)` : ''}` : 'Pause'}
         </button>
       </div>
 
