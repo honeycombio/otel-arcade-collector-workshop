@@ -1,6 +1,5 @@
-# OTel Arcade — Gateway Collector.
-# Receives OTLP from agents and forwards to Honeycomb and the Visualizer.
-# In Lab 3, point your agent's exporters at otel-collector-gateway:4317.
+# OTel Arcade — Lab 5: Advanced Gateway Patterns.
+# Builds on Lab 3. Uncomment each exercise block one at a time.
 
 receivers:
   otlp:
@@ -11,13 +10,58 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   memory_limiter:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
+
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+
+  # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
+  # Uncomment below and replace [batch] with [tail_sampling] in traces pipeline.
+  # The health panel will show sampled/dropped counts once traffic flows.
+  #
+  # tail_sampling:
+  #   decision_wait: 5s
+  #   policies:
+  #     - name: keep_errors
+  #       type: status_code
+  #       status_code:
+  #         status_codes: [ERROR]
+  #     - name: keep_slow_traces
+  #       type: latency
+  #       latency:
+  #         threshold_ms: 500
+  #     - name: sample_the_rest
+  #       type: probabilistic
+  #       probabilistic:
+  #         sampling_percentage: 10
+
+connectors:
+  # ── Exercise 2: Routing ───────────────────────────────────────────────────
+  # Uncomment, then add [routing] to traces pipeline exporters,
+  # and uncomment the two named pipelines at the bottom.
+  #
+  # routing:
+  #   default_pipelines: [traces/standard]
+  #   error_mode: ignore
+  #   table:
+  #     - context: span
+  #       statement: status.code == STATUS_CODE_ERROR
+  #       pipelines: [traces/errors]
+
+  # ── Exercise 3: Service Graph ─────────────────────────────────────────────
+  # Uncomment, then add [service_graph] to traces pipeline exporters,
+  # and uncomment the metrics/service_graph pipeline at the bottom.
+  # Check Honeycomb for traces_service_graph_* metrics.
+  #
+  # service_graph:
+  #   latency_histogram_buckets: [5ms, 25ms, 100ms, 500ms, 1s]
+  #   store:
+  #     ttl: 2s
+  #     max_items: 1000
 
 exporters:
   debug:
@@ -36,11 +80,8 @@ exporters:
 
 service:
   telemetry:
-    resource:
-      attributes:
-        - name: service.name
-          value: otel-collector-gateway
     metrics:
+      level: detailed
       readers:
         - pull:
             exporter:
@@ -51,12 +92,32 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
+      # Exercise 1: replace [batch] with [tail_sampling] above
+      # Exercise 2: add routing to exporters list
+      # Exercise 3: add service_graph to exporters list
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
+    # ── Exercise 2: uncomment after adding routing connector ─────────────────
+    # traces/standard:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    # traces/errors:
+    #   receivers: [routing]
+    #   processors: [batch]
+    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+
+    # ── Exercise 3: uncomment after adding service_graph connector ─────────────
+    # metrics/service_graph:
+    #   receivers: [service_graph]
+    #   exporters: [otlp_grpc/backend]
