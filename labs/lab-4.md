@@ -56,7 +56,7 @@ Open `collector-agent-config.yaml` and work through the three exercises below �
 
 #### Exercise 1 — Tag the Collector
 
-Open `collector-agent-config.yaml` and find the `service.telemetry` block. Uncomment the `resource` section:
+Open `collector-agent-config.yaml` and find the `service.telemetry` block. Add a `resource` section:
 
 ```yaml
 service:
@@ -75,7 +75,7 @@ Apply & Restart the agent.
 
 #### Exercise 2 — Push Collector metrics to Honeycomb
 
-Uncomment the `periodic` reader under `service.telemetry.metrics.readers`:
+Add a `periodic` reader under `service.telemetry.metrics.readers`:
 
 ```yaml
     metrics:
@@ -107,7 +107,7 @@ Apply & Restart. After ~15 seconds, open Honeycomb and query the `otel-collector
 
 #### Exercise 3 — Push Collector logs to Honeycomb
 
-Uncomment the `logs` block under `service.telemetry`:
+Add a `logs` block under `service.telemetry`:
 
 ```yaml
     logs:
@@ -126,6 +126,8 @@ Uncomment the `logs` block under `service.telemetry`:
 ```
 
 Apply & Restart. In Honeycomb, query the `otel-collector` logs dataset — you'll see the Collector's own startup messages, pipeline summaries, and any warning or error logs.
+
+> **Tip:** The **Lab 4 — Self-telemetry** template in the editor dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
 
 ---
 
