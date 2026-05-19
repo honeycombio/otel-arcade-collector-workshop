@@ -665,26 +665,21 @@ service:
                 host: "0.0.0.0"
                 port: 8888
   pipelines:
-    # Wire the components above into one pipeline per signal type.
-    # Each pipeline takes lists of component names from the sections above.
-    #
-    # Example — a minimal traces pipeline:
-    # traces:
-    #   receivers: [otlp]
-    #   processors: [memory_limiter, batch]
-    #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    # These pipelines receive OTLP telemetry and currently only log to debug output.
+    # Your job: add the exporters that send data to the Visualizer and Honeycomb.
+    # Available exporters: debug · otlp_grpc/backend · otlp_http/visualizer
     traces:
-      receivers: []
-      processors: []
-      exporters: []
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
     metrics:
-      receivers: []
-      processors: []
-      exporters: []
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
     logs:
-      receivers: []
-      processors: []
-      exporters: []
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
 `,
 
     lab2: `# OTel Arcade — Lab 2: OTTL transforms.

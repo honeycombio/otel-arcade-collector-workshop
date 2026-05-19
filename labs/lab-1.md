@@ -7,7 +7,7 @@ Write a working OpenTelemetry Collector configuration that receives telemetry fr
 ## Prerequisites
 
 - The app services are running (`make local-up`, then `make local-status` to confirm the four ✓ health checks)
-- The Collector is **not** running yet — the config starts with empty pipelines. That's the exercise: Lab 1 is done when the Collector starts.
+- The Collector is running with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the exercise: Lab 1 is done when the Visualizer feed shows live spans.
 - A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp_grpc/backend` exporter will log auth errors.
 - Open the arcade UI at **http://localhost:3000**
 
@@ -38,28 +38,29 @@ The editor shows the current `collector-agent-config.yaml`. This is the config t
 
 ### 2. Read the starter config
 
-The editor already shows the Lab 1 starter. Read through it: receivers, processors, and exporters are defined — but `service.pipelines` is intentionally empty. The components are *defined* but not yet *connected*.
+The editor already shows the Lab 1 starter. Read through it: receivers, processors, and exporters are all defined. The `service.pipelines` section has three pipelines already wired, but they only export to `debug` (Collector stdout). The exporters that matter — the Visualizer and Honeycomb — aren't connected yet.
 
 As you read, try to answer:
-- What signal types does the arcade send? (check how many exporters there are and where they go)
-- What are the three exporters for?
+- What are the three exporters defined in the `exporters:` section? Where does each one send data?
 - What does the `${env:HONEYCOMB_API_KEY}` syntax do?
+- Why do the pipelines only have `debug` in their `exporters` list right now?
 
 If you accidentally modify the editor and need to reset, use **Load template → ↺ Lab 1 — baseline**.
 
-> **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already the Lab 1 starter. Fill in the pipelines there; each save auto-restarts the Collector.
+> **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already the Lab 1 starter. Edit the pipelines there; each save auto-restarts the Collector.
 
-### 3. Wire the pipelines
+### 3. Update the pipeline exporters
 
-Fill in the `service.pipelines` section to connect the components. Each pipeline needs three keys: `receivers`, `processors`, and `exporters` — each a list of component names from the sections above.
+Look at the `service.pipelines` section. Each pipeline currently exports only to `debug`. Your job: add `otlp_grpc/backend` and `otlp_http/visualizer` to the `exporters` list in all three pipelines (`traces`, `metrics`, `logs`).
 
-The commented example in the template shows the shape. Component names to use: `otlp`, `memory_limiter`, `batch`, `debug`, `otlp_grpc/backend`, `otlp_http/visualizer`.
+After your edit, each pipeline's exporters list should look like:
+```yaml
+exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+```
 
-Wire all three signal types: `traces`, `metrics`, and `logs`.
+### 4. Apply and verify
 
-### 4. Apply and read the errors
-
-Press **Ctrl+S** (or **⌘S** on Mac) to apply. If any list is empty, the Collector will refuse to start — the Logs panel will name exactly which pipeline is misconfigured. Fix and re-apply.
+Press **Ctrl+S** (or **⌘S** on Mac) to apply. If there's a YAML syntax error or an unknown component name, the Collector will refuse to start — the Logs panel will name exactly what's wrong. Fix and re-apply.
 
 > **If you need to change the Honeycomb API key:** Edit `.env`, then recreate the container — Apply & Restart alone is not enough because env vars are injected only at container creation:
 > ```
@@ -84,7 +85,7 @@ Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, 
 
 ## What success looks like
 
-- You wrote the `service.pipelines` wiring yourself — not just loaded a complete config
+- You updated the `exporters` list in all three pipelines yourself — not just loaded a complete config
 - The Visualizer feed shows live spans
 - The Pipeline panel shows your receiver → processor → exporter topology
 - Honeycomb is receiving traces from all three services *(if you have an API key set)*
@@ -93,6 +94,6 @@ Open Honeycomb and look for your dataset. Traces from `arcade-ui`, `score-api`, 
 
 ## Going further
 
-- Add a `debug` exporter with `verbosity: detailed` and wire it into your pipelines. Look at the Logs panel to see the full span content.
+- Change the `debug` exporter's `verbosity` to `detailed` and re-apply. Look at the Logs panel to see the full span content.
 - Try applying a config with a syntax error — what happens? How do you recover?
 - Look at the Collector self-metrics on port **8888** (`http://localhost:8888/metrics`) — what can you learn about pipeline health from those numbers?
