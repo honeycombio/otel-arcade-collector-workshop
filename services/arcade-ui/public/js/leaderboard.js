@@ -9,6 +9,8 @@
     'wave-defender': 'Wave Defender', 'bid-wars': 'Bid Wars',
     'hot-cache': 'Hot Cache', 'pixel-sort': 'Pixel Sort',
     'chain-reaction': 'Chain Reaction', 'deadline-dash': 'Deadline Dash',
+    'power-surge': 'Power Surge', 'vault-sync': 'Vault Sync',
+    'laser-grid': 'Laser Grid', 'pulse': 'Pulse',
   };
 
   var limit = window.LB_LIMIT || 10;
@@ -66,4 +68,5 @@
 
   load();
   timer = setInterval(load, 15000);
+  window.addEventListener('beforeunload', function () { clearInterval(timer); });
 })();
