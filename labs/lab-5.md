@@ -91,16 +91,16 @@ Questions to explore:
 
 ### Exercise 3 — Service Graph Connector
 
-Find the commented `servicegraph` connector block. Uncomment it, add `servicegraph` to the `traces` pipeline exporters, and uncomment the `metrics/servicegraph` pipeline:
+Find the commented `service_graph` connector block. Uncomment it, add `service_graph` to the `traces` pipeline exporters, and uncomment the `metrics/service_graph` pipeline:
 
 ```yaml
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing, servicegraph]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing, service_graph]
 
-    metrics/servicegraph:
-      receivers: [servicegraph]
+    metrics/service_graph:
+      receivers: [service_graph]
       exporters: [otlp_grpc/backend]
 ```
 
@@ -130,4 +130,4 @@ Questions to explore:
 
 - Combine tail sampling and routing: keep all errors unsampled via `traces/errors`, and sample the rest via `traces/standard`.
 - Add a short `timeout: 1s` batch to `traces/errors` so errors flush immediately without waiting for a full batch.
-- Try the `spanmetrics` connector — similar to `servicegraph` but emits per-span-name histograms and call counts.
+- Try the `spanmetrics` connector — similar to `service_graph` but emits per-span-name histograms and call counts.
