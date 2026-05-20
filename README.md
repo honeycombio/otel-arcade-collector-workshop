@@ -1,6 +1,6 @@
 # OTel Arcade
 
-Welcome to the OTel Collector workshop. This repo contains the application you'll be working with today — a small arcade of mini-games that generates real OpenTelemetry telemetry as you play.
+Welcome to the OTel Collector workshop. This repo contains the application you'll be working with today: a small arcade of mini-games that generates real OpenTelemetry telemetry as you play. Here are the accompanying [slides](https://docs.google.com/presentation/d/1FDuEpkoQr85ysLlfApLQMXiCfHh0_Zvr5-bSKuph3n0).
 
 Your job isn't to understand the app. Your job is to build and tune the **OpenTelemetry Collector pipeline** that processes the telemetry coming out of it. The app is just the traffic source.
 
@@ -13,9 +13,11 @@ make local-init   # check Docker, create .env, pre-pull the Collector image
 ```
 
 **(Optional — do this before the next step)** Open `.env` and add your Honeycomb API key:
+
 ```
 HONEYCOMB_API_KEY=your-key-here
 ```
+
 If you don't have one yet, skip it. The Visualizer and Collector pipeline work without it; only the Honeycomb backend export is affected. Adding the key *after* `make local-up` requires recreating the container — see Lab 1 for details.
 
 ```bash
@@ -23,7 +25,7 @@ make local-up     # build and start the app services
 make local-status # confirm the four app services are healthy
 ```
 
-Once everything is up, open **http://localhost:3000** in your browser.
+Once everything is up, open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 > The Collector will show as exited on fresh start — that's expected. Lab 1's first task is to wire its pipelines so it starts.
 
@@ -37,19 +39,23 @@ The sidebar is split into two sections:
 
 **Arcade** — the app itself:
 
-| Page | What it's for |
-|---|---|
-| **Profile** | Set your display name and avatar — appears on the leaderboard. Changes save automatically. |
-| **Games** | Play a game to generate telemetry |
-| **Leaderboard** | See scores across all games |
+
+| Page            | What it's for                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| **Profile**     | Set your display name and avatar — appears on the leaderboard. Changes save automatically. |
+| **Games**       | Play a game to generate telemetry                                                          |
+| **Leaderboard** | See scores across all games                                                                |
+
 
 **Collector** — your workshop tools:
 
-| Page | What it's for |
-|---|---|
-| **Visualizer** | Watch your telemetry flow through the Collector in real time |
+
+| Page                   | What it's for                                                 |
+| ---------------------- | ------------------------------------------------------------- |
+| **Visualizer**         | Watch your telemetry flow through the Collector in real time  |
 | **Deploy & Configure** | Edit and apply Collector configs — in the browser or your IDE |
-| **TelemetryGen** | Generate specific spans on demand — no game required |
+| **TelemetryGen**       | Generate specific spans on demand — no game required          |
+
 
 Start by playing a game, then open the Visualizer and watch what shows up. You'll notice some things pretty quickly.
 
@@ -59,28 +65,30 @@ Start by playing a game, then open the Visualizer and watch what shows up. You'l
 
 There are 20 games plus a **Random** card (always top-left in the lobby) that picks one at random. Play any of them to generate telemetry. Each produces a slightly different trace shape.
 
-| Game | Trace shape |
-|---|---|
-| Memory Match | Sequential flip events |
-| Typing Speed | Throttled progress stream |
-| Whack-a-Mole | Rapid hit/miss events |
-| Reaction Timer | Browser-side spans with precise timing |
-| Target Shooter | Browser-side click spans |
-| Word Scramble | Sequential guess events *(deliberate smell: reveals answer)* |
-| Math Sprint | Sequential answer events |
-| Simon Says | Growing sequence events *(deliberate smell: exposes full sequence)* |
-| Speed Tap | High-frequency burst events |
-| **Wave Defender** | **Fan-out spans** — each enemy resolved as a parallel child span |
-| **Bid Wars** | **Retry spans** — bid attempts with error status on contention |
-| **Hot Cache** | **Cache hit/miss spans** — cold answers produce a `cache.lookup` child span |
-| **Pixel Sort** | **Scatter-gather spans** — parallel partitions followed by an explicit merge span |
-| **Chain Reaction** | **Saga spans** — sequential steps; wrong click triggers compensating rollback spans |
-| **Deadline Dash** | **Timeout spans** — fulfillment steps that miss the order deadline get `DEADLINE_EXCEEDED` status |
-| **Power Surge** | **Circuit-breaker spans** — `circuit.handle` alone (CLOSED = ok, OPEN = ERROR); HALF-OPEN adds a `circuit.probe` child |
-| **Vault Sync** | **Two-phase commit spans** — parallel prepare → commit + confirm (success) or abort + rollback (failure) |
-| **Laser Grid** | **Rate-limit spans** — permitted: `shot.fire → shot.process`; throttled: adds `rate.backoff`; rejected: `shot.fire` ERROR alone |
-| **Canary Deploy** | **Traffic-split spans** — `deploy.route` → `service.v1.handle` (stable) or `service.v2.handle` (canary, 30% ERROR) |
-| **Pulse** | **Pub-sub spans** — `event.publish` fans out to four named subscriber spans, each with distinct latency and failure rate |
+
+| Game               | Trace shape                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Memory Match       | Sequential flip events                                                                                                          |
+| Typing Speed       | Throttled progress stream                                                                                                       |
+| Whack-a-Mole       | Rapid hit/miss events                                                                                                           |
+| Reaction Timer     | Browser-side spans with precise timing                                                                                          |
+| Target Shooter     | Browser-side click spans                                                                                                        |
+| Word Scramble      | Sequential guess events *(deliberate smell: reveals answer)*                                                                    |
+| Math Sprint        | Sequential answer events                                                                                                        |
+| Simon Says         | Growing sequence events *(deliberate smell: exposes full sequence)*                                                             |
+| Speed Tap          | High-frequency burst events                                                                                                     |
+| **Wave Defender**  | **Fan-out spans** — each enemy resolved as a parallel child span                                                                |
+| **Bid Wars**       | **Retry spans** — bid attempts with error status on contention                                                                  |
+| **Hot Cache**      | **Cache hit/miss spans** — cold answers produce a `cache.lookup` child span                                                     |
+| **Pixel Sort**     | **Scatter-gather spans** — parallel partitions followed by an explicit merge span                                               |
+| **Chain Reaction** | **Saga spans** — sequential steps; wrong click triggers compensating rollback spans                                             |
+| **Deadline Dash**  | **Timeout spans** — fulfillment steps that miss the order deadline get `DEADLINE_EXCEEDED` status                               |
+| **Power Surge**    | **Circuit-breaker spans** — `circuit.handle` alone (CLOSED = ok, OPEN = ERROR); HALF-OPEN adds a `circuit.probe` child          |
+| **Vault Sync**     | **Two-phase commit spans** — parallel prepare → commit + confirm (success) or abort + rollback (failure)                        |
+| **Laser Grid**     | **Rate-limit spans** — permitted: `shot.fire → shot.process`; throttled: adds `rate.backoff`; rejected: `shot.fire` ERROR alone |
+| **Canary Deploy**  | **Traffic-split spans** — `deploy.route` → `service.v1.handle` (stable) or `service.v2.handle` (canary, 30% ERROR)              |
+| **Pulse**          | **Pub-sub spans** — `event.publish` fans out to four named subscriber spans, each with distinct latency and failure rate        |
+
 
 The last eleven games are specifically designed to show distributed systems patterns that are harder to see in the first nine. To see these trace shapes in the Visualizer, play those games — the TelemetryGen session generator uses the original nine.
 
@@ -103,17 +111,20 @@ The feed highlights certain spans in orange. Pay attention to what's highlighted
 
 The **⚙ Deploy & Configure** page is the single place for all Collector config work. It has three tabs:
 
-| Tab | What it's for |
-|---|---|
+
+| Tab                      | What it's for                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------ |
 | **Collector** (Labs 1–3) | Configures `otel-collector-agent` — your single Collector for Labs 1 through 3 |
-| **Agent** (Lab 4) | Same container, now framed as the agent in the agent→gateway pattern |
-| **Gateway** (Lab 4) | Deploys `otel-collector-gateway` on the Docker network and configures it |
+| **Agent** (Lab 4)        | Same container, now framed as the agent in the agent→gateway pattern           |
+| **Gateway** (Lab 4)      | Deploys `otel-collector-gateway` on the Docker network and configures it       |
+
 
 ### Editing in the browser
 
 Press **Ctrl+S** (or **⌘S** on Mac) to apply the active tab's config, or click **Apply & Restart**.
 
 Each tab also has:
+
 - **Format** — fixes tabs-to-spaces and trims trailing whitespace
 - **Restart** — restarts the container without re-applying config
 - **Revert** — discards unsaved editor changes
@@ -128,6 +139,7 @@ On the Collector tab, your edits are automatically saved as a draft in your brow
 Each tab has an **Edit mode** toggle: **Built-in Editor** or **IDE Watch Mode**.
 
 In **IDE Watch Mode**:
+
 - The in-browser editor steps aside and shows a watch status indicator
 - Edit `collector-agent-config.yaml` (or `collector-gateway-config.yaml`) directly in VS Code or any editor — it's at the **repo root**
 - Every time you save the file, the Collector restarts automatically
@@ -208,16 +220,19 @@ make local-down                           # stop everything and wipe state
 
 **I changed `collector-agent-config.yaml` in my editor but the Collector didn't restart.** Enable **IDE Watch Mode** on the Deploy & Configure page, or run `make local-restart-collector`.
 
-**`make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 9888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
+`**make local-up` succeeded but the Collector isn't reachable on ports 4317, 4318, or 9888.** This happens when a previous `make local-up` failed mid-way (e.g., a port conflict) and left containers in a half-created state. Run `make local-down` then `make local-up` to get a clean start.
 
 ---
 
 ## Direct service URLs
 
-| URL | Service |
-|---|---|
-| http://localhost:3000 | Arcade UI |
-| http://localhost:8090 | Pipeline Visualizer (standalone) |
-| http://localhost:8080 | Score API |
-| http://localhost:5050 | Leaderboard |
-| http://localhost:9888/metrics | Collector self-metrics (Prometheus text) |
+
+| URL                                                            | Service                                  |
+| -------------------------------------------------------------- | ---------------------------------------- |
+| [http://localhost:3000](http://localhost:3000)                 | Arcade UI                                |
+| [http://localhost:8090](http://localhost:8090)                 | Pipeline Visualizer (standalone)         |
+| [http://localhost:8080](http://localhost:8080)                 | Score API                                |
+| [http://localhost:5050](http://localhost:5050)                 | Leaderboard                              |
+| [http://localhost:9888/metrics](http://localhost:9888/metrics) | Collector self-metrics (Prometheus text) |
+
+
