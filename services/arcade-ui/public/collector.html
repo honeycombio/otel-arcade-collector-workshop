@@ -410,7 +410,7 @@
         <span class="tab-dot" id="tab-dot-local"></span>Collector <span class="tab-lab">Labs 1–4</span>
       </button>
       <button class="col-tab"        id="tab-gateway" onclick="showTab('gateway')">
-        <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 3</span>
+        <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 4</span>
       </button>
     </div>
     <div class="col-content">
@@ -421,9 +421,10 @@
       <p class="col-hint">
         Configuring <code>otel-collector-agent</code> — your Collector for all labs.
         In Labs 1 &amp; 2 it exports directly to the backend. In Lab 3, load the
-        <strong>Lab 3 — Agent forwarding</strong> template to reconfigure it as a forwarding agent
-        that sends upstream to the gateway instead. In Lab 4, uncomment the three
-        self-telemetry exercises to push Collector metrics and logs to Honeycomb.
+        <strong>Lab 3 — Self-telemetry</strong> template to add the three self-telemetry
+        exercises that push Collector metrics and logs to Honeycomb. In Lab 4, load the
+        <strong>Lab 4 — Agent forwarding</strong> template to reconfigure it as a forwarding agent
+        that sends upstream to the gateway instead.
         Use <strong>Built-in Editor</strong> to edit here, or switch to <strong>IDE Watch Mode</strong>
         to edit <code>collector-agent-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
         <span class="shortcut">(Built-in: Ctrl+S / ⌘S applies)</span>
@@ -455,8 +456,8 @@
           <option value="">Load starter…</option>
           <option value="lab1">↺ Lab 1 — baseline</option>
           <option value="lab2">Lab 2 — OTTL transforms</option>
-          <option value="lab3">Lab 3 — Agent forwarding</option>
-          <option value="lab4">Lab 4 — Self-telemetry</option>
+          <option value="lab3">Lab 3 — Self-telemetry</option>
+          <option value="lab4">Lab 4 — Agent forwarding</option>
         </select>
         <button class="btn-secondary" onclick="formatYaml('local')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
       </div>
@@ -499,7 +500,7 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         GATEWAY TAB — docker-compose gateway container, Lab 3
+         GATEWAY TAB — docker-compose gateway container, Lab 4
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-gateway" class="col-pane" style="display:none">
       <p class="col-hint">
@@ -557,7 +558,7 @@
             <span class="toolbar-label">Template</span>
             <select class="select-template" id="gateway-template-select" onchange="loadGatewayTemplate(this.value)">
               <option value="">Load starter…</option>
-              <option value="lab3">↺ Reset to Lab 3 baseline</option>
+              <option value="lab4">↺ Reset to Lab 4 baseline</option>
               <option value="lab5">Lab 5 — Sampling &amp; Connectors</option>
             </select>
             <button class="btn-secondary" onclick="formatYaml('gateway')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
@@ -795,10 +796,140 @@ service:
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
-    lab3: `# OTel Arcade — Lab 3: Agent → Gateway.
+    lab3: `# OTel Arcade — Lab 3: Collector Self-Telemetry.
 #
+# Lab 2 config with all three self-telemetry exercises applied.
+# This is the completed state — load it to check your work or get unstuck.
+#
+# The agent still exports directly to Honeycomb — the gateway is introduced in Lab 4.
+#
+# Edit here or open collector-agent-config.yaml at the repo root in your IDE.
+
+# ── Receivers ────────────────────────────────────────────────────────
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# ── Processors ───────────────────────────────────────────────────────
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+  filter/drop_probes:
+    error_mode: ignore
+    traces:
+      span:
+        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
+  transform/normalize:
+    trace_statements:
+      - context: span
+        statements:
+          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
+          - truncate_all(span.attributes, 128)
+      - context: resource
+        statements:
+          - delete_key(resource.attributes, "app.name")
+
+# ── Exporters ────────────────────────────────────────────────────────
+exporters:
+  debug:
+    verbosity: basic
+  otlp_grpc/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlp_http/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+  otlp_http/visualizer-raw:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-raw-channel: "true"
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+# ── Service ──────────────────────────────────────────────────────────
+service:
+  telemetry:
+    # Exercise 1: service.name tags all self-metrics and logs in Honeycomb.
+    resource:
+      attributes:
+        - name: service.name
+          value: otel-collector-agent
+    # Exercise 3: push Collector logs to Honeycomb.
+    logs:
+      level: info
+      processors:
+        - batch:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                endpoint: https://api.honeycomb.io/v1/logs
+                headers:
+                  - name: x-honeycomb-team
+                    value: \${env:HONEYCOMB_API_KEY}
+                  - name: x-honeycomb-dataset
+                    value: otel-collector
+    metrics:
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+        # Exercise 2: push Collector metrics to Honeycomb alongside the Prometheus pull.
+        - periodic:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                endpoint: https://api.honeycomb.io/v1/metrics
+                headers:
+                  - name: x-honeycomb-team
+                    value: \${env:HONEYCOMB_API_KEY}
+                  - name: x-honeycomb-dataset
+                    value: otel-collector
+  pipelines:
+    # traces/raw: captures spans BEFORE transforms — powers the Split view.
+    traces/raw:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp_http/visualizer-raw]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+`,
+
+    lab4: `# OTel Arcade — Lab 4: Agent → Gateway.
+#
+# Lab 3 self-telemetry config reconfigured for two-tier architecture.
 # The agent no longer exports directly to Honeycomb. Instead it forwards
 # all telemetry to the gateway, which handles final export and fan-out.
+# Self-telemetry (service.name, metrics push, logs push) is retained from Lab 3.
 #
 # Steps:
 #   1. Deploy the gateway first (Gateway tab → Deploy Gateway)
@@ -866,101 +997,10 @@ exporters:
 # ── Service ──────────────────────────────────────────────────────────
 service:
   telemetry:
-    metrics:
-      level: detailed
-      readers:
-        - pull:
-            exporter:
-              prometheus:
-                host: "0.0.0.0"
-                port: 8888
-  pipelines:
-    # traces/raw: captures spans BEFORE transforms — powers the Split view.
-    traces/raw:
-      receivers: [otlp]
-      processors: [memory_limiter]
-      exporters: [otlp_http/visualizer-raw]
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
-      exporters: [debug, otlp_grpc/gateway]
-    metrics:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/gateway]
-    logs:
-      receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, otlp_grpc/gateway]
-`,
-
-    lab4: `# OTel Arcade — Lab 4: Collector Self-Telemetry.
-#
-# Lab 3 config with all three self-telemetry exercises applied.
-# This is the completed state — load it to check your work or get unstuck.
-#
-# Edit here or open collector-agent-config.yaml at the repo root in your IDE.
-
-# ── Receivers ────────────────────────────────────────────────────────
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
-
-# ── Processors ───────────────────────────────────────────────────────
-processors:
-  memory_limiter:
-    check_interval: 1s
-    limit_mib: 512
-    spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
-  filter/drop_probes:
-    error_mode: ignore
-    traces:
-      span:
-        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
-  transform/normalize:
-    trace_statements:
-      - context: span
-        statements:
-          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
-          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
-          - truncate_all(span.attributes, 128)
-      - context: resource
-        statements:
-          - delete_key(resource.attributes, "app.name")
-
-# ── Exporters ────────────────────────────────────────────────────────
-exporters:
-  debug:
-    verbosity: basic
-  otlp_grpc/gateway:
-    endpoint: otel-collector-gateway:4317
-    tls:
-      insecure: true
-  otlp_http/visualizer-raw:
-    endpoint: http://visualizer:4318
-    encoding: json
-    headers:
-      x-raw-channel: "true"
-      x-collector-source: agent
-    tls:
-      insecure: true
-
-# ── Service ──────────────────────────────────────────────────────────
-service:
-  telemetry:
-    # Exercise 1: service.name tags all self-metrics and logs in Honeycomb.
     resource:
       attributes:
         - name: service.name
           value: otel-collector-agent
-    # Exercise 3: push Collector logs to Honeycomb.
     logs:
       level: info
       processors:
@@ -982,7 +1022,6 @@ service:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
-        # Exercise 2: push Collector metrics to Honeycomb alongside the Prometheus pull.
         - periodic:
             exporter:
               otlp:
@@ -994,6 +1033,7 @@ service:
                   - name: x-honeycomb-dataset
                     value: otel-collector
   pipelines:
+    # traces/raw: captures spans BEFORE transforms — powers the Split view.
     traces/raw:
       receivers: [otlp]
       processors: [memory_limiter]
@@ -1015,9 +1055,9 @@ service:
 
   // ── Gateway templates ─────────────────────────────────────────────────────
   var GATEWAY_TEMPLATES = {
-    lab3: `# OTel Arcade — Gateway Collector.
+    lab4: `# OTel Arcade — Gateway Collector.
 # Receives OTLP from agents and forwards to Honeycomb and the Visualizer.
-# In Lab 3, point your agent's exporters at otel-collector-gateway:4317.
+# In Lab 4, point your agent's exporters at otel-collector-gateway:4317.
 
 receivers:
   otlp:
@@ -1053,6 +1093,10 @@ exporters:
 
 service:
   telemetry:
+    resource:
+      attributes:
+        - name: service.name
+          value: otel-collector-gateway
     metrics:
       level: detailed
       readers:
@@ -1076,7 +1120,7 @@ service:
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
     lab5: `# OTel Arcade — Lab 5: Advanced Gateway Patterns.
-# Builds on Lab 3. Uncomment each exercise block one at a time.
+# Builds on Lab 4. Uncomment each exercise block one at a time.
 
 receivers:
   otlp:
