@@ -5,7 +5,7 @@
 # have confirmed Exercises 1 and 3 are working.
 #
 # Apply this via ⚙ Deploy & Configure → Gateway tab.
-# Prerequisites: Lab 3 complete (gateway deployed).
+# Prerequisites: Lab 4 complete (gateway deployed).
 
 receivers:
   otlp:

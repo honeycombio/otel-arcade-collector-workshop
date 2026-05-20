@@ -1,9 +1,10 @@
 # OTel Arcade — Lab 4 solution (agent config).
 #
-# Lab 3 config with all three self-telemetry exercises applied:
-#   Exercise 1: service.name resource attribute added
-#   Exercise 2: Collector metrics pushed to Honeycomb (periodic reader)
-#   Exercise 3: Collector logs pushed to Honeycomb
+# Lab 3 self-telemetry config with gateway architecture applied:
+#   - Agent forwards all telemetry to otel-collector-gateway:4317 (no direct Honeycomb export)
+#   - Self-telemetry from Lab 3 (service.name, metrics push, logs push) is retained
+#
+# Prerequisites: deploy the gateway first (⚙ Deploy & Configure → Gateway tab → Deploy Gateway)
 #
 # To apply: paste into the Agent tab editor and click Apply & Restart,
 # or: cp labs/solutions/lab-4-agent-solution.yaml collector-agent-config.yaml

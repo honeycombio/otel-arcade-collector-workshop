@@ -105,9 +105,9 @@ The **⚙ Deploy & Configure** page is the single place for all Collector config
 
 | Tab | What it's for |
 |---|---|
-| **Collector** (Labs 1–2) | Configures `otel-collector-agent` — your single Collector for Labs 1 and 2 |
-| **Agent** (Lab 3) | Same container, now framed as the agent in the agent→gateway pattern |
-| **Gateway** (Lab 3) | Deploys `otel-collector-gateway` on the Docker network and configures it |
+| **Collector** (Labs 1–3) | Configures `otel-collector-agent` — your single Collector for Labs 1 through 3 |
+| **Agent** (Lab 4) | Same container, now framed as the agent in the agent→gateway pattern |
+| **Gateway** (Lab 4) | Deploys `otel-collector-gateway` on the Docker network and configures it |
 
 ### Editing in the browser
 
@@ -147,11 +147,11 @@ Write a Collector config that receives OTLP from the arcade services and exports
 **Lab 2** — OTTL processors
 Look at what's in the feed. Some of it probably shouldn't be there, or shouldn't look the way it does. Your task is to write `transform` processor statements to clean it up. The Visualizer header gives you a real-time count of how much work is left. The **Before → After** toggle (available once the Lab 2 template is applied) shows you exactly what each transform changed.
 
-**Lab 3** — Gateway architecture
-Introduce the agent→gateway pattern. Open **⚙ Deploy & Configure**, switch to the **Gateway** tab and click **Deploy Gateway**, then switch to the **Agent** tab and update the config to forward to `otel-collector-gateway:4317` instead of exporting directly.
-
-**Lab 4** — Collector self-telemetry
+**Lab 3** — Collector self-telemetry
 Configure the Collector to ship its own metrics and logs to Honeycomb via `service.telemetry`. Then put it under load and query pipeline health — queue depth, throughput, dropped spans — historically in Honeycomb rather than just in the live Visualizer panel.
+
+**Lab 4** — Gateway architecture
+Introduce the agent→gateway pattern. Open **⚙ Deploy & Configure**, switch to the **Gateway** tab and click **Deploy Gateway**, then switch to the **Agent** tab and update the config to forward to `otel-collector-gateway:4317` instead of exporting directly.
 
 **Lab 5 (stretch)** — Advanced gateway patterns
 Three exercises on the gateway: tail sampling, routing connector, and service graph connector. The Visualizer's Service Graph panel shows the topology from Lab 1 onward.

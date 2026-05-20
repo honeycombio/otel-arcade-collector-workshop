@@ -2,11 +2,11 @@
 
 ## What you'll do
 
-Apply three advanced Collector patterns to the gateway from Lab 3. By the end you'll have a gateway that samples intelligently, routes by condition, and generates service dependency metrics automatically.
+Apply three advanced Collector patterns to the gateway from Lab 4. By the end you'll have a gateway that samples intelligently, routes by condition, and generates service dependency metrics automatically.
 
 ## Prerequisites
 
-- Lab 3 complete: agent → gateway is running, spans tagged with source `gateway` are flowing
+- Lab 4 complete: agent → gateway is running, spans tagged with source `gateway` are flowing
 - Load generator available on the TelemetryGen page
 
 ---

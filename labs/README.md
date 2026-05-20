@@ -8,8 +8,8 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 |---|---|---|
 | [Lab 1](lab-1.md) | Your First Collector Pipeline | ~40 min |
 | [Lab 2](lab-2.md) | Cleaning Up Telemetry with OTTL | ~50 min |
-| [Lab 3](lab-3.md) | Agent → Gateway Architecture | ~30 min |
-| [Lab 4](lab-4.md) | Collector Self-Telemetry | ~40 min |
+| [Lab 3](lab-3.md) | Collector Self-Telemetry | ~40 min |
+| [Lab 4](lab-4.md) | Agent → Gateway Architecture | ~30 min |
 | [Lab 5](lab-5.md) | Advanced Gateway Patterns *(stretch)* | ~50 min |
 
 ## Before you start
@@ -52,7 +52,7 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 **`make local-reset-collector`** — restores `collector-agent-config.yaml` to the Lab 1 baseline (`collector-agent-config.baseline.yaml`) and restarts the agent.
 
 - **Labs 1–2:** use this when your config is so broken the Collector won't start.
-- **Labs 3–4:** use **⚙ Deploy & Configure → Agent tab → Load template** (Lab 3 or Lab 4) instead — `make local-reset-collector` resets all the way to Lab 1, wiping your Lab 2 transforms and Lab 3 gateway config.
+- **Labs 3–4:** use **⚙ Deploy & Configure → Agent tab → Load template** (Lab 3 or Lab 4) instead — `make local-reset-collector` resets all the way to Lab 1, wiping your Lab 2 transforms and Lab 3 self-telemetry config.
 
 > **Note:** On a fresh `make local-up`, the Collector starts with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the Lab 1 exercise: wire up the exporters. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
 
