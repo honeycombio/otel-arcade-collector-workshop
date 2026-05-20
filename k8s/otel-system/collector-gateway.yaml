@@ -1,8 +1,8 @@
-# Gateway Collector — Lab 3 only.
+# Gateway Collector — Lab 4 only.
 #
 # IMPORTANT: this manifest is NOT applied by `kubectl apply -f k8s/` by default
 # at workshop start (the agent DaemonSet exports directly to backend + visualizer).
-# In Lab 3, attendees explicitly run:
+# In Lab 4, attendees explicitly run:
 #   kubectl apply -f k8s/otel-system/collector-gateway.yaml
 # and then change the agent ConfigMap to forward to this gateway instead of
 # the backend directly. This file exists so attendees don't have to invent

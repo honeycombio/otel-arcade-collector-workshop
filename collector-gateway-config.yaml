@@ -1,5 +1,5 @@
 # OTel Arcade — Lab 5: Advanced Gateway Patterns.
-# Builds on Lab 3. Uncomment each exercise block one at a time.
+# Builds on Lab 4. Uncomment each exercise block one at a time.
 
 receivers:
   otlp:

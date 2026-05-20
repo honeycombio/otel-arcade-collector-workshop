@@ -9,7 +9,7 @@ data:
     # Functional out of the box; attendees modify it during labs.
     #
     # Lab 2: add OTTL transforms (search for "TODO Lab 2").
-    # Lab 3: change the exporters to forward to the gateway instead of direct.
+    # Lab 4: change the exporters to forward to the gateway instead of direct.
 
     receivers:
       otlp:
