@@ -206,9 +206,8 @@ pipeline health — queue depth, throughput, and dropped spans.
 select **⚡ TelemetryGen** in the app's left navigation.
 2. Choose one of the following:
 
-   **Burst:** Use the **Simulate game sessions** presets to fire a
-   spike of traffic — try **50× Mixed** to create a meaningful load
-   event.
+   **Burst:** Scroll to the **Game Session Presets** section and
+   select **50 × Mixed (load volume)** to fire a spike of traffic.
 
    **Sustained:** Scroll to the **Load Generator** section at the
    bottom of TelemetryGen. Set a desired RPS and select **Start**
@@ -392,8 +391,9 @@ and the Visualizer reflects the new topology.
 
 1. Select [button label="OTel Arcade" variant="success"](tab-0) and
 select **◈ Visualizer** in the app's left navigation.
-2. The Pipeline panel now has **Agent** and **Gateway** tabs at the
-top. Select each to see that collector's live pipeline topology.
+2. The Pipeline panel has **Agent** and **Gateway** selector buttons
+at the top. Select each to see that collector's live pipeline
+topology.
 3. Play a game to generate traffic.
 4. Confirm spans in the feed are tagged with source **gateway** —
 this means telemetry is flowing through the full two-hop path
@@ -428,7 +428,8 @@ With this two-tier setup in place, consider:
 
 - Both `otel-collector-agent` and `otel-collector-gateway` containers
 are running
-- The Visualizer Pipeline panel shows two topology diagrams
+- Pipeline diagrams are visible for both Agent and Gateway — use
+the selector buttons to switch between them
 - Spans in the Visualizer feed are tagged with source `gateway`
 - Honeycomb is still receiving traces from all three services
 
@@ -478,9 +479,10 @@ updated config.
 
 1. Select [button label="OTel Arcade" variant="success"](tab-0) and
 select **◈ Visualizer**.
-2. Scroll to the **Collector Health** panel. Switch to the
-**Gateway** tab — you should now see two new gauges: **Traces
-sampled** and **Traces dropped**.
+2. Select the **Gateway** selector button at the top of the Pipeline
+panel to switch to the gateway view, then scroll down to the
+**Collector Health** panel — you should now see two new gauges:
+**Traces sampled** and **Traces dropped**.
 3. Start the load generator: select **⚡ TelemetryGen**, scroll to
 **Load Generator**, and set 10 RPS. Select **Start**.
 4. Watch the gauges update as traffic flows.
