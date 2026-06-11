@@ -69,10 +69,11 @@ health data separately from your app data.
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the `service.telemetry` block in the **Collector** tab
 editor.
-3. Add a `resource` section:
+3. Without this, self-telemetry arrives in Honeycomb with no identity
+label — you can't isolate Collector health data from your app
+telemetry. Copy and paste the block below within the
+`service.telemetry` block in the Collector tab editor:
 ```yaml
-service:
-  telemetry:
     resource:
       attributes:
         - name: service.name
@@ -88,18 +89,15 @@ make local-restart-collector
 
 ## Exercise 2 — Push Collector Metrics to Honeycomb
 
-Add a `periodic` reader alongside the existing `pull` reader under
-`service.telemetry.metrics.readers`:
-
+1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+select **⚙ Deploy & Configure** in the app's left navigation.
+2. The health panel works because the Collector already exposes a
+Prometheus pull endpoint — but that data is ephemeral and only
+visible inside the sandbox. Adding a `periodic` OTLP reader pushes
+those same metrics to Honeycomb on a schedule so they're queryable
+and durable. Copy and paste the block below into the `readers` list
+under `service.telemetry.metrics`, after the existing `- pull:` block:
 ```yaml
-    metrics:
-      level: detailed
-      readers:
-        - pull:
-            exporter:
-              prometheus:
-                host: "0.0.0.0"
-                port: 8888
         - periodic:
             exporter:
               otlp:
@@ -111,14 +109,13 @@ Add a `periodic` reader alongside the existing `pull` reader under
                   - name: x-honeycomb-dataset
                     value: otel-collector
 ```
-
-Save the file and run:
+3. Save the file. Then run the following in
+[button label="Terminal" variant="success"](tab-1):
 ```bash
 make local-restart-collector
 ```
-
-After ~15 seconds, open Honeycomb and query the `otel-collector`
-metrics dataset. You should see metrics like
+4. After ~15 seconds, open Honeycomb and query the `otel-collector`
+metrics dataset. Confirm you see metrics like
 `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
 
 > [!NOTE]
@@ -131,8 +128,13 @@ metrics dataset. You should see metrics like
 
 ## Exercise 3 — Push Collector Logs to Honeycomb
 
-Add a `logs` block under `service.telemetry`:
-
+1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+select **⚙ Deploy & Configure** in the app's left navigation.
+2. By default the Collector's own log output only goes to stdout —
+readable with `make local-logs` but gone when the container restarts.
+Adding a `logs` block under `service.telemetry` pushes those logs to
+Honeycomb so they're searchable and durable. Copy and paste the block
+below within the `service.telemetry` block, after the `metrics` block:
 ```yaml
     logs:
       level: info
@@ -148,15 +150,13 @@ Add a `logs` block under `service.telemetry`:
                   - name: x-honeycomb-dataset
                     value: otel-collector
 ```
-
-Save the file and run:
+3. Save the file. Then run:
 ```bash
 make local-restart-collector
 ```
-
-Open Honeycomb and query the `otel-collector` logs dataset — you'll
-see the Collector's own startup messages, pipeline summaries, and any
-warning or error logs.
+4. Open Honeycomb and query the `otel-collector` logs dataset.
+Confirm you see the Collector's startup messages, pipeline summaries,
+and any warning or error logs.
 
 > [!NOTE]
 > The **Lab 3 — Self-telemetry** template in the editor's
@@ -461,15 +461,11 @@ Find it.
 
 ## Enable tail sampling
 
-1. Uncomment the `tail_sampling` processor block.
-2. In the `traces` pipeline, replace `[batch]` with
-`[tail_sampling]`:
-```yaml
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
-```
+1. The `tail_sampling` processor is defined in the Gateway config but
+commented out. Find the commented `tail_sampling` block in the
+`processors:` section and uncomment it.
+2. In the `traces` pipeline under `service.pipelines`, replace
+`batch` with `tail_sampling` in the `processors` list.
 3. Select **Apply & Restart** in the Gateway tab to deploy the
 updated config.
 
@@ -529,26 +525,17 @@ using the `routing` connector.
 
 1. Select [button label="OTel Arcade" variant="success"](tab-0) and
 select **⚙ Deploy & Configure → Gateway** tab.
-2. Find the commented `routing` connector block. Uncomment it.
-3. Add `routing` to the `traces` pipeline `exporters` list, and
-uncomment the two named pipelines at the bottom of the config:
-```yaml
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing]
-
-    traces/standard:
-      receivers: [routing]
-      processors: [batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
-
-    traces/errors:
-      receivers: [routing]
-      processors: [batch]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
-```
-4. Select **Apply & Restart** in the Gateway tab.
+2. The `routing` connector acts as both an exporter from the main
+`traces` pipeline and a receiver in sub-pipelines — each trace is
+evaluated against routing rules and forwarded to the matching
+pipeline. Find the commented `routing` block in the `connectors:`
+section and uncomment it.
+3. Add `routing` to the end of the `exporters` list in the `traces`
+pipeline under `service.pipelines`.
+4. Find the two commented pipeline definitions near the bottom of the
+config (`traces/standard` and `traces/errors`) and uncomment both
+blocks.
+5. Select **Apply & Restart** in the Gateway tab.
 
 ---
 
@@ -556,7 +543,7 @@ uncomment the two named pipelines at the bottom of the config:
 
 1. Select [button label="OTel Arcade" variant="success"](tab-0) and
 select **◈ Visualizer**.
-2. Select the **Gateway** tab in the Pipeline panel.
+2. Select the **Gateway** selector button in the Pipeline panel.
 3. Confirm the topology shows three trace pipelines: `traces`,
 `traces/standard`, and `traces/errors`.
 4. Notice that `routing` appears as both an **exporter** in the
@@ -601,20 +588,15 @@ now durable and alertable.
 
 1. Select [button label="OTel Arcade" variant="success"](tab-0) and
 select **⚙ Deploy & Configure → Gateway** tab.
-2. Find the commented `service_graph` connector block. Uncomment it.
-3. Add `service_graph` to the `traces` pipeline `exporters` list,
-and uncomment the `metrics/service_graph` pipeline:
-```yaml
-    traces:
-      receivers: [otlp]
-      processors: [memory_limiter, tail_sampling]
-      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, routing, service_graph]
-
-    metrics/service_graph:
-      receivers: [service_graph]
-      exporters: [otlp_grpc/backend]
-```
-4. Select **Apply & Restart** in the Gateway tab.
+2. The `service_graph` connector derives request-count and latency
+metrics for every client→server pair it observes directly from your
+traces — no extra instrumentation needed. Find the commented
+`service_graph` block in the `connectors:` section and uncomment it.
+3. Add `service_graph` to the end of the `exporters` list in the
+`traces` pipeline under `service.pipelines`.
+4. Find the commented `metrics/service_graph` pipeline definition and
+uncomment it.
+5. Select **Apply & Restart** in the Gateway tab.
 
 ---
 

@@ -64,11 +64,12 @@ only to `debug`.
 any pipeline:
    - `otlp_grpc/backend` — sends to Honeycomb
    - `otlp_http/visualizer` — sends to the live Visualizer feed
-5. Add both exporters to all three pipelines. Each pipeline's
-exporters list should look like this after your edit:
-```yaml
-exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
-```
+5. Both exporters are defined in the config but not yet connected to
+any pipeline — without wiring them in, all telemetry stays in the
+`debug` exporter and never reaches Honeycomb or the Visualizer. In
+each of the three pipeline definitions under `service.pipelines`
+(`traces`, `metrics`, and `logs`), add `otlp_grpc/backend` and
+`otlp_http/visualizer` to the end of the `exporters` list.
 6. Save the file. Then run the following command in the
 [button label="Terminal" variant="success"](tab-1) to apply your
 changes:
@@ -287,16 +288,17 @@ look different even for identical operations.
 
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the Fix 1 block in the `transform/normalize` processor.
-3. Uncomment the OTTL statement that matches span names starting
-with a SQL keyword and replaces the whole name with `db.query`:
+3. This statement matches any span whose name begins with a SQL
+keyword and collapses the whole name down to `db.query` — turning
+thousands of unique per-query span names into one stable, queryable
+label. In the `transform/normalize` processor, find the Fix 1 comment
+and uncomment the line below it:
 ```yaml
 - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
 ```
-4. Add `transform/normalize` to the `traces` pipeline processors
-list, after `batch`:
-```yaml
-processors: [memory_limiter, batch, transform/normalize]
-```
+4. Add `transform/normalize` to the end of the `processors` list in
+the `traces` pipeline under `service.pipelines`. It should come after
+`batch`.
 5. Save the file. Then run the following in
 [button label="Terminal" variant="success"](tab-1):
 ```bash
@@ -314,8 +316,11 @@ user identifier and shouldn't be stored as-is.
 
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the Fix 2 block in the `transform/normalize` processor.
-3. Uncomment the OTTL statement that sets `attributes["player.id"]`
-to `***` when the attribute is present:
+3. This statement replaces the value of `player.id` with `***` on
+every span that carries it — the key is preserved so you can confirm
+PII was present, but the actual identifier is never stored. In the
+`transform/normalize` processor, find the Fix 2 comment and uncomment
+the line below it:
 ```yaml
 - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
 ```
@@ -334,8 +339,11 @@ The web services emit spans for every `/health` and `/ready` HTTP
 request. These are high-volume, low-value noise.
 
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
-2. Find the Fix 3 block. Uncomment the entire `filter/drop_probes`
-processor definition:
+2. This processor drops any span whose name matches a health probe URL
+pattern before it reaches any downstream processors — catching probes
+here means they never cost you batching or transform work. In the
+`processors:` section, find the Fix 3 comment and uncomment the
+entire `filter/drop_probes` block below it:
 ```yaml
 filter/drop_probes:
   error_mode: ignore
@@ -343,11 +351,9 @@ filter/drop_probes:
     span:
       - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
 ```
-3. Update the `traces` pipeline processors list to include
-`filter/drop_probes` before `batch`:
-```yaml
-processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
-```
+3. Add `filter/drop_probes` to the `processors` list in the `traces`
+pipeline under `service.pipelines`. It should come before `batch` so
+spans are dropped before they're batched for export.
 4. Save the file. Then run:
 ```bash
 make local-restart-collector
@@ -369,8 +375,11 @@ noisy.
 
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the Fix 4 block in the `transform/normalize` processor.
-3. Uncomment the OTTL statement that applies a 128-character limit
-to every attribute on a span at once:
+3. This statement applies a single character limit to every attribute
+on a span at once — long values like full user-agent strings get cut
+to 128 characters, reducing span size without removing the attribute.
+In the `transform/normalize` processor, find the Fix 4 comment and
+uncomment the line below it:
 ```yaml
 - truncate_all(span.attributes, 128)
 ```
@@ -390,8 +399,11 @@ resource level, duplicating data already in `service.name`.
 
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the Fix 5 block in the `transform/normalize` processor.
-3. Uncomment the `delete_key` statement in the `resource` context
-block:
+3. This statement removes `app.name` from the resource of every span
+that has it — the same value is already stored in `service.name`, so
+keeping both wastes storage. In the `transform/normalize` processor,
+find the Fix 5 comment and uncomment the `delete_key` line inside the
+`resource` context block:
 ```yaml
 - delete_key(resource.attributes, "app.name")
 ```
