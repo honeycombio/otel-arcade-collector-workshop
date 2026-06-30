@@ -14,12 +14,9 @@ Keep both tabs visible across all challenges — hiding the terminal in Challeng
 
 # Challenge 1: Your First Collector Pipeline
 
-The OTel Arcade is running in your sandbox — a small browser-based
-arcade of mini-games that generates real OpenTelemetry telemetry as
-you play.
+The OTel Arcade is running in your sandbox — a small browser-based arcade of mini-games that generates real OpenTelemetry telemetry as you play.
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) to
-open the app.
+1. Select [button label="OTel Arcade"](tab-0) to open the app.
 2. Inside the app, look at the left navigation. You'll see two
 sections:
    - **Arcade** — the app itself. Play any game to generate telemetry.
@@ -53,11 +50,10 @@ through processors to exporters.
 
 ## Wire the pipelines
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
-select **⚙ Deploy & Configure** in the app's left navigation.
+1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. Select the **Collector** tab to open the config editor.
 3. Read through the file. Receivers, processors, and exporters are
-all defined. Find the `service.pipelines` section — it has three
+all defined. Find the `pipelines` section — it has three
 pipelines (`traces`, `metrics`, `logs`), each currently exporting
 only to `debug`.
 4. Identify the two exporters that are defined but not connected to
@@ -67,15 +63,10 @@ any pipeline:
 5. Both exporters are defined in the config but not yet connected to
 any pipeline — without wiring them in, all telemetry stays in the
 `debug` exporter and never reaches Honeycomb or the Visualizer. In
-each of the three pipeline definitions under `service.pipelines`
+each of the three pipeline definitions under `pipelines`
 (`traces`, `metrics`, and `logs`), add `otlp_grpc/backend` and
-`otlp_http/visualizer` to the end of the `exporters` list.
-6. Save the file. Then run the following command in the
-[button label="Terminal" variant="success"](tab-1) to apply your
-changes:
-```bash
-make local-restart-collector
-```
+`otlp_http/visualizer` to the end of the `exporters` list inside of the brackets.
+6. Select "Apply & Restart." You should see "Config saved. Collector restarted successfully."
 
 ---
 

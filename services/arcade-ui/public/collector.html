@@ -418,18 +418,6 @@
          COLLECTOR TAB — local docker-compose, Labs 1–4
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-local" class="col-pane">
-      <p class="col-hint">
-        Configuring <code>otel-collector-agent</code> — your Collector for all labs.
-        In Labs 1 &amp; 2 it exports directly to the backend. In Lab 3, load the
-        <strong>Lab 3 — Self-telemetry</strong> template to add the three self-telemetry
-        exercises that push Collector metrics and logs to Honeycomb. In Lab 4, load the
-        <strong>Lab 4 — Agent forwarding</strong> template to reconfigure it as a forwarding agent
-        that sends upstream to the gateway instead.
-        Use <strong>Built-in Editor</strong> to edit here, or switch to <strong>IDE Watch Mode</strong>
-        to edit <code>collector-agent-config.yaml</code> directly in VS Code — the Collector restarts automatically on save.
-        <span class="shortcut">(Built-in: Ctrl+S / ⌘S applies)</span>
-      </p>
-
       <div class="ds-status">
         <span class="ds-dot" id="local-ds-dot"></span>
         <span id="local-ds-msg">Loading…</span>
@@ -503,11 +491,6 @@
          GATEWAY TAB — docker-compose gateway container, Lab 4
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-gateway" class="col-pane" style="display:none">
-      <p class="col-hint">
-        Starts a gateway Collector container on the local Docker network.
-        Deploy it once, then point the Agent's exporters at <code>otel-collector-gateway:4317</code>.
-      </p>
-
       <div id="gateway-k8s-content">
         <div class="ds-status">
           <span class="ds-dot" id="gateway-ds-dot"></span>
