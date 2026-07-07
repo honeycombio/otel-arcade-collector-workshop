@@ -10,11 +10,7 @@
   <iframe id="viz-frame" class="viz-frame" title="Pipeline Visualizer"></iframe>
   <script src="/js/nav.js"></script>
   <script>
-    const host = location.hostname;
-    const vizUrl = host.includes('.env.play.instruqt.com')
-      ? location.protocol + '//' + host.replace('-3000-', '-8090-') + '/'
-      : location.protocol + '//' + host + ':8090/';
-    document.getElementById('viz-frame').src = vizUrl;
+    document.getElementById('viz-frame').src = '/viz/';
   </script>
 </body>
 </html>
