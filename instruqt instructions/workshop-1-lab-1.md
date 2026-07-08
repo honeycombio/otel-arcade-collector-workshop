@@ -1,12 +1,12 @@
 ## Tab reference
 
-| Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) |
-|---|---|---|
-| 1 — Wire the pipelines | ✓ | ✓ `make local-restart-collector` |
-| 2 — Connect to Honeycomb | ✓ | ✓ `sed`, `docker compose` |
-| 3 — Spot the Problems | ✓ | — |
-| 4 — Clean Your Telemetry | ✓ | ✓ `make local-restart-collector` (x5) |
-| 5 — Checkpoint and Handoff | ✓ | — |
+| Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
+|---|---|---|---|
+| 1 — Wire the pipelines | ✓ | — | — |
+| 2 — Connect to Honeycomb | ✓ | ✓ `sed`, `docker compose` | ✓ |
+| 3 — Spot the Problems | ✓ | — | — |
+| 4 — Clean Your Telemetry | ✓ | — | — |
+| 5 — Checkpoint and Handoff | ✓ | — | — |
 
 Keep both tabs visible across all challenges — hiding the terminal in Challenges 3 and 5 can disorient users if they go looking for it.
 
@@ -16,7 +16,7 @@ Keep both tabs visible across all challenges — hiding the terminal in Challeng
 
 The OTel Arcade is running in your sandbox — a small browser-based arcade of mini-games that generates real OpenTelemetry telemetry as you play.
 
-1. Select [button label="OTel Arcade"](tab-0) to open the app.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Inside the app, look at the left navigation. You'll see two
 sections:
    - **Arcade** — the app itself. Play any game to generate telemetry.
@@ -64,16 +64,18 @@ any pipeline:
 any pipeline — without wiring them in, all telemetry stays in the
 `debug` exporter and never reaches Honeycomb or the Visualizer. In
 each of the three pipeline definitions under `pipelines`
-(`traces`, `metrics`, and `logs`), add `otlp_grpc/backend` and
-`otlp_http/visualizer` to the end of the `exporters` list inside of the brackets.
+(`traces`, `metrics`, and `logs`), update the `exporters` list so it
+reads:
+```yaml
+exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+```
 6. Select "Apply & Restart." You should see "Config saved. Collector restarted successfully."
 
 ---
 
 ## Verify
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
-select **◈ Visualizer** in the app's left navigation.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer** in the app's left navigation.
 2. Confirm you see:
    - The **Pipeline** panel showing your receiver → processor →
    exporter topology
@@ -81,9 +83,9 @@ select **◈ Visualizer** in the app's left navigation.
 3. Play a game to generate a burst of traffic if the feed looks slow.
 
 > [!IMPORTANT]
-> If the feed stays empty, check the Collector logs:
+> If the feed stays empty, check the Collector logs in the Terminal tab:
 > ```bash
-> make local-logs SVC=otel-collector-agent
+> docker compose logs --tail=50 otel-collector-agent
 > ```
 > A YAML syntax error or unknown component name will appear there.
 
@@ -107,33 +109,31 @@ queryable in a real observability backend.
 
 ## Create your environment and API key
 
-1. Open `ui.honeycomb.io` in your browser and log in.
+1. Open the [button label="Honeycomb"](tab-2) tab — this opens Honeycomb in a new browser window. Log in.
 2. Select your environment name in the left navigation.
 3. Select **Manage Environments**.
 4. Select **Create Environment**.
 5. Name it `otel-arcade-workshop` and save.
 6. Select the `otel-arcade-workshop` environment after it's created.
-7. Select **API Keys** in the left navigation.
+7. Select **API Keys** in the top navigation.
 8. Select **Create Ingest API Key**.
 9. Name it `otel-arcade-workshop`.
-10. Copy the key.
+10. Copy the Key Secret.
 
 > [!IMPORTANT]
 > This is the only time you'll see this key. Copy it and keep it
 > somewhere accessible — you'll need it in the next section and
-> again in Workshop 2.
+> again in the next challenge.
 
 ---
 
 ## Add your API key to the sandbox
 
-1. Select [button label="Terminal" variant="success"](tab-1) to
-open the terminal.
+1. Select the [button label="Terminal"](tab-1) tab.
 2. Run the following command, replacing `your-key-here` with your
 API key:
 ```bash
-sed -i 's/HONEYCOMB_API_KEY=.*/HONEYCOMB_API_KEY=your-key-here/' \
-  /root/otel-arcade-collector-workshop/.env
+sed -i 's/HONEYCOMB_API_KEY=.*/HONEYCOMB_API_KEY=your-key-here/' /root/otel-arcade-collector-workshop/.env
 ```
 3. Verify the key was written correctly:
 ```bash
@@ -141,8 +141,7 @@ grep HONEYCOMB_API_KEY /root/otel-arcade-collector-workshop/.env
 ```
 4. Recreate the Collector container to inject the new key:
 ```bash
-cd /root/otel-arcade-collector-workshop && \
-  docker compose up --force-recreate otel-collector-agent -d
+cd /root/otel-arcade-collector-workshop && docker compose up --force-recreate otel-collector-agent -d
 ```
 
 > [!NOTE]
@@ -154,8 +153,7 @@ cd /root/otel-arcade-collector-workshop && \
 
 ## Verify
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0)
-and play a game to generate a few traces.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and play a game to generate a few traces.
 2. Open Honeycomb in your browser and navigate to your
 `otel-arcade-workshop` environment.
 3. Confirm traces are arriving from all three services: `arcade-ui`,
@@ -163,9 +161,9 @@ and play a game to generate a few traces.
 
 > [!IMPORTANT]
 > If no traces appear in Honeycomb, check the Collector logs for
-> auth errors:
+> auth errors in the Terminal tab:
 > ```bash
-> make local-logs SVC=otel-collector-agent
+> docker compose logs --tail=50 otel-collector-agent
 > ```
 > An invalid or missing API key will show up as a 401 error in the
 > exporter output.
@@ -189,8 +187,7 @@ actually in the feed.
 
 ## Look at the Visualizer feed
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) to
-open the app.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Select **◈ Visualizer** in the app's left navigation.
 3. Play two or three different games to generate a variety of spans.
 4. Look at the feed. Notice some spans are highlighted in orange.
@@ -252,14 +249,13 @@ Two processors handle this work:
 
 ## Load the Lab 2 template
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) to
-open the app.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Select **⚙ Deploy & Configure** in the app's left navigation.
-3. Select **Load template → Lab 2 — OTTL transforms**.
+3. Select **Load template → OTTL transforms**.
 4. Read through the scaffolding. Each commented block is labeled
 with a Fix number — you'll uncomment them one at a time in the
 steps below.
-5. Select **◈ Visualizer** and select **Split** in the feed header.
+5. Select **◈ Visualizer** and view **Split** in the feed header.
 The Split view shows spans before and after your transforms side
 by side — spans with changes get an amber border in the After
 column.
@@ -290,11 +286,7 @@ and uncomment the line below it:
 4. Add `transform/normalize` to the end of the `processors` list in
 the `traces` pipeline under `service.pipelines`. It should come after
 `batch`.
-5. Save the file. Then run the following in
-[button label="Terminal" variant="success"](tab-1):
-```bash
-make local-restart-collector
-```
+5. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 6. Select **◈ Visualizer** and check the Split view. SQL span names
 should be normalized in the After column.
 
@@ -315,10 +307,7 @@ the line below it:
 ```yaml
 - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
 ```
-4. Save the file. Then run:
-```bash
-make local-restart-collector
-```
+4. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 5. Expand a span in the After column. Confirm `player.id` shows
 `***`.
 
@@ -345,10 +334,7 @@ filter/drop_probes:
 3. Add `filter/drop_probes` to the `processors` list in the `traces`
 pipeline under `service.pipelines`. It should come before `batch` so
 spans are dropped before they're batched for export.
-4. Save the file. Then run:
-```bash
-make local-restart-collector
-```
+4. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 5. Confirm no `/health` or `/ready` spans appear in the feed.
 
 > [!IMPORTANT]
@@ -374,10 +360,7 @@ uncomment the line below it:
 ```yaml
 - truncate_all(span.attributes, 128)
 ```
-4. Save the file. Then run:
-```bash
-make local-restart-collector
-```
+4. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 5. Find a span with a `browser.user_agent` attribute in the Split
 view. Confirm the After column shows a truncated value.
 
@@ -398,10 +381,7 @@ find the Fix 5 comment and uncomment the `delete_key` line inside the
 ```yaml
 - delete_key(resource.attributes, "app.name")
 ```
-4. Save the file. Then run:
-```bash
-make local-restart-collector
-```
+4. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 5. Find a `leaderboard` span in the Split view. Confirm `app.name`
 is absent in the After column.
 
@@ -409,8 +389,7 @@ is absent in the After column.
 
 ## Verify
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
-select **◈ Visualizer**.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer**.
 2. Confirm the **⚠ smells** counter in the feed header reads **0**.
 3. Review the Split view — the Before column shows raw spans, the
 After column shows cleaned-up versions with amber borders on
@@ -438,14 +417,13 @@ modified rows.
 
 You've built a working Collector pipeline and cleaned up five
 telemetry quality problems. Before you finish, confirm your final
-config is complete and set yourself up for Workshop 2.
+config is complete.
 
 ---
 
 ## Verify your config
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
-select **⚙ Deploy & Configure** in the app's left navigation.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. Review your current `collector-agent-config.yaml`. Confirm your
 config has all of the following:
    - All five OTTL fixes uncommented in `transform/normalize`
@@ -455,7 +433,7 @@ config has all of the following:
    `otlp_http/visualizer`
 
 > [!NOTE]
-> If you need a reference, load **Lab 3 — Self-telemetry** from the
+> If you need a reference, load **Self-telemetry** from the
 > **Template** dropdown — it contains all five Lab 2 fixes applied.
 > Apply it and continue from there. This is the expected starting
 > state for Workshop 2.

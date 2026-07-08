@@ -1,16 +1,16 @@
 ## Tab reference
 
-| Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) |
-|---|---|---|
-| 1 — Observe Collector Health | ✓ | — |
-| 2 — Configure Self-Telemetry | ✓ | ✓ `make local-restart-collector` (x3) |
-| 3 — Query Self-Metrics Under Load | ✓ | — |
-| 4 — Deploy the Gateway | ✓ | — |
-| 5 — Reconfigure the Agent | ✓ | ✓ `make local-restart-collector`, `make local-logs` |
-| 6 — Verify the Two-Tier Architecture | ✓ | — |
-| 7 — Tail Sampling | ✓ | — |
-| 8 — Routing Connector | ✓ | — |
-| 9 — Service Graph Connector | ✓ | — |
+| Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
+|---|---|---|---|
+| 1 — Observe Collector Health | ✓ | — | — |
+| 2 — Configure Self-Telemetry | ✓ | — | ✓ verify |
+| 3 — Query Self-Metrics Under Load | ✓ | — | ✓ query |
+| 4 — Deploy the Gateway | ✓ | — | — |
+| 5 — Reconfigure the Agent | ✓ | ✓ `docker compose logs` | — |
+| 6 — Verify the Two-Tier Architecture | ✓ | — | ✓ verify |
+| 7 — Tail Sampling | ✓ | — | ✓ verify |
+| 8 — Routing Connector | ✓ | — | — |
+| 9 — Service Graph Connector | ✓ | — | ✓ verify |
 
 Keep both tabs visible across all challenges.
 
@@ -21,8 +21,7 @@ Keep both tabs visible across all challenges.
 Your pipeline from the previous workshop is running. Before you change
 anything, take a look at what the Collector is already telling you.
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) to
-open the app.
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Select **◈ Visualizer** in the app's left navigation.
 3. Scroll to the bottom of the Visualizer to find the **Collector
 Health** panel.
@@ -54,7 +53,7 @@ to push it to Honeycomb. This is done in a separate part of the
 config called `service.telemetry` — **not** in the pipeline
 exporters.
 
-Work through the three exercises below. Apply and restart the agent
+Work through the three exercises below. Select **Apply & Restart**
 after each one.
 
 ---
@@ -65,7 +64,7 @@ Without `service.name`, every metric and log the Collector ships to
 Honeycomb arrives with no identity — you can't filter for Collector
 health data separately from your app data.
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. Find the `service.telemetry` block in the **Collector** tab
 editor.
@@ -79,17 +78,13 @@ telemetry. Copy and paste the block below within the
         - name: service.name
           value: otel-collector-agent
 ```
-4. Save the file. Then run the following in
-[button label="Terminal" variant="success"](tab-1):
-```bash
-make local-restart-collector
-```
+4. Select **Apply & Restart**.
 
 ---
 
 ## Exercise 2 — Push Collector Metrics to Honeycomb
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. The health panel works because the Collector already exposes a
 Prometheus pull endpoint — but that data is ephemeral and only
@@ -109,14 +104,11 @@ under `service.telemetry.metrics`, after the existing `- pull:` block:
                   - name: x-honeycomb-dataset
                     value: otel-collector
 ```
-3. Save the file. Then run the following in
-[button label="Terminal" variant="success"](tab-1):
-```bash
-make local-restart-collector
-```
-4. After ~15 seconds, open Honeycomb and query the `otel-collector`
-metrics dataset. Confirm you see metrics like
-`otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
+3. Select **Apply & Restart**.
+4. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab
+and query the `otel-collector` metrics dataset. Confirm you see
+metrics like `otelcol_receiver_accepted_spans` and
+`otelcol_exporter_queue_size`.
 
 > [!NOTE]
 > The `pull` and `periodic` readers co-exist — the Visualizer health
@@ -128,13 +120,14 @@ metrics dataset. Confirm you see metrics like
 
 ## Exercise 3 — Push Collector Logs to Honeycomb
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. By default the Collector's own log output only goes to stdout —
-readable with `make local-logs` but gone when the container restarts.
-Adding a `logs` block under `service.telemetry` pushes those logs to
-Honeycomb so they're searchable and durable. Copy and paste the block
-below within the `service.telemetry` block, after the `metrics` block:
+readable with `docker compose logs --tail=50 otel-collector-agent`
+but gone when the container restarts. Adding a `logs` block under
+`service.telemetry` pushes those logs to Honeycomb so they're
+searchable and durable. Copy and paste the block below within the
+`service.telemetry` block, after the `metrics` block:
 ```yaml
     logs:
       level: info
@@ -150,18 +143,15 @@ below within the `service.telemetry` block, after the `metrics` block:
                   - name: x-honeycomb-dataset
                     value: otel-collector
 ```
-3. Save the file. Then run:
-```bash
-make local-restart-collector
-```
-4. Open Honeycomb and query the `otel-collector` logs dataset.
-Confirm you see the Collector's startup messages, pipeline summaries,
-and any warning or error logs.
+3. Select **Apply & Restart**.
+4. Open the [button label="Honeycomb"](tab-2) tab and query the
+`otel-collector` logs dataset. Confirm you see the Collector's
+startup messages, pipeline summaries, and any warning or error logs.
 
 > [!NOTE]
-> The **Lab 3 — Self-telemetry** template in the editor's
-> **Template** dropdown shows the completed config for all three
-> exercises — load it to check your work or get unstuck.
+> The **Self-telemetry** template in the editor's **Template**
+> dropdown shows the completed config for all three exercises — load
+> it to check your work or get unstuck.
 
 ---
 
@@ -171,14 +161,15 @@ and any warning or error logs.
 visible in the `otel-collector` metrics dataset.
 2. Confirm log records from the Collector are visible in the
 `otel-collector` logs dataset.
-3. Select [button label="OTel Arcade" variant="success"](tab-0) and
+3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 confirm the Visualizer's Collector Health panel still shows live
 metrics (both pull and push now coexist).
 
 > [!IMPORTANT]
-> If no data appears in Honeycomb, check the Collector logs:
+> If no data appears in Honeycomb, check the Collector logs in the
+> [button label="Terminal"](tab-1) tab:
 > ```bash
-> make local-logs SVC=otel-collector-agent
+> docker compose logs --tail=50 otel-collector-agent
 > ```
 > An invalid or missing API key will show as a 401 error.
 
@@ -202,7 +193,7 @@ pipeline health — queue depth, throughput, and dropped spans.
 
 ## Generate load
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚡ TelemetryGen** in the app's left navigation.
 2. Choose one of the following:
 
@@ -217,8 +208,9 @@ select **⚡ TelemetryGen** in the app's left navigation.
 
 ## Query self-metrics in Honeycomb
 
-Open Honeycomb and query the `otel-collector` metrics dataset. Use
-the `otelcol_` prefix to find Collector metrics.
+Open the [button label="Honeycomb"](tab-2) tab and query the
+`otel-collector` metrics dataset. Use the `otelcol_` prefix to find
+Collector metrics.
 
 Work through the following questions — the answers are in the data:
 
@@ -237,8 +229,8 @@ Work through the following questions — the answers are in the data:
   before `memory_limiter` would start dropping spans?
 
 **Processor efficiency**
-- After your Lab 2 transforms, are spans being dropped anywhere?
-  Where would you look to confirm?
+- After the OTTL transforms you applied in Workshop 1, are spans
+  being dropped anywhere? Where would you look to confirm?
 
 ---
 
@@ -290,7 +282,7 @@ Kubernetes Service DNS name.
 
 ## Deploy the gateway container
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. Select the **Gateway** tab.
 3. The tab shows "Gateway not running" with a **Deploy Gateway**
@@ -328,13 +320,13 @@ to the gateway instead of exporting directly to Honeycomb.
 
 ---
 
-## Load the Lab 4 agent template
+## Load the agent forwarding template
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
-2. In the **Collector** tab, select **Load template → Lab 4 — Agent
+2. In the **Collector** tab, select **Load template → Agent
 forwarding**.
-3. Read through what changed compared to the Lab 3 config:
+3. Read through what changed compared to the Self-telemetry config:
    - What exporters are present now? What's missing?
    - Where is the agent now sending traces, metrics, and logs?
    - Which processors are still running on the agent?
@@ -342,23 +334,19 @@ forwarding**.
      Does that hostname match the gateway container name?
 
 > [!NOTE]
-> The Lab 4 template keeps the `service.telemetry` block from Lab 3
-> — your Collector metrics and logs keep flowing to Honeycomb. Only
-> the pipeline destination changes.
+> The Agent forwarding template keeps the `service.telemetry` block
+> from the Self-telemetry config — your Collector metrics and logs
+> keep flowing to Honeycomb. Only the pipeline destination changes.
 
 ---
 
 ## Apply the agent config
 
-Save the file. Then run the following in
-[button label="Terminal" variant="success"](tab-1):
-```bash
-make local-restart-collector
-```
+Select **Apply & Restart** in the Collector tab.
 
-Watch the Collector logs for errors:
+Watch the Collector logs for errors in the [button label="Terminal"](tab-1) tab:
 ```bash
-make local-logs SVC=otel-collector-agent
+docker compose logs --tail=50 otel-collector-agent
 ```
 
 > [!IMPORTANT]
@@ -389,7 +377,7 @@ and the Visualizer reflects the new topology.
 
 ## Verify in the Visualizer
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **◈ Visualizer** in the app's left navigation.
 2. The Pipeline panel has **Agent** and **Gateway** selector buttons
 at the top. Select each to see that collector's live pipeline
@@ -407,8 +395,9 @@ this means telemetry is flowing through the full two-hop path
 
 ## Verify in Honeycomb
 
-Open Honeycomb and confirm traces are still arriving from all three
-services: `arcade-ui`, `score-api`, and `leaderboard`.
+Open the [button label="Honeycomb"](tab-2) tab and confirm traces
+are still arriving from all three services: `arcade-ui`, `score-api`,
+and `leaderboard`.
 
 ---
 
@@ -448,12 +437,12 @@ does this at the gateway tier.
 
 ---
 
-## Load the Lab 5 template
+## Load the Sampling & Connectors template
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure** in the app's left navigation.
 2. Select the **Gateway** tab.
-3. Select **Load template → Lab 5 — Sampling & Connectors**.
+3. Select **Load template → Sampling & Connectors**.
 4. Read through the file. The `tail_sampling` block is commented out.
 Find it.
 
@@ -473,7 +462,7 @@ updated config.
 
 ## Verify
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **◈ Visualizer**.
 2. Select the **Gateway** selector button at the top of the Pipeline
 panel to switch to the gateway view, then scroll down to the
@@ -489,8 +478,8 @@ To verify the `keep_errors` policy works:
 2. Select the **Error span** preset.
 3. Check **Set error status (code=2)**.
 4. Select **Generate span**.
-5. Open Honeycomb and confirm the error trace arrived despite the
-10% base sample rate.
+5. Open the [button label="Honeycomb"](tab-2) tab and confirm the
+error trace arrived despite the 10% base sample rate.
 
 > [!NOTE]
 > The `decision_wait` setting (default: 5s) is how long the
@@ -523,7 +512,7 @@ using the `routing` connector.
 
 ## Enable the routing connector
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure → Gateway** tab.
 2. The `routing` connector acts as both an exporter from the main
 `traces` pipeline and a receiver in sub-pipelines — each trace is
@@ -541,7 +530,7 @@ blocks.
 
 ## Verify
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **◈ Visualizer**.
 2. Select the **Gateway** selector button in the Pipeline panel.
 3. Confirm the topology shows three trace pipelines: `traces`,
@@ -586,7 +575,7 @@ now durable and alertable.
 
 ## Enable the service graph connector
 
-1. Select [button label="OTel Arcade" variant="success"](tab-0) and
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and
 select **⚙ Deploy & Configure → Gateway** tab.
 2. The `service_graph` connector derives request-count and latency
 metrics for every client→server pair it observes directly from your
@@ -602,7 +591,7 @@ uncomment it.
 
 ## Verify
 
-1. Open Honeycomb.
+1. Open the [button label="Honeycomb"](tab-2) tab.
 2. Look for metrics with the `traces_service_graph_` prefix:
    - `traces_service_graph_request_total` with `client` and `server`
    labels
