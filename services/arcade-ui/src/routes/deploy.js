@@ -20,7 +20,7 @@ const LOADGEN_IMAGE            = process.env.LOADGEN_IMAGE                || 'ot
 
 const DEFAULT_GATEWAY_CONFIG = `# OTel Arcade — Gateway Collector.
 # Receives OTLP from agents and forwards to Honeycomb and the Visualizer.
-# In Lab 4, point your agent's exporters at otel-collector-gateway:4317.
+# Point your agent's exporters at otel-collector-gateway:4317.
 
 receivers:
   otlp:

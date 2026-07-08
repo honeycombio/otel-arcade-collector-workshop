@@ -20,7 +20,7 @@ const endpoint = (process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://otel-collec
 const resource = new Resource({
   [ATTR_SERVICE_NAME]: serviceName,
   [ATTR_SERVICE_VERSION]: '0.1.0',
-  // DELIBERATE smell: redundant with service.name. Lab 2 removes this.
+  // DELIBERATE smell: redundant with service.name.
   'app.name': serviceName,
 });
 
@@ -36,7 +36,7 @@ const sdk = new NodeSDK({
   ],
   instrumentations: [
     getNodeAutoInstrumentations({
-      // Keep /health and /ready spans (deliberate noise — Lab 2 filters them).
+      // Keep /health and /ready spans (deliberate noise — filtered by processor).
       '@opentelemetry/instrumentation-fs': { enabled: false },
     }),
   ],

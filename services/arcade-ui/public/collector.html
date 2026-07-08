@@ -156,12 +156,6 @@
     .yaml-error-loc:hover { color: #ff8099; }
     .yaml-error-msg { word-break: break-word; }
 
-    /* ── tab lab badge ── */
-    .tab-lab {
-      font-size: 10px; opacity: 0.8; letter-spacing: 0.06em;
-      margin-left: 5px; text-transform: none; font-weight: normal;
-    }
-
     /* ── editor ── */
     .editor-wrap {
       position: relative; border: 1px solid var(--border);
@@ -407,15 +401,15 @@
     <div class="col-layout">
     <div class="col-tabs">
       <button class="col-tab active" id="tab-local"   onclick="showTab('local')">
-        <span class="tab-dot" id="tab-dot-local"></span>Collector <span class="tab-lab">Labs 1–4</span>
+        <span class="tab-dot" id="tab-dot-local"></span>Collector
       </button>
       <button class="col-tab"        id="tab-gateway" onclick="showTab('gateway')">
-        <span class="tab-dot" id="tab-dot-gateway"></span>Gateway <span class="tab-lab">Lab 4</span>
+        <span class="tab-dot" id="tab-dot-gateway"></span>Gateway
       </button>
     </div>
     <div class="col-content">
     <!-- ══════════════════════════════════════════════════════════
-         COLLECTOR TAB — local docker-compose, Labs 1–4
+         COLLECTOR TAB — local docker-compose
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-local" class="col-pane">
       <div class="ds-status">
@@ -442,10 +436,10 @@
         <span class="toolbar-label">Template</span>
         <select class="select-template" id="template-select" onchange="loadTemplate(this.value)">
           <option value="">Load starter…</option>
-          <option value="lab1">↺ Lab 1 — baseline</option>
-          <option value="lab2">Lab 2 — OTTL transforms</option>
-          <option value="lab3">Lab 3 — Self-telemetry</option>
-          <option value="lab4">Lab 4 — Agent forwarding</option>
+          <option value="lab1">↺ Baseline</option>
+          <option value="lab2">OTTL transforms</option>
+          <option value="lab3">Self-telemetry</option>
+          <option value="lab4">Agent forwarding</option>
         </select>
         <button class="btn-secondary" onclick="formatYaml('local')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
       </div>
@@ -488,7 +482,7 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         GATEWAY TAB — docker-compose gateway container, Lab 4
+         GATEWAY TAB — docker-compose gateway container
     ══════════════════════════════════════════════════════════ -->
     <div id="pane-gateway" class="col-pane" style="display:none">
       <div id="gateway-k8s-content">
@@ -541,8 +535,8 @@
             <span class="toolbar-label">Template</span>
             <select class="select-template" id="gateway-template-select" onchange="loadGatewayTemplate(this.value)">
               <option value="">Load starter…</option>
-              <option value="lab4">↺ Reset to Lab 4 baseline</option>
-              <option value="lab5">Lab 5 — Sampling &amp; Connectors</option>
+              <option value="lab4">↺ Reset to baseline</option>
+              <option value="lab5">Sampling &amp; Connectors</option>
             </select>
             <button class="btn-secondary" onclick="formatYaml('gateway')" title="Auto-format: normalize indentation to 2 spaces, convert tabs, trim trailing whitespace">Format</button>
           </div>
@@ -587,7 +581,7 @@
   <script>
   // ── Templates ─────────────────────────────────────────────────────────────
   var TEMPLATES = {
-    lab1: `# OTel Arcade — Lab 1: Your first Collector pipeline.
+    lab1: `# OTel Arcade — Your first Collector pipeline.
 
 # ── Receivers ────────────────────────────────────────────────────────
 receivers:
@@ -650,7 +644,7 @@ service:
       exporters: [debug]
 `,
 
-    lab2: `# OTel Arcade — Lab 2: OTTL transforms.
+    lab2: `# OTel Arcade — OTTL transforms.
 
 receivers:
   otlp:
@@ -750,7 +744,7 @@ service:
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
-    lab3: `# OTel Arcade — Lab 3: Collector Self-Telemetry.
+    lab3: `# OTel Arcade — Collector Self-Telemetry.
 
 # ── Receivers ────────────────────────────────────────────────────────
 receivers:
@@ -871,7 +865,7 @@ service:
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
-    lab4: `# OTel Arcade — Lab 4: Agent → Gateway.
+    lab4: `# OTel Arcade — Agent → Gateway.
 
 # ── Receivers ────────────────────────────────────────────────────────
 receivers:
@@ -1048,7 +1042,7 @@ service:
       processors: [memory_limiter, batch]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
-    lab5: `# OTel Arcade — Lab 5: Advanced Gateway Patterns.
+    lab5: `# OTel Arcade — Advanced Gateway Patterns.
 
 receivers:
   otlp:
