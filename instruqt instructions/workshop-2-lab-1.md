@@ -15,7 +15,7 @@ Keep both tabs visible across all challenges.
 ## Set up your starting state
 This sandbox starts fresh. Before observing anything, restore the Workshop 1 end state and reconnect to Honeycomb.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. In the **Collector** tab, select **Load template → Self-telemetry**. This restores the full Workshop 1 config — all five OTTL fixes, the correct pipeline wiring, and the `service.telemetry` block you'll build on in Challenge 2.
+2. In the **Collector** tab, select **Load template → OTTL transforms**. This restores the Workshop 1 end state — all five OTTL fixes and the correct pipeline wiring — without pre-completing any of the Challenge 2 exercises.
 3. Select **Apply & Restart**.
 4. Select the [button label="Terminal"](tab-1) tab. Run the following command, replacing `your-key-here` with your Honeycomb API key:
 ```bash
@@ -40,8 +40,8 @@ Work through the three exercises below. Select **Apply & Restart** after each on
 ## Exercise 1 — Tag the Collector
 Without `service.name`, every metric and log the Collector ships to Honeycomb arrives with no identity — you can't filter for Collector health data separately from your app data.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. Find the `service.telemetry` block in the **Collector** tab editor.
-3. Without this, self-telemetry arrives in Honeycomb with no identity label — you can't isolate Collector health data from your app telemetry. Copy and paste the block below within the `service.telemetry` block in the Collector tab editor:
+2. Scroll to the bottom of the config and find the `service:` block. Inside it you'll see a `telemetry:` key — this is where the Collector's self-instrumentation is configured.
+3. Without a `service.name`, self-telemetry arrives in Honeycomb with no identity label — you can't isolate Collector health data from your app telemetry. Paste the block below inside `telemetry:`, directly above the existing `metrics:` key:
 ```yaml
     resource:
       attributes:
@@ -51,7 +51,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 4. Select **Apply & Restart**.
 ## Exercise 2 — Push Collector Metrics to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Copy and paste the block below into the `readers` list under `service.telemetry.metrics`, after the existing `- pull:` block:
+2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Paste the block below into the `readers` list under `telemetry:` → `metrics:`, after the existing `- pull:` block:
 ```yaml
         - periodic:
             exporter:
@@ -70,7 +70,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 > The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change. If no metrics appear in Honeycomb, confirm `HONEYCOMB_API_KEY` is set in your `.env` and the agent was fully restarted.
 ## Exercise 3 — Push Collector Logs to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `service.telemetry` pushes those logs to Honeycomb so they're searchable and durable. Copy and paste the block below within the `service.telemetry` block, after the `metrics` block:
+2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Paste the block below inside `telemetry:`, after the `metrics:` block:
 ```yaml
     logs:
       level: info
@@ -162,7 +162,7 @@ With the gateway running, reconfigure the agent to forward telemetry to the gate
    - Which processors are still running on the agent?
    - What is the endpoint for the `otlp_grpc/gateway` exporter? Does that hostname match the gateway container name?
 > [!NOTE]
-> The Agent forwarding template keeps the `service.telemetry` block from the Self-telemetry config — your Collector metrics and logs keep flowing to Honeycomb. Only the pipeline destination changes.
+> The Agent forwarding template keeps the `telemetry:` block under `service:` from the Self-telemetry config — your Collector metrics and logs keep flowing to Honeycomb. Only the pipeline destination changes.
 ## Apply the agent config
 Select **Apply & Restart** in the Collector tab.
 Watch the Collector logs for errors in the [button label="Terminal"](tab-1) tab:
@@ -182,9 +182,9 @@ docker compose logs --tail=50 otel-collector-agent
 With both tiers running, verify that telemetry is flowing end to end and the Visualizer reflects the new topology.
 ## Verify in the Visualizer
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer** in the app's left navigation.
-2. The Pipeline panel has **Agent** and **Gateway** selector buttons at the top. Select each to see that collector's live pipeline topology.
+2. At the top of the topology diagram, there are **Agent** and **Gateway** selector buttons. Select each to see that collector's live pipeline topology.
 3. Play a game to generate traffic.
-4. Confirm spans in the feed are tagged with source **gateway** — this means telemetry is flowing through the full two-hop path (services → agent → gateway → Visualizer).
+4. Select the **Gateway** button. Spans should appear in the feed — this confirms telemetry is flowing through the full two-hop path (services → agent → gateway → Visualizer).
 > [!NOTE]
 > If the Gateway tab shows "not deployed yet", wait a moment and refresh. The Visualizer re-reads configs on a short interval.
 ## Verify in Honeycomb
@@ -197,7 +197,7 @@ With this two-tier setup in place, consider:
 ## Success criteria
 - Both `otel-collector-agent` and `otel-collector-gateway` containers are running
 - Pipeline diagrams are visible for both Agent and Gateway — use the selector buttons to switch between them
-- Spans in the Visualizer feed are tagged with source `gateway`
+- Spans appear in the Visualizer feed when the **Gateway** selector is active
 - Honeycomb is still receiving traces from all three services
 # Challenge 7: Tail Sampling
 Most sampling strategies decide the moment a span arrives — **head sampling**. If you head-sample at 10%, you drop 10% of error traces before you even know they're errors.
@@ -218,7 +218,7 @@ Most sampling strategies decide the moment a span arrives — **head sampling**.
 4. Watch the gauges update as traffic flows.
 To verify the `keep_errors` policy works:
 1. Select **⚡ TelemetryGen** in the app navigation.
-2. Select the **Error span** preset.
+2. Select the **Error span (status code 2)** preset.
 3. Check **Set error status (code=2)**.
 4. Select **Generate span**.
 5. Open the [button label="Honeycomb"](tab-2) tab and confirm the error trace arrived despite the 10% base sample rate.
