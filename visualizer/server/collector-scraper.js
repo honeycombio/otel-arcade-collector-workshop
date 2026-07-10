@@ -28,7 +28,7 @@ function parsePromText(text) {
     // metric{label="x",label2="y"} value [timestamp]
     const m = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{([^}]*)\})?\s+([\-+0-9.eE]+)/);
     if (!m) continue;
-    const name = m[1];
+    const name = m[1].replace(/_total$/, '');
     if (!KEYS.includes(name)) continue;
     const labels = {};
     if (m[3]) {
