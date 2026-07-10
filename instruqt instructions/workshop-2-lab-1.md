@@ -1,7 +1,7 @@
 ## Tab reference
 | Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
 |---|---|---|---|
-| 1 — Observe Collector Health | ✓ | ✓ setup | — |
+| 1 — Observe Agent Self-Metrics | ✓ | ✓ setup | — |
 | 2 — Configure Self-Telemetry | ✓ | — | ✓ verify |
 | 3 — Query Self-Metrics Under Load | ✓ | — | ✓ query |
 | 4 — Deploy the Gateway | ✓ | — | — |
@@ -11,7 +11,7 @@
 | 8 — Routing Connector | ✓ | — | — |
 | 9 — Service Graph Connector | ✓ | — | ✓ verify |
 Keep both tabs visible across all challenges.
-# Challenge 1: Observe Collector Health
+# Challenge 1: Observe Agent Self-Metrics
 ## Set up your starting state
 This sandbox starts fresh. Before observing anything, restore the Workshop 1 end state and reconnect to Honeycomb.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
@@ -25,18 +25,15 @@ sed -i 's/HONEYCOMB_API_KEY=.*/HONEYCOMB_API_KEY=your-key-here/' /root/otel-arca
 ```bash
 cd /root/otel-arcade-collector-workshop && docker compose up --force-recreate otel-collector-agent -d
 ```
-## Observe Collector Health
+## Observe Agent self-metrics
 Before changing anything else, take a look at what the Collector is already telling you.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
-2. Select **◈ Visualizer** in the app's left navigation.
-3. Scroll to the bottom of the Visualizer to find the **Collector Health** panel.
-4. Play a game or fire a preset in **⚡ TelemetryGen** to generate traffic, then watch the metrics update in real time:
-   - Spans accepted
-   - Queue depth
-   - Export throughput
+2. Play a game or fire a preset in **⚡ TelemetryGen** to generate traffic through the Collector.
+3. Select **◈ Visualizer** in the app's left navigation.
+4. Scroll to the bottom of the Visualizer to find the **Agent self-metrics** panel. After traffic has flowed through, you should see counters for spans accepted, spans sent, and queue size alongside the static queue capacity value.
 This panel is powered by a Prometheus pull from the Collector's `:8888/metrics` endpoint. It's live, but ephemeral — when you close the page, the history is gone. Honeycomb can't see any of it yet. The next challenge changes that.
 ## Success criteria
-- The Collector Health panel is visible and showing live metrics
+- The Agent self-metrics panel is visible and showing live counters after generating traffic
 # Challenge 2: Configure Self-Telemetry
 The Collector instruments itself with OpenTelemetry. By default, it exposes those self-metrics via a Prometheus endpoint — that's what the health panel scrapes. To make self-telemetry queryable, you need to push it to Honeycomb. This is done in a separate part of the config called `service.telemetry` — **not** in the pipeline exporters.
 Work through the three exercises below. Select **Apply & Restart** after each one.
@@ -96,7 +93,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 ## Verify
 1. In Honeycomb, confirm metrics with the `otelcol_` prefix are visible in the `otel-collector` metrics dataset.
 2. Confirm log records from the Collector are visible in the `otel-collector` logs dataset.
-3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and confirm the Visualizer's Collector Health panel still shows live metrics (both pull and push now coexist).
+3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and confirm the Visualizer's Agent self-metrics panel still shows live metrics (both pull and push now coexist).
 > [!IMPORTANT]
 > If no data appears in Honeycomb, check the Collector logs in the [button label="Terminal"](tab-1) tab:
 > ```bash
@@ -106,7 +103,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 ## Success criteria
 - `otelcol_*` metrics are visible in Honeycomb in the `otel-collector` dataset
 - Collector log records are visible in Honeycomb
-- Visualizer Collector Health panel is still showing live metrics
+- Visualizer Agent self-metrics panel is still showing live metrics
 # Challenge 3: Query Self-Metrics Under Load
 Now put the pipeline under load and use Honeycomb to investigate pipeline health — queue depth, throughput, and dropped spans.
 ## Generate load
@@ -216,7 +213,7 @@ Most sampling strategies decide the moment a span arrives — **head sampling**.
 3. Select **Apply & Restart** in the Gateway tab to deploy the updated config.
 ## Verify
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer**.
-2. Select the **Gateway** selector button at the top of the Pipeline panel to switch to the gateway view, then scroll down to the **Collector Health** panel — you should now see two new gauges: **Traces sampled** and **Traces dropped**.
+2. Select the **Gateway** selector button at the top of the Pipeline panel to switch to the gateway view, then scroll down to the **Gateway self-metrics** panel — you should now see two new gauges: **Traces sampled** and **Traces dropped**.
 3. Start the load generator: select **⚡ TelemetryGen**, scroll to **Load Generator**, and set 10 RPS. Select **Start**.
 4. Watch the gauges update as traffic flows.
 To verify the `keep_errors` policy works:
@@ -228,7 +225,7 @@ To verify the `keep_errors` policy works:
 > [!NOTE]
 > The `decision_wait` setting (default: 5s) is how long the processor waits for all spans in a trace before deciding. Traces that arrive incomplete before `decision_wait` expires may be sampled differently than expected.
 ## Success criteria
-- **Traces sampled** and **Traces dropped** gauges are visible in the Collector Health panel for the Gateway
+- **Traces sampled** and **Traces dropped** gauges are visible in the Gateway self-metrics panel
 - An error span from TelemetryGen reaches Honeycomb even at 10% base sample rate
 # Challenge 8: Routing Connector
 Processors transform data *inside* a pipeline. **Connectors** sit *between* pipelines — they are simultaneously an exporter from one pipeline and a receiver in one or more others. This enables conditional routing without duplicating receivers or exporters.
