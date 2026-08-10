@@ -15,7 +15,7 @@ Keep both tabs visible across all challenges.
 ## Set up your starting state
 This sandbox starts fresh. Before observing anything, restore the Workshop 1 end state and reconnect to Honeycomb.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. In the **Collector** tab, select **Load template → OTTL transforms**. This restores the Workshop 1 end state — all five OTTL fixes and the correct pipeline wiring — without pre-completing any of the Challenge 2 exercises.
+2. In the **Collector** tab, select **Load template → Workshop 1 complete**. This restores the Workshop 1 end state — all five OTTL fixes and the correct pipeline wiring — without pre-completing any of the Challenge 2 exercises.
 3. Select **Apply & Restart**.
 4. Select the [button label="Terminal"](tab-1) tab. Run the following command, replacing `your-key-here` with your Honeycomb API key:
 ```bash
