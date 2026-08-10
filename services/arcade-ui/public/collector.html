@@ -438,6 +438,7 @@
           <option value="">Load starter…</option>
           <option value="lab1">↺ Baseline</option>
           <option value="lab2">OTTL transforms</option>
+          <option value="lab2solved">Workshop 1 complete</option>
           <option value="lab3">Self-telemetry</option>
           <option value="lab4">Agent forwarding</option>
         </select>
@@ -733,6 +734,97 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
+`,
+
+    lab2solved: `# OTel Arcade — Workshop 1 complete.
+
+# ── Receivers ────────────────────────────────────────────────────────
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# ── Processors ───────────────────────────────────────────────────────
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    send_batch_size: 512
+    timeout: 5s
+  filter/drop_probes:
+    error_mode: ignore
+    traces:
+      span:
+        - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
+  transform/normalize:
+    trace_statements:
+      - context: span
+        statements:
+          - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
+          - set(span.attributes["player.id"], "***") where span.attributes["player.id"] != nil
+          - truncate_all(span.attributes, 128)
+      - context: resource
+        statements:
+          - delete_key(resource.attributes, "app.name")
+
+# ── Exporters ────────────────────────────────────────────────────────
+exporters:
+  debug:
+    verbosity: basic
+  otlp_grpc/backend:
+    endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+  otlp_http/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+  otlp_http/visualizer-raw:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-raw-channel: "true"
+      x-collector-source: agent
+    tls:
+      insecure: true
+
+# ── Service ──────────────────────────────────────────────────────────
+service:
+  telemetry:
+    metrics:
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "0.0.0.0"
+                port: 8888
+  pipelines:
+    # traces/raw: captures spans BEFORE transforms — powers the Split view.
+    traces/raw:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp_http/visualizer-raw]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]

@@ -433,10 +433,10 @@ config has all of the following:
    `otlp_http/visualizer`
 
 > [!NOTE]
-> If you need a reference, load **Self-telemetry** from the
-> **Template** dropdown — it contains all five Lab 2 fixes applied.
-> Apply it and continue from there. This is the expected starting
-> state for Workshop 2.
+> If you need a reference, load **Workshop 1 complete** from the
+> **Template** dropdown — it contains all five Lab 2 fixes applied
+> and wired into the pipeline. Apply it and continue from there. This
+> is the expected starting state for Workshop 2.
 
 ---
 
