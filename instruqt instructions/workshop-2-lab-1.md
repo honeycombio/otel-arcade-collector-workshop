@@ -51,7 +51,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 4. Select **Apply & Restart**.
 ## Exercise 2 — Push Collector Metrics to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Paste the block below into the `readers` list under `telemetry:` → `metrics:`, after the existing `- pull:` block:
+2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Find the `port: 8888` line — the last line of the existing `- pull:` block — and paste the block below immediately after it, indenting `- periodic:` so it lines up exactly with `- pull:` above it:
 ```yaml
         - periodic:
             exporter:
@@ -70,7 +70,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 > The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change. If no metrics appear in Honeycomb, confirm `HONEYCOMB_API_KEY` is set in your `.env` and the agent was fully restarted.
 ## Exercise 3 — Push Collector Logs to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Paste the block below inside `telemetry:`, after the `metrics:` block:
+2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: otel-collector` line under the `periodic` reader's `x-honeycomb-dataset` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
 ```yaml
     logs:
       level: info
