@@ -2,7 +2,7 @@
 
 | Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
 |---|---|---|---|
-| 1 — Wire the pipelines | ✓ | — | — |
+| 1 — Wire the pipelines | ✓ | ✓ `docker compose logs` (troubleshooting) | — |
 | 2 — Connect to Honeycomb | ✓ | ✓ `sed`, `docker compose` | ✓ |
 | 3 — Spot the Problems | ✓ | — | — |
 | 4 — Clean Your Telemetry | ✓ | — | — |
@@ -123,7 +123,7 @@ queryable in a real observability backend.
 > [!IMPORTANT]
 > This is the only time you'll see this key. Copy it and keep it
 > somewhere accessible — you'll need it in the next section and
-> again in the next challenge.
+> again in Workshop 2.
 
 ---
 
@@ -251,7 +251,7 @@ Two processors handle this work:
 
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Select **⚙ Deploy & Configure** in the app's left navigation.
-3. Select **Load template → OTTL transforms**.
+3. Load **OTTL transforms** from the **Template** dropdown.
 4. Read through the scaffolding. Each commented block is labeled
 with a Fix number — you'll uncomment them one at a time in the
 steps below.

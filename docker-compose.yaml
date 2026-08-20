@@ -6,7 +6,7 @@ networks:
 
 services:
   otel-collector-agent:
-    image: ${COLLECTOR_IMAGE:-otel/opentelemetry-collector-contrib:0.151.0}
+    image: ${COLLECTOR_IMAGE:-otel/opentelemetry-collector-contrib:0.159.0}
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     environment:
       HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY:-}

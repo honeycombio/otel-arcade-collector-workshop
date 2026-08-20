@@ -8,7 +8,7 @@
 SHELL            := /usr/bin/env bash
 IMAGE_REGISTRY   ?= o11ycon-arcade
 IMAGE_TAG        ?= latest
-COLLECTOR_IMAGE  ?= otel/opentelemetry-collector-contrib:0.151.0
+COLLECTOR_IMAGE  ?= otel/opentelemetry-collector-contrib:0.159.0
 KUBE_NS_ARCADE   ?= arcade
 KUBE_NS_TOOLS    ?= workshop-tools
 KUBE_NS_OTEL     ?= otel-system
@@ -132,11 +132,11 @@ local-restart-collector:  ## Validate collector-agent-config.yaml, then restart 
 	@docker compose logs --tail=15 otel-collector-agent || true
 
 .PHONY: local-reset-collector
-local-reset-collector:  ## Reset collector-agent-config.yaml to the Lab 1 baseline and restart the agent.
+local-reset-collector:  ## Reset collector-agent-config.yaml to the completed Lab 1 pipeline (exporters wired, no Lab 2+ changes) and restart the agent.
 	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart otel-collector-agent
 	@echo
-	@echo "Collector config reset to baseline. Recent logs:"
+	@echo "Collector config reset to the completed Lab 1 pipeline. Recent logs:"
 	@sleep 2
 	@docker compose logs --tail=15 otel-collector-agent || true
 
@@ -150,12 +150,12 @@ local-teardown-gateway:  ## Force-remove the gateway container (safe to run even
 	fi
 
 .PHONY: local-reset
-local-reset:  ## Soft reset: remove gateway, restore baseline collector config, restart all services (keeps data).
+local-reset:  ## Soft reset: remove gateway, restore the completed Lab 1 collector config, restart all services (keeps data).
 	$(MAKE) local-teardown-gateway
 	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart
 	@echo
-	@echo "Stack restarted with baseline collector config. Gateway removed."
+	@echo "Stack restarted with the completed Lab 1 collector config. Gateway removed."
 	@echo "Run 'make local-status' to confirm health."
 
 .PHONY: local-rebuild

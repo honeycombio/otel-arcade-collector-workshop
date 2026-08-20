@@ -45,7 +45,7 @@ As you read, try to answer:
 - What does the `${env:HONEYCOMB_API_KEY}` syntax do?
 - Why do the pipelines only have `debug` in their `exporters` list right now?
 
-If you accidentally modify the editor and need to reset, use **Load template → ↺ Lab 1 — baseline**.
+If you accidentally modify the editor and need to reset, load **↺ Baseline** from the **Template** dropdown.
 
 > **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already the Lab 1 starter. Edit the pipelines there; each save auto-restarts the Collector.
 
