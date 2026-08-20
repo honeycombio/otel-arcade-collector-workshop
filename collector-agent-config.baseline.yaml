@@ -21,15 +21,12 @@ receivers:
 # ── Processors ───────────────────────────────────────────────────────
 # Processors transform or filter data in flight, in the order listed.
 # memory_limiter: hard cap on RAM usage — prevents OOM crashes under load.
-# batch: buffers spans/metrics/logs and sends them together (better throughput).
+# Batching happens in the otlp_grpc/backend exporter sending_queue, not in a processor.
 processors:
   memory_limiter:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
 # ── Exporters ────────────────────────────────────────────────────────
 # Exporters define where telemetry goes OUT.
@@ -43,6 +40,12 @@ exporters:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -67,13 +70,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]

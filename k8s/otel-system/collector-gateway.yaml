@@ -27,9 +27,6 @@ data:
         check_interval: 1s
         limit_mib: 1024
         spike_limit_mib: 256
-      batch:
-        send_batch_size: 1024
-        timeout: 5s
 
     exporters:
       debug:
@@ -38,6 +35,12 @@ data:
         endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
         headers:
           x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+        sending_queue:
+          enabled: true
+          sizer: items
+          batch:
+            flush_timeout: 5s
+            min_size: 512
       otlp_http/visualizer:
         endpoint: http://visualizer.workshop-tools.svc.cluster.local:4318
         encoding: json
@@ -56,15 +59,15 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         logs:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 ---
 apiVersion: apps/v1

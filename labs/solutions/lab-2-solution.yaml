@@ -23,9 +23,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
   # Fix 3 — drop /health and /ready probe spans entirely.
   # Uses the filter processor (not transform) because we're removing spans,
@@ -59,6 +56,12 @@ exporters:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -94,13 +97,13 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      processors: [memory_limiter, filter/drop_probes, transform/normalize]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
