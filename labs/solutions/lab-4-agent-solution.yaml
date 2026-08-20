@@ -22,9 +22,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   filter/drop_probes:
     error_mode: ignore
     traces:
@@ -48,6 +45,12 @@ exporters:
     endpoint: otel-collector-gateway:4317
     tls:
       insecure: true
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer-raw:
     endpoint: http://visualizer:4318
     encoding: json
@@ -101,13 +104,13 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      processors: [memory_limiter, filter/drop_probes, transform/normalize]
       exporters: [debug, otlp_grpc/gateway]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/gateway]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/gateway]

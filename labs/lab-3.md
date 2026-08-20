@@ -30,7 +30,6 @@ Key metrics to know:
 
 | Metric | What it tells you |
 |---|---|
-| `otelcol_processor_batch_batch_size_trigger_send` | How often the batch processor flushes |
 | `otelcol_exporter_queue_size` | Spans waiting to be exported (rising = backpressure) |
 | `otelcol_exporter_send_failed_spans` | Spans dropped because the exporter couldn't keep up |
 | `otelcol_receiver_accepted_spans` | Spans received successfully |
@@ -152,7 +151,7 @@ Open Honeycomb and query the `otel-collector` metrics dataset. Look for metrics 
 Some questions to explore:
 
 **Throughput and batching:**
-- What's the average batch size being sent? Is the batch processor flushing on size or on timeout?
+- How full does the exporter queue get under load? Is the sending queue flushing on size (`min_size`) or on `flush_timeout`?
 
 **Queue health:**
 - Is `otelcol_exporter_queue_size` staying near zero, or is it growing? What would cause it to grow?
@@ -188,6 +187,5 @@ Think about:
 ## Going further
 
 - In Lab 4 you'll deploy the gateway — at that point, add the same `service.telemetry` block to `collector-gateway-config.yaml` and set `service.name` to `otel-collector-gateway` to observe both tiers side by side.
-- Reduce `batch.send_batch_size` in your agent config to a very small number. What changes in throughput metrics?
+- Reduce the `sending_queue` batch `min_size` on the backend exporter to a very small number. What changes in throughput metrics?
 - Try setting `memory_limiter.limit_mib` very low. What happens? Which metric tells you spans are being dropped?
-- Look at the `otelcol_processor_batch_metadata_cardinality` metric. What does high cardinality here mean for pipeline performance?

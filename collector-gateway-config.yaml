@@ -15,12 +15,9 @@ processors:
     limit_mib: 512
     spike_limit_mib: 128
 
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
   # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
-  # Uncomment below and replace [batch] with [tail_sampling] in traces pipeline.
+  # Uncomment below and add tail_sampling to the traces pipeline processors.
   # The health panel will show sampled/dropped counts once traffic flows.
   #
   # tail_sampling:
@@ -70,6 +67,12 @@ exporters:
     endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -91,30 +94,30 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
-      # Exercise 1: replace [batch] with [tail_sampling] above
+      processors: [memory_limiter]
+      # Exercise 1: add tail_sampling to the processors list above
       # Exercise 2: add routing to exporters list
       # Exercise 3: add service_graph to exporters list
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # ── Exercise 2: uncomment after adding routing connector ─────────────────
     # traces/standard:
     #   receivers: [routing]
-    #   processors: [batch]
+    #   processors: []
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     # traces/errors:
     #   receivers: [routing]
-    #   processors: [batch]
+    #   processors: []
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # ── Exercise 3: uncomment after adding service_graph connector ─────────────

@@ -31,7 +31,7 @@ Processors transform data *inside* a pipeline. **Connectors** sit *between* pipe
 
 In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab. Load the **Lab 5 — Sampling & Connectors** template.
 
-Find the commented `tail_sampling` block. Uncomment it, then replace `[batch]` with `[tail_sampling]` in the traces pipeline processors:
+Find the commented `tail_sampling` block. Uncomment it, then add `tail_sampling` to the traces pipeline processors:
 
 ```yaml
     traces:
@@ -67,12 +67,12 @@ Find the commented `routing` connector block. Uncomment it, add `routing` to the
 
     traces/standard:
       receivers: [routing]
-      processors: [batch]
+      processors: []
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     traces/errors:
       receivers: [routing]
-      processors: [batch]
+      processors: []
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 ```
 
@@ -85,7 +85,7 @@ Look for the `default_pipelines` field in the `routing` connector definition —
 Questions to explore:
 - What is `default_pipelines` for? What happens when no routing rule matches?
 - What attribute would you use to route `score-api` traces to a different pipeline than `leaderboard`?
-- Try giving `traces/errors` a shorter batch `timeout` (e.g. `timeout: 1s`). What does that mean for latency to Honeycomb?
+- Try lowering `flush_timeout` on the backend exporter's `sending_queue` (e.g. `1s`). What does that mean for latency to Honeycomb?
 
 ---
 
@@ -129,5 +129,5 @@ Questions to explore:
 ## Going further
 
 - Combine tail sampling and routing: keep all errors unsampled via `traces/errors`, and sample the rest via `traces/standard`.
-- Add a short `timeout: 1s` batch to `traces/errors` so errors flush immediately without waiting for a full batch.
+- Lower the backend exporter's `sending_queue` `flush_timeout` so errors flush sooner without waiting for a full batch.
 - Try the `spanmetrics` connector — similar to `service_graph` but emits per-span-name histograms and call counts.

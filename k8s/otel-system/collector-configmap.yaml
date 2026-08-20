@@ -24,9 +24,6 @@ data:
         check_interval: 1s
         limit_mib: 512
         spike_limit_mib: 128
-      batch:
-        send_batch_size: 512
-        timeout: 5s
       # TODO Lab 2: add `transform` here to normalize span names and redact
       # player.id. The Visualizer will stop highlighting orange when this works.
 
@@ -37,6 +34,12 @@ data:
         endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
         headers:
           x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+        sending_queue:
+          enabled: true
+          sizer: items
+          batch:
+            flush_timeout: 5s
+            min_size: 512
       otlp_http/visualizer:
         endpoint: http://visualizer.workshop-tools.svc.cluster.local:4318
         encoding: json
@@ -55,13 +58,13 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
         logs:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter]
           exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]

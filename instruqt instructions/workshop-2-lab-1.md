@@ -115,7 +115,7 @@ Now put the pipeline under load and use Honeycomb to investigate pipeline health
 Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Use the `otelcol_` prefix to find Collector metrics.
 Work through the following questions — the answers are in the data:
 **Throughput and batching**
-- What is the average batch size being sent? Is the batch processor flushing on size limit or on timeout?
+- How full does the exporter queue get under load? Is the sending queue flushing on size (`min_size`) or on `flush_timeout`?
 **Queue health**
 - Is `otelcol_exporter_queue_size` staying near zero, or is it growing? What would cause it to grow?
 - Has `otelcol_exporter_send_failed_spans` ever been non-zero? What would that indicate?
@@ -209,7 +209,7 @@ Most sampling strategies decide the moment a span arrives — **head sampling**.
 4. Read through the file. The `tail_sampling` block is commented out. Find it.
 ## Enable tail sampling
 1. The `tail_sampling` processor is defined in the Gateway config but commented out. Find the commented `tail_sampling` block in the `processors:` section and uncomment it.
-2. In the `traces` pipeline under `service.pipelines`, replace `batch` with `tail_sampling` in the `processors` list.
+2. In the `traces` pipeline under `service.pipelines`, add `tail_sampling` to the end of the `processors` list.
 3. Select **Apply & Restart** in the Gateway tab to deploy the updated config.
 ## Verify
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer**.
@@ -245,7 +245,7 @@ In this challenge, you'll route error traces to a dedicated pipeline using the `
 Look at the `default_pipelines` field in the `routing` connector definition, then consider:
 - What happens when no routing rule matches a trace?
 - What attribute would you use to route `score-api` traces to a different pipeline than `leaderboard`?
-- Try giving `traces/errors` a shorter batch `timeout` (e.g. `timeout: 1s`). What does that mean for latency to Honeycomb?
+- Try lowering `flush_timeout` on the backend exporter's `sending_queue` (e.g. `1s`). What does that mean for latency to Honeycomb?
 ## Success criteria
 - Three trace pipelines are visible in the Visualizer Gateway topology
 - The `routing` connector appears as both exporter and receiver in the topology diagram
