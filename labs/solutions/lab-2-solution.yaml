@@ -78,11 +78,8 @@ exporters:
 
 service:
   telemetry:
-    resource:
-      attributes:
-        - name: service.name
-          value: otel-collector-agent
     metrics:
+      level: detailed
       readers:
         - pull:
             exporter:
