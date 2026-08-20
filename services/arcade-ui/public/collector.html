@@ -599,9 +599,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
 # ── Exporters ────────────────────────────────────────────────────────
 exporters:
@@ -611,6 +608,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -633,15 +636,15 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug]
 `,
 
@@ -660,9 +663,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
   # ── OTTL transform processor ──────────────────────────────────────
   transform/normalize:
@@ -684,7 +684,7 @@ processors:
           # - delete_key(resource.attributes, "app.name")
 
   # Fix 3 — drop /health and /ready probe spans entirely (filter, not transform)
-  # Uncomment below, then add filter/drop_probes before batch in the traces pipeline.
+  # Uncomment below, then add filter/drop_probes to the traces pipeline (before transform/normalize).
   # filter/drop_probes:
   #   error_mode: ignore
   #   traces:
@@ -698,6 +698,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -733,15 +739,15 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
@@ -762,9 +768,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   filter/drop_probes:
     error_mode: ignore
     traces:
@@ -789,6 +792,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -824,15 +833,15 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      processors: [memory_limiter, filter/drop_probes, transform/normalize]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
@@ -853,9 +862,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   filter/drop_probes:
     error_mode: ignore
     traces:
@@ -880,6 +886,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -945,15 +957,15 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      processors: [memory_limiter, filter/drop_probes, transform/normalize]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
 
@@ -974,9 +986,6 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   filter/drop_probes:
     error_mode: ignore
     traces:
@@ -1001,6 +1010,12 @@ exporters:
     endpoint: otel-collector-gateway:4317
     tls:
       insecure: true
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer-raw:
     endpoint: http://visualizer:4318
     encoding: json
@@ -1056,15 +1071,15 @@ service:
       exporters: [otlp_http/visualizer-raw]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, filter/drop_probes, batch, transform/normalize]
+      processors: [memory_limiter, filter/drop_probes, transform/normalize]
       exporters: [debug, otlp_grpc/gateway]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/gateway]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/gateway]
 `
   };
@@ -1083,9 +1098,6 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
-  batch:
-    send_batch_size: 512
-    timeout: 5s
   memory_limiter:
     check_interval: 1s
     limit_mib: 512
@@ -1098,6 +1110,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -1123,15 +1141,15 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 `,
     lab5: `# OTel Arcade — Advanced Gateway Patterns.
@@ -1150,9 +1168,6 @@ processors:
     limit_mib: 512
     spike_limit_mib: 128
 
-  batch:
-    send_batch_size: 512
-    timeout: 5s
 
   # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
   # tail_sampling:
@@ -1195,6 +1210,12 @@ exporters:
     endpoint: \${env:OTEL_EXPORTER_ENDPOINT}
     headers:
       x-honeycomb-team: \${env:HONEYCOMB_API_KEY}
+    sending_queue:
+      enabled: true
+      sizer: items
+      batch:
+        flush_timeout: 5s
+        min_size: 512
   otlp_http/visualizer:
     endpoint: http://visualizer:4318
     encoding: json
@@ -1216,26 +1237,26 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # traces/standard:
     #   receivers: [routing]
-    #   processors: [batch]
+    #   processors: []
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     # traces/errors:
     #   receivers: [routing]
-    #   processors: [batch]
+    #   processors: []
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     # metrics/service_graph:

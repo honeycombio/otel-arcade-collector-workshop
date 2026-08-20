@@ -284,8 +284,8 @@ and uncomment the line below it:
 - replace_pattern(span.name, "^(SELECT|INSERT|UPDATE|DELETE|CREATE).*", "db.query")
 ```
 4. Add `transform/normalize` to the end of the `processors` list in
-the `traces` pipeline under `service.pipelines`. It should come after
-`batch`.
+the `traces` pipeline under `service.pipelines`, after
+`memory_limiter`.
 5. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 6. Select **◈ Visualizer** and check the Split view. SQL span names
 should be normalized in the After column.
@@ -321,7 +321,7 @@ request. These are high-volume, low-value noise.
 1. Select **⚙ Deploy & Configure** in the app's left navigation.
 2. This processor drops any span whose name matches a health probe URL
 pattern before it reaches any downstream processors — catching probes
-here means they never cost you batching or transform work. In the
+here means they never cost you transform or export work. In the
 `processors:` section, find the Fix 3 comment and uncomment the
 entire `filter/drop_probes` block below it:
 ```yaml
@@ -332,8 +332,8 @@ filter/drop_probes:
       - 'IsMatch(name, "^(GET|POST) /(health|ready)$")'
 ```
 3. Add `filter/drop_probes` to the `processors` list in the `traces`
-pipeline under `service.pipelines`. It should come before `batch` so
-spans are dropped before they're batched for export.
+pipeline under `service.pipelines`, between `memory_limiter` and
+`transform/normalize`, so spans are dropped before any transform work.
 4. Select **Apply & Restart**. You should see "Config saved. Collector restarted successfully."
 5. Confirm no `/health` or `/ready` spans appear in the feed.
 
@@ -427,8 +427,11 @@ config is complete.
 2. Review your current `collector-agent-config.yaml`. Confirm your
 config has all of the following:
    - All five OTTL fixes uncommented in `transform/normalize`
-   - The `filter/drop_probes` processor wired before `batch` in the
-   traces pipeline
+   - The `filter/drop_probes` processor wired before `transform/normalize`
+   in the traces pipeline
+   - Batching handled by the `sending_queue` settings on the
+   `otlp_grpc/backend` exporter — there's no `batch` processor in the
+   pipeline
    - All three pipelines exporting to `otlp_grpc/backend` and
    `otlp_http/visualizer`
 
@@ -474,6 +477,6 @@ advanced patterns like tail sampling and routing.
 
 - The smells counter in the Visualizer reads **0**
 - All five fixes are applied and the traces pipeline processors list
-reads `[memory_limiter, filter/drop_probes, batch, transform/normalize]`
+reads `[memory_limiter, filter/drop_probes, transform/normalize]`
 - Traces are visible in your `otel-arcade-workshop` Honeycomb
 environment
