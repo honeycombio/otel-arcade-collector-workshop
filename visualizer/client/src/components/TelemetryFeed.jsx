@@ -200,9 +200,13 @@ export function TelemetryFeed({ items, rawFeed = [] }) {
       .filter((i) => !serviceFilter || i.service === serviceFilter)
       .filter((i) => {
         if (!q) return true;
-        return (i.name    && i.name.toLowerCase().includes(q))
-            || (i.body    && i.body.toLowerCase().includes(q))
-            || (i.service && i.service.toLowerCase().includes(q));
+        if (i.name    && i.name.toLowerCase().includes(q)) return true;
+        if (i.body    && i.body.toLowerCase().includes(q)) return true;
+        if (i.service && i.service.toLowerCase().includes(q)) return true;
+        const attrs = { ...(i.attrs || {}), ...(i.resourceAttrs || {}) };
+        return Object.entries(attrs).some(([k, v]) =>
+          k.toLowerCase().includes(q) || String(v).toLowerCase().includes(q)
+        );
       });
   }, [displayItems, signalTab, serviceFilter, searchText]);
 
