@@ -1,7 +1,7 @@
 ## Tab reference
 | Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
 |---|---|---|---|
-| 1 — Observe Agent Self-Metrics | ✓ | ✓ setup | — |
+| 1 — Observe Agent Self-Metrics | ✓ | — | — |
 | 2 — Configure Self-Telemetry | ✓ | — | ✓ verify |
 | 3 — Query Self-Metrics Under Load | ✓ | — | ✓ query |
 | 4 — Deploy the Gateway | ✓ | — | — |
@@ -17,14 +17,12 @@ This sandbox starts fresh. Before observing anything, restore the Workshop 1 end
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. In the **Collector** tab, select **Load template → Workshop 1 complete**. This restores the Workshop 1 end state — all five OTTL fixes and the correct pipeline wiring — without pre-completing any of the Challenge 2 exercises.
 3. Select **Apply & Restart**.
-4. Select the [button label="Terminal"](tab-1) tab. Run the following command, replacing `your-key-here` with your Honeycomb API key:
-```bash
-sed -i 's/HONEYCOMB_API_KEY=.*/HONEYCOMB_API_KEY=your-key-here/' /root/otel-arcade-collector-workshop/.env
-```
-5. Recreate the Collector container to inject the key:
-```bash
-cd /root/otel-arcade-collector-workshop && docker compose up --force-recreate otel-collector-agent -d
-```
+4. Select the **.env** tab. Find the `HONEYCOMB_API_KEY` line, replace
+`your-key-here` with your Honeycomb API key, then remove the leading
+`#` to uncomment the line.
+5. Select **Apply**. You should see a green confirmation showing your
+Honeycomb team and environment name, and that the Collector
+restarted.
 ## Observe Agent self-metrics
 Before changing anything else, take a look at what the Collector is already telling you.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
@@ -65,9 +63,10 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                     value: otel-collector
 ```
 3. Select **Apply & Restart**.
-4. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
+4. Select the **.env** tab and select **Apply** again. Your key only gets pushed into whatever's in the config at the moment you click Apply — the `periodic` reader you just pasted is new, so it needs its own Apply to pick up the real key.
+5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
 > [!NOTE]
-> The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change. If no metrics appear in Honeycomb, confirm `HONEYCOMB_API_KEY` is set in your `.env` and the agent was fully restarted.
+> The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change.
 ## Exercise 3 — Push Collector Logs to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: otel-collector` line under the `periodic` reader's `x-honeycomb-dataset` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
@@ -87,7 +86,8 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                     value: otel-collector
 ```
 3. Select **Apply & Restart**.
-4. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
+4. Select the **.env** tab and select **Apply** again to push your key into the new `logs` block's placeholder.
+5. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
 > [!NOTE]
 > The **Self-telemetry** template in the editor's **Template** dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
 ## Verify
@@ -95,11 +95,10 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 2. Confirm log records from the Collector are visible in the `otel-collector` logs dataset.
 3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and confirm the Visualizer's Agent self-metrics panel still shows live metrics (both pull and push now coexist).
 > [!IMPORTANT]
-> If no data appears in Honeycomb, check the Collector logs in the [button label="Terminal"](tab-1) tab:
-> ```bash
-> docker compose logs --tail=50 otel-collector-agent
-> ```
-> An invalid or missing API key will show as a 401 error.
+> If no data appears in Honeycomb, check the status message on the
+> **.env** tab, or select **Logs ▾** in the Collector tab to check
+> for auth errors. An invalid or missing API key will show as a 401
+> error.
 ## Success criteria
 - `otelcol_*` metrics are visible in Honeycomb in the `otel-collector` dataset
 - Collector log records are visible in Honeycomb

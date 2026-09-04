@@ -406,6 +406,9 @@
       <button class="col-tab"        id="tab-gateway" onclick="showTab('gateway')">
         <span class="tab-dot" id="tab-dot-gateway"></span>Gateway
       </button>
+      <button class="col-tab"        id="tab-env" onclick="showTab('env')">
+        <span class="tab-dot" id="tab-dot-env"></span>.env
+      </button>
     </div>
     <div class="col-content">
     <!-- ══════════════════════════════════════════════════════════
@@ -570,6 +573,32 @@
             </div>
             <pre class="log-pre" id="gateway-log-output"></pre>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         .ENV TAB — repo-root .env file (Honeycomb API key, etc.)
+    ══════════════════════════════════════════════════════════ -->
+    <div id="pane-env" class="col-pane" style="display:none">
+      <p class="col-hint" style="margin-bottom:12px">
+        This is the sandbox's <code>.env</code> file — the same file <code>docker-compose</code>
+        reads for environment variables like your Honeycomb API key. Replace
+        <code>your-key-here</code> with your real key, remove the leading <code>#</code> to
+        uncomment the <code>HONEYCOMB_API_KEY</code> line, then select <strong>Apply</strong>:
+        your key is validated against Honeycomb and pushed straight to the running Collector.
+        No Terminal needed.
+      </p>
+      <div class="editor-wrap">
+        <textarea class="yaml-editor" id="env-editor" spellcheck="false"
+          autocomplete="off" autocorrect="off" autocapitalize="off" wrap="off"></textarea>
+      </div>
+      <div class="config-actions">
+        <button class="btn-apply"     id="env-btn-apply" onclick="applyEnvFile()">Apply</button>
+        <button class="btn-secondary" id="env-btn-reset" onclick="resetEnvFile()">Revert</button>
+        <div class="status-bar">
+          <span class="status-dot" id="env-dot"></span>
+          <span class="status-msg" id="env-msg"></span>
         </div>
       </div>
     </div>
@@ -1471,7 +1500,7 @@ service:
 
   // ── Tab switching ──────────────────────────────────────────────────────────
   function showTab(which) {
-    ['local', 'gateway'].forEach(function (t) {
+    ['local', 'gateway', 'env'].forEach(function (t) {
       document.getElementById('pane-' + t).style.display = t === which ? '' : 'none';
       document.getElementById('tab-' + t).classList.toggle('active', t === which);
     });
@@ -1645,6 +1674,65 @@ service:
     clearDraft();
     setStatus('local', '', '');
     updateLineNumbers('local');
+  }
+
+  // ── .env editor ────────────────────────────────────────────────────────────
+  var envSaved = '';
+
+  // Reads KEY=value out of .env-style text, ignoring commented-out lines.
+  function extractEnvValueClient(content, key) {
+    var lines = content.split('\n').filter(function (l) { return l.trim().indexOf('#') !== 0; });
+    var re    = new RegExp('^' + key + '=(.*)$', 'm');
+    var m     = lines.join('\n').match(re);
+    return m ? m[1].trim() : '';
+  }
+
+  async function loadEnvFile() {
+    setStatus('env', 'busy', 'Loading…');
+    try {
+      var r    = await fetch('/api/settings/env');
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      envSaved = data.content;
+      document.getElementById('env-editor').value = envSaved;
+      setStatus('env', '', '');
+    } catch (err) {
+      setStatus('env', 'err', 'Could not load: ' + err.message);
+    }
+  }
+
+  function resetEnvFile() {
+    document.getElementById('env-editor').value = envSaved;
+    setStatus('env', '', '');
+  }
+
+  async function applyEnvFile() {
+    var content = document.getElementById('env-editor').value;
+    var btn     = document.getElementById('env-btn-apply');
+    btn.disabled = true;
+    setStatus('env', 'busy', 'Saving and applying…');
+    try {
+      var r    = await fetch('/api/settings/env', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ content: content }),
+      });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      envSaved = content;
+      if (!data.applied) {
+        setStatus('env', 'ok', '.env saved. No HONEYCOMB_API_KEY set yet — nothing applied to the Collector.');
+      } else {
+        var key = extractEnvValueClient(content, 'HONEYCOMB_API_KEY');
+        if (key) localStorage.setItem('arcade.honeycomb_api_key', key);
+        var label = data.team ? data.team + (data.environment ? ' / ' + data.environment : '') : 'Connected';
+        setStatus('env', 'ok', '✓ ' + label + (data.restarted ? ' — Collector restarted.' : ' (already up to date).'));
+      }
+    } catch (err) {
+      setStatus('env', 'err', err.message);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   async function applyLocalConfig() {
@@ -1963,6 +2051,7 @@ service:
   // ── Init ──────────────────────────────────────────────────────────────────
   renderArchDiagram();
   loadLocalConfig();
+  loadEnvFile();
   loadKubeStatus();
   statusPoller = setInterval(loadKubeStatus, 5000);
 
