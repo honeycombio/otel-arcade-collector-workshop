@@ -2,13 +2,13 @@
 
 | Challenge | Tab 0 (OTel Arcade) | Tab 1 (Terminal) | Tab 2 (Honeycomb) |
 |---|---|---|---|
-| 1 — Wire the pipelines | ✓ | ✓ `docker compose logs` (troubleshooting) | — |
-| 2 — Connect to Honeycomb | ✓ | ✓ `sed`, `docker compose` | ✓ |
+| 1 — Wire the pipelines | ✓ | — | — |
+| 2 — Connect to Honeycomb | ✓ | — | ✓ |
 | 3 — Spot the Problems | ✓ | — | — |
 | 4 — Clean Your Telemetry | ✓ | — | — |
 | 5 — Checkpoint and Handoff | ✓ | — | — |
 
-Keep both tabs visible across all challenges — hiding the terminal in Challenges 3 and 5 can disorient users if they go looking for it.
+Keep tab-0 and tab-2 visible across all challenges. Tab 1 (Terminal) isn't used anywhere in this workshop, but stays available in the sandbox.
 
 ---
 
@@ -83,11 +83,8 @@ exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 3. Play a game to generate a burst of traffic if the feed looks slow.
 
 > [!IMPORTANT]
-> If the feed stays empty, check the Collector logs in the Terminal tab:
-> ```bash
-> docker compose logs --tail=50 otel-collector-agent
-> ```
-> A YAML syntax error or unknown component name will appear there.
+> If the feed stays empty, select **Logs ▾** in the Collector tab. A
+> YAML syntax error or unknown component name will appear there.
 
 ---
 
@@ -129,25 +126,17 @@ queryable in a real observability backend.
 
 ## Add your API key to the sandbox
 
-1. Select the [button label="Terminal"](tab-1) tab.
-2. Run the following command, replacing `your-key-here` with your
-API key:
-```bash
-sed -i 's/HONEYCOMB_API_KEY=.*/HONEYCOMB_API_KEY=your-key-here/' /root/otel-arcade-collector-workshop/.env
-```
-3. Verify the key was written correctly:
-```bash
-grep HONEYCOMB_API_KEY /root/otel-arcade-collector-workshop/.env
-```
-4. Recreate the Collector container to inject the new key:
-```bash
-cd /root/otel-arcade-collector-workshop && docker compose up --force-recreate otel-collector-agent -d
-```
+1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
+2. Select the **.env** tab.
+3. Find the `HONEYCOMB_API_KEY` line. Replace `your-key-here` with
+your API key, then remove the leading `#` to uncomment the line.
+4. Select **Apply**. You should see a green confirmation showing
+your Honeycomb team and environment name, and that the Collector
+restarted.
 
 > [!NOTE]
-> A full container recreate is required here — restarting the
-> Collector alone is not enough because environment variables are
-> only injected at container creation.
+> This validates your key against Honeycomb and pushes it straight
+> to the running Collector — no container recreate needed.
 
 ---
 
@@ -160,13 +149,11 @@ cd /root/otel-arcade-collector-workshop && docker compose up --force-recreate ot
 `score-api`, and `leaderboard`.
 
 > [!IMPORTANT]
-> If no traces appear in Honeycomb, check the Collector logs for
-> auth errors in the Terminal tab:
-> ```bash
-> docker compose logs --tail=50 otel-collector-agent
-> ```
-> An invalid or missing API key will show up as a 401 error in the
-> exporter output.
+> If no traces appear in Honeycomb, check the status message on the
+> **.env** tab — a failed key validation shows an error there. You
+> can also select **Logs ▾** in the Collector tab to check for auth
+> errors; an invalid or missing API key will show up as a 401 error
+> in the exporter output.
 
 ---
 
