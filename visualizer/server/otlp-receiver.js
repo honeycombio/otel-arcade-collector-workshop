@@ -26,6 +26,16 @@ class RingBuffer {
   list() { return this.items.slice(); }
 }
 
+// Merges several RingBuffers into one chronologically-ordered view without
+// letting a high-volume signal type (e.g. periodic metrics) evict another's
+// slots (e.g. spans) — each buffer below gets its own dedicated capacity.
+class CombinedBuffer {
+  constructor(buffers) { this.buffers = buffers; }
+  list() {
+    return this.buffers.flatMap(b => b.list()).sort((a, b) => a.ts - b.ts);
+  }
+}
+
 // ── Attribute helpers ──────────────────────────────────────────────────────
 
 function attrsToObject(attrs) {
@@ -213,7 +223,10 @@ function makeServiceGraph() {
 // ── Receiver factory ───────────────────────────────────────────────────────
 
 function makeReceiver({ broadcast }) {
-  const buffer    = new RingBuffer(RING_CAP);
+  const spanBuffer   = new RingBuffer(RING_CAP);
+  const logBuffer    = new RingBuffer(RING_CAP);
+  const metricBuffer = new RingBuffer(RING_CAP);
+  const buffer       = new CombinedBuffer([spanBuffer, logBuffer, metricBuffer]);
   const rawBuffer = new RingBuffer(RING_CAP);
   const rawMap    = new Map();
   const counters  = { spans: 0, logs: 0, metrics: 0 };
@@ -269,7 +282,7 @@ function makeReceiver({ broadcast }) {
         if (diff.length > 0) s.diff = diff;
         rawMap.delete(s.spanId);
       }
-      buffer.push(s);
+      spanBuffer.push(s);
       getSourceBuf(source).push(s);
       broadcast({ type: 'span', payload: s });
     }
@@ -288,7 +301,7 @@ function makeReceiver({ broadcast }) {
     const source = req.headers['x-collector-source'] || 'agent';
     const logs   = normalizeLogs(req.body || {}, source);
     for (const l of logs) {
-      buffer.push(l);
+      logBuffer.push(l);
       getSourceBuf(source).push(l);
       broadcast({ type: 'log', payload: l });
     }
@@ -306,7 +319,7 @@ function makeReceiver({ broadcast }) {
     const source = req.headers['x-collector-source'] || 'agent';
     const items  = normalizeMetrics(req.body || {}, source);
     for (const item of items) {
-      buffer.push(item);
+      metricBuffer.push(item);
       getSourceBuf(source).push(item);
       broadcast({ type: 'metric', payload: item });
     }
