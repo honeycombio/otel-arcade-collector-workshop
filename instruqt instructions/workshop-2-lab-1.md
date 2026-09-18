@@ -214,13 +214,12 @@ Most sampling strategies decide the moment a span arrives — **head sampling**.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer**.
 2. Select the **Gateway** selector button at the top of the Pipeline panel to switch to the gateway view, then scroll down to the **Gateway self-metrics** panel — you should now see two new gauges: **Traces sampled** and **Traces dropped**.
 3. Start the load generator: select **⚡ TelemetryGen**, scroll to **Load Generator**, and set 10 RPS. Select **Start**.
-4. Watch the gauges update as traffic flows.
-To verify the `keep_errors` policy works:
-1. Select **⚡ TelemetryGen** in the app navigation.
-2. Select the **Error span (status code 2)** preset.
-3. Check **Set error status (code=2)**.
-4. Select **Generate span**.
-5. Open the [button label="Honeycomb"](tab-2) tab and confirm the error trace arrived despite the 10% base sample rate.
+4. Watch the gauges update as traffic flows. To verify the `keep_errors` policy works:
+   1. Select **⚡ TelemetryGen** in the app navigation.
+   2. Select the **Error span (status code 2)** preset.
+   3. Check **Set error status (code=2)**.
+   4. Select **Generate span**.
+   5. Open the [button label="Honeycomb"](tab-2) tab and confirm the error trace arrived despite the 10% base sample rate.
 > [!NOTE]
 > The `decision_wait` setting (default: 5s) is how long the processor waits for all spans in a trace before deciding. Traces that arrive incomplete before `decision_wait` expires may be sampled differently than expected.
 ## Success criteria
