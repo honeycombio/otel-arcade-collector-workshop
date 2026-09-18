@@ -59,12 +59,10 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 3. Select **Apply & Restart**.
 4. Select the **.env** tab and select **Apply** again. Your key only gets pushed into whatever's in the config at the moment you click Apply — the `periodic` reader you just pasted is new, so it needs its own Apply to pick up the real key.
-5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
+5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size` (hint: remember to add a filter for `service.name=otel-collector-agent`).
 > [!NOTE]
 > The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change.
 ## Exercise 3 — Push Collector Logs to Honeycomb
@@ -82,17 +80,15 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 3. Select **Apply & Restart**.
 4. Select the **.env** tab and select **Apply** again to push your key into the new `logs` block's placeholder.
-5. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
+5. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector-agent` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
 > [!NOTE]
 > The **Self-telemetry** template in the editor's **Template** dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
 ## Verify
-1. In Honeycomb, confirm metrics with the `otelcol_` prefix are visible in the `otel-collector` metrics dataset.
-2. Confirm log records from the Collector are visible in the `otel-collector` logs dataset.
+1. In Honeycomb, confirm metrics with the `otelcol_` prefix are visible in the `Metrics` dataset.
+2. Confirm log records from the Collector are visible in the `otel-collector-agent` logs dataset.
 3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and confirm the Visualizer's Agent self-metrics panel still shows live metrics (both pull and push now coexist).
 > [!IMPORTANT]
 > If no data appears in Honeycomb, check the status message on the
@@ -100,7 +96,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 > for auth errors. An invalid or missing API key will show as a 401
 > error.
 ## Success criteria
-- `otelcol_*` metrics are visible in Honeycomb in the `otel-collector` dataset
+- `otelcol_*` metrics are visible in Honeycomb in the `Metrics` dataset
 - Collector log records are visible in Honeycomb
 - Visualizer Agent self-metrics panel is still showing live metrics
 # Challenge 3: Query Self-Metrics Under Load
@@ -111,7 +107,7 @@ Now put the pipeline under load and use Honeycomb to investigate pipeline health
    **Burst:** Scroll to the **Game Session Presets** section and select **50 × Mixed (load volume)** to fire a spike of traffic.
    **Sustained:** Scroll to the **Load Generator** section at the bottom of TelemetryGen. Set a desired RPS and select **Start** to run continuous background load. Select **Stop** when done.
 ## Query self-metrics in Honeycomb
-Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Use the `otelcol_` prefix to find Collector metrics.
+Open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Use the `otelcol_` prefix to find Collector metrics.
 Work through the following questions — the answers are in the data:
 **Throughput and batching**
 - How full does the exporter queue get under load? Is the sending queue flushing on size (`min_size`) or on `flush_timeout`?
