@@ -109,13 +109,17 @@ Now put the pipeline under load and use Honeycomb to investigate pipeline health
 ## Query self-metrics in Honeycomb
 Open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Use the `otelcol_` prefix to find Collector metrics.
 Work through the following questions — the answers are in the data:
+
 **Throughput and batching**
 - How full does the exporter queue get under load? Is the sending queue flushing on size (`min_size`) or on `flush_timeout`?
+
 **Queue health**
 - Is `otelcol_exporter_queue_size` staying near zero, or is it growing? What would cause it to grow?
 - Has `otelcol_exporter_send_failed_spans` ever been non-zero? What would that indicate?
+
 **Memory**
 - What is the Collector's memory usage under load? How much headroom before `memory_limiter` would start dropping spans?
+
 **Processor efficiency**
 - After the OTTL transforms you applied in Workshop 1, are spans being dropped anywhere? Where would you look to confirm?
 ## Design an alert
