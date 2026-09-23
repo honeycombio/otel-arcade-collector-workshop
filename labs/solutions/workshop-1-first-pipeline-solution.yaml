@@ -1,4 +1,4 @@
-# OTel Arcade — Lab 1 solution.
+# OTel Arcade — Your First Collector Pipeline solution.
 #
 # A complete working pipeline: receives OTLP from the arcade services,
 # exports to Honeycomb and the Pipeline Visualizer.

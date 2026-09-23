@@ -132,11 +132,11 @@ local-restart-collector:  ## Validate collector-agent-config.yaml, then restart 
 	@docker compose logs --tail=15 otel-collector-agent || true
 
 .PHONY: local-reset-collector
-local-reset-collector:  ## Reset collector-agent-config.yaml to the completed Lab 1 pipeline (exporters wired, no Lab 2+ changes) and restart the agent.
+local-reset-collector:  ## Reset collector-agent-config.yaml to the completed first-pipeline state (exporters wired, no OTTL or self-telemetry changes) and restart the agent.
 	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart otel-collector-agent
 	@echo
-	@echo "Collector config reset to the completed Lab 1 pipeline. Recent logs:"
+	@echo "Collector config reset to the completed first-pipeline state. Recent logs:"
 	@sleep 2
 	@docker compose logs --tail=15 otel-collector-agent || true
 
@@ -150,12 +150,12 @@ local-teardown-gateway:  ## Force-remove the gateway container (safe to run even
 	fi
 
 .PHONY: local-reset
-local-reset:  ## Soft reset: remove gateway, restore the completed Lab 1 collector config, restart all services (keeps data).
+local-reset:  ## Soft reset: remove gateway, restore the completed first-pipeline collector config, restart all services (keeps data).
 	$(MAKE) local-teardown-gateway
 	cp collector-agent-config.baseline.yaml collector-agent-config.yaml
 	docker compose restart
 	@echo
-	@echo "Stack restarted with the completed Lab 1 collector config. Gateway removed."
+	@echo "Stack restarted with the completed first-pipeline collector config. Gateway removed."
 	@echo "Run 'make local-status' to confirm health."
 
 .PHONY: local-rebuild
@@ -191,7 +191,7 @@ local-smoke:  ## End-to-end smoke test: drives one session through arcade-ui →
 	  echo "✓ end-to-end chain works. Open http://localhost:8090 to see the trace in the Visualizer."
 
 .PHONY: local-loadgen
-local-loadgen:  ## Start the loadgen container (sustained traffic for Labs 3–4).
+local-loadgen:  ## Start the loadgen container (sustained traffic for the self-telemetry and gateway labs).
 	docker compose --profile load up -d loadgen
 
 .PHONY: local-loadgen-stop

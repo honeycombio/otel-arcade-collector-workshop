@@ -1,5 +1,5 @@
-# OTel Arcade — Lab 5: Advanced Gateway Patterns.
-# Builds on Lab 4. Uncomment each exercise block one at a time.
+# OTel Arcade — Advanced Gateway Patterns.
+# Builds on Agent → Gateway Architecture. Uncomment each exercise block one at a time.
 
 receivers:
   otlp:
@@ -16,7 +16,7 @@ processors:
     spike_limit_mib: 128
 
 
-  # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
+  # ── Tail Sampling ─────────────────────────────────────────────────────────
   # Uncomment below and add tail_sampling to the traces pipeline processors.
   # The health panel will show sampled/dropped counts once traffic flows.
   #
@@ -37,7 +37,7 @@ processors:
   #         sampling_percentage: 10
 
 connectors:
-  # ── Exercise 2: Routing ───────────────────────────────────────────────────
+  # ── Routing ───────────────────────────────────────────────────────────────
   # Uncomment, then add [routing] to traces pipeline exporters,
   # and uncomment the two named pipelines at the bottom.
   #
@@ -49,7 +49,7 @@ connectors:
   #       statement: status.code == STATUS_CODE_ERROR
   #       pipelines: [traces/errors]
 
-  # ── Exercise 3: Service Graph ─────────────────────────────────────────────
+  # ── Service Graph ─────────────────────────────────────────────────────────
   # Uncomment, then add [service_graph] to traces pipeline exporters,
   # and uncomment the metrics/service_graph pipeline at the bottom.
   # Check Honeycomb for traces_service_graph_* metrics.
@@ -95,9 +95,9 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter]
-      # Exercise 1: add tail_sampling to the processors list above
-      # Exercise 2: add routing to exporters list
-      # Exercise 3: add service_graph to exporters list
+      # Tail Sampling: add tail_sampling to the processors list above
+      # Routing: add routing to exporters list
+      # Service Graph: add service_graph to exporters list
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
     metrics:
@@ -110,7 +110,7 @@ service:
       processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
-    # ── Exercise 2: uncomment after adding routing connector ─────────────────
+    # ── Routing: uncomment after adding routing connector ─────────────────────
     # traces/standard:
     #   receivers: [routing]
     #   processors: []
@@ -120,7 +120,7 @@ service:
     #   processors: []
     #   exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
-    # ── Exercise 3: uncomment after adding service_graph connector ─────────────
+    # ── Service Graph: uncomment after adding service_graph connector ─────────
     # metrics/service_graph:
     #   receivers: [service_graph]
     #   exporters: [otlp_grpc/backend]

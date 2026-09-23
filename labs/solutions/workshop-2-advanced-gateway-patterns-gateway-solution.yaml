@@ -1,11 +1,12 @@
-# OTel Arcade — Lab 5 solution (gateway config).
+# OTel Arcade — Advanced Gateway Patterns solution (gateway config).
 #
-# Exercises 1 and 3 are applied here. Exercise 2 (routing connector)
-# is documented in the comments below — wire it in separately once you
-# have confirmed Exercises 1 and 3 are working.
+# Tail Sampling and Service Graph are applied here. Routing (the
+# routing connector) is documented in the comments below — wire it in
+# separately once you have confirmed Tail Sampling and Service Graph
+# are working.
 #
 # Apply this via ⚙ Deploy & Configure → Gateway tab.
-# Prerequisites: Lab 4 complete (gateway deployed).
+# Prerequisites: Agent → Gateway Architecture complete (gateway deployed).
 
 receivers:
   otlp:
@@ -21,7 +22,7 @@ processors:
     limit_mib: 512
     spike_limit_mib: 128
 
-  # ── Exercise 1: Tail Sampling ─────────────────────────────────────
+  # ── Tail Sampling ──────────────────────────────────────────────────
   # Buffers traces for up to 5s before making a keep/drop decision.
   # Policies evaluate in order; first match wins.
   #
@@ -44,7 +45,7 @@ processors:
         probabilistic:
           sampling_percentage: 10
 
-# ── Exercise 2: Routing connector (add manually) ──────────────────────
+# ── Routing connector (add manually) ──────────────────────────────────
 #
 # The routing connector fans traces to different downstream pipelines
 # based on a condition. It acts as both an exporter (from the main
@@ -65,7 +66,7 @@ processors:
 #   2. Add `routing` to the traces pipeline exporters list below.
 #   3. Uncomment the traces/standard and traces/errors pipelines at the bottom.
 #
-# ── Exercise 3: Service Graph connector ───────────────────────────────
+# ── Service Graph connector ────────────────────────────────────────────
 connectors:
   # Consumes traces and emits service dependency metrics.
   # After enabling this, query traces_service_graph_* in Honeycomb.
@@ -114,10 +115,10 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling]
-      # Exercise 2: also add `routing` to exporters once wired in
+      # Routing: also add `routing` to exporters once wired in
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer, service_graph]
 
-    # Exercise 2: uncomment these two pipelines after adding the routing connector
+    # Routing: uncomment these two pipelines after adding the routing connector
     # traces/standard:
     #   receivers: [routing]
     #   processors: []
@@ -132,7 +133,7 @@ service:
       processors: [memory_limiter]
       exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
 
-    # Exercise 3: pipeline fed by the service_graph connector
+    # Service Graph: pipeline fed by the service_graph connector
     metrics/service_graph:
       receivers: [service_graph]
       exporters: [otlp_grpc/backend]

@@ -234,7 +234,7 @@ Two processors handle this work:
 
 ---
 
-## Load the Lab 2 template
+## Load the OTTL transforms template
 
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab.
 2. Select **⚙ Deploy & Configure** in the app's left navigation.
@@ -248,7 +248,7 @@ by side — spans with changes get an amber border in the After
 column.
 
 > [!NOTE]
-> The Split view only populates after the Lab 2 template is loaded.
+> The Split view only populates after the OTTL transforms template is loaded.
 > If the After column is empty, confirm the template was applied
 > and the Collector restarted successfully.
 
@@ -424,7 +424,7 @@ config has all of the following:
 
 > [!NOTE]
 > If you need a reference, load **Workshop 1 complete** from the
-> **Template** dropdown — it contains all five Lab 2 fixes applied
+> **Template** dropdown — it contains all five OTTL fixes applied
 > and wired into the pipeline. Apply it and continue from there. This
 > is the expected starting state for Workshop 2.
 

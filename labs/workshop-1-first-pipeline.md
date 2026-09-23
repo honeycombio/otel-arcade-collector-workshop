@@ -1,4 +1,4 @@
-# Lab 1: Your First Collector Pipeline
+# Your First Collector Pipeline
 
 ## What you'll do
 
@@ -7,7 +7,7 @@ Write a working OpenTelemetry Collector configuration that receives telemetry fr
 ## Prerequisites
 
 - The app services are running (`make local-up`, then `make local-status` to confirm the four ✓ health checks)
-- The Collector is running with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the exercise: Lab 1 is done when the Visualizer feed shows live spans.
+- The Collector is running with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the exercise: this lab is done when the Visualizer feed shows live spans.
 - A Honeycomb API key is helpful but not required. If you have one, it should already be in your `.env` — the [setup instructions](../labs/README.md) say to add it *before* `make local-up`. The Visualizer and pipeline work without it; only the `otlp_grpc/backend` exporter will log auth errors.
 - Open the arcade UI at **http://localhost:3000**
 
@@ -38,7 +38,7 @@ The editor shows the current `collector-agent-config.yaml`. This is the config t
 
 ### 2. Read the starter config
 
-The editor already shows the Lab 1 starter. Read through it: receivers, processors, and exporters are all defined. The `service.pipelines` section has three pipelines already wired, but they only export to `debug` (Collector stdout). The exporters that matter — the Visualizer and Honeycomb — aren't connected yet.
+The editor already shows this lab's starter config. Read through it: receivers, processors, and exporters are all defined. The `service.pipelines` section has three pipelines already wired, but they only export to `debug` (Collector stdout). The exporters that matter — the Visualizer and Honeycomb — aren't connected yet.
 
 As you read, try to answer:
 - What are the three exporters defined in the `exporters:` section? Where does each one send data?
@@ -47,7 +47,7 @@ As you read, try to answer:
 
 If you accidentally modify the editor and need to reset, load **↺ Baseline** from the **Template** dropdown.
 
-> **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already the Lab 1 starter. Edit the pipelines there; each save auto-restarts the Collector.
+> **IDE Watch Mode:** Open `collector-agent-config.yaml` at the repo root in your IDE — it's already this lab's starter config. Edit the pipelines there; each save auto-restarts the Collector.
 
 ### 3. Update the pipeline exporters
 

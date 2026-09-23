@@ -35,7 +35,7 @@ This panel is powered by a Prometheus pull from the Collector's `:8888/metrics` 
 # Challenge 2: Configure Self-Telemetry
 The Collector instruments itself with OpenTelemetry. By default, it exposes those self-metrics via a Prometheus endpoint — that's what the health panel scrapes. To make self-telemetry queryable, you need to push it to Honeycomb. This is done in a separate part of the config called `service.telemetry` — **not** in the pipeline exporters.
 Work through the three exercises below. Select **Apply & Restart** after each one.
-## Exercise 1 — Tag the Collector
+## Tag the Collector
 Without `service.name`, every metric and log the Collector ships to Honeycomb arrives with no identity — you can't filter for Collector health data separately from your app data.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. Scroll to the bottom of the config and find the `service:` block. Inside it you'll see a `telemetry:` key — this is where the Collector's self-instrumentation is configured.
@@ -47,7 +47,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
           value: otel-collector-agent
 ```
 4. Select **Apply & Restart**.
-## Exercise 2 — Push Collector Metrics to Honeycomb
+## Push Collector Metrics to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Find the `port: 8888` line — the last line of the existing `- pull:` block — and paste the block below immediately after it, indenting `- periodic:` so it lines up exactly with `- pull:` above it:
 ```yaml
@@ -65,9 +65,9 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size` (hint: remember to add a filter for `service.name=otel-collector-agent`).
 > [!NOTE]
 > The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change.
-## Exercise 3 — Push Collector Logs to Honeycomb
+## Push Collector Logs to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: otel-collector` line under the `periodic` reader's `x-honeycomb-dataset` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
+2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: ${env:HONEYCOMB_API_KEY}` line under the `periodic` reader's `x-honeycomb-team` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
 ```yaml
     logs:
       level: info

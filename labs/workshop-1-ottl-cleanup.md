@@ -1,4 +1,4 @@
-# Lab 2: Cleaning Up Telemetry with OTTL
+# Cleaning Up Telemetry with OTTL
 
 ## What you'll do
 
@@ -6,10 +6,10 @@ Use the OpenTelemetry Transformation Language (OTTL) to fix five real telemetry 
 
 ## Prerequisites
 
-- Lab 1 complete: the Collector is running and spans are flowing to the Visualizer
+- [Your First Collector Pipeline](workshop-1-first-pipeline.md) complete: the Collector is running and spans are flowing to the Visualizer
 - The Visualizer feed is showing live spans at **http://localhost:3000**
 
-> **Didn't finish Lab 1?** Run `make local-reset-collector` to restore a complete working baseline, then continue here.
+> **Didn't finish the first lab?** Run `make local-reset-collector` to restore a complete working baseline, then continue here.
 
 ---
 
@@ -29,11 +29,11 @@ The Visualizer highlights problematic spans in orange and counts them with a **�
 
 ## Before you start: look at the feed
 
-Before loading the Lab 2 template, spend a minute in the Visualizer feed with your Lab 1 config still running.
+Before loading the OTTL transforms template, spend a minute in the Visualizer feed with your current config still running.
 
 - What patterns do you see in the span names? Do any look like they contain dynamic or high-cardinality values?
 - Click on a highlighted (orange) span and expand it. What attribute looks wrong?
-- Notice the **Split** button in the feed header — it's grayed out for now. It activates once you load the Lab 2 template, which adds the pipeline that feeds the Before column.
+- Notice the **Split** button in the feed header — it's grayed out for now. It activates once you load the OTTL transforms template, which adds the pipeline that feeds the Before column.
 
 Try to name the five problems before you look at the template hints.
 
@@ -41,9 +41,9 @@ Try to name the five problems before you look at the template hints.
 
 ## Steps
 
-### 1. Load the Lab 2 template
+### 1. Load the OTTL transforms template
 
-In the Collector editor, click **Load template → Lab 2 — OTTL transforms**.
+In the Collector editor, select **OTTL transforms** from the Template dropdown.
 
 The template adds:
 - A `transform/normalize` processor with commented-out OTTL statements for each fix

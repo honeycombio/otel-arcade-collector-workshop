@@ -1,12 +1,12 @@
-# Lab 5: Advanced Gateway Patterns (Stretch)
+# Advanced Gateway Patterns (Stretch)
 
 ## What you'll do
 
-Apply three advanced Collector patterns to the gateway from Lab 4. By the end you'll have a gateway that samples intelligently, routes by condition, and generates service dependency metrics automatically.
+Apply three advanced Collector patterns to the gateway from the previous lab. By the end you'll have a gateway that samples intelligently, routes by condition, and generates service dependency metrics automatically.
 
 ## Prerequisites
 
-- Lab 4 complete: agent → gateway is running, spans tagged with source `gateway` are flowing
+- [Agent → Gateway Architecture](workshop-2-agent-gateway.md) complete: agent → gateway is running, spans tagged with source `gateway` are flowing
 - Load generator available on the TelemetryGen page
 
 ---
@@ -27,9 +27,9 @@ Processors transform data *inside* a pipeline. **Connectors** sit *between* pipe
 
 ## Steps
 
-### Exercise 1 — Tail Sampling
+### Tail Sampling
 
-In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab. Load the **Lab 5 — Sampling & Connectors** template.
+In the sidebar, go to **⚙ Deploy & Configure → Gateway** tab. Select **Sampling & Connectors** from the Template dropdown.
 
 Find the commented `tail_sampling` block. Uncomment it, then add `tail_sampling` to the traces pipeline processors:
 
@@ -55,7 +55,7 @@ Questions to explore:
 
 ---
 
-### Exercise 2 — Routing Connector
+### Routing Connector
 
 Find the commented `routing` connector block. Uncomment it, add `routing` to the `traces` pipeline exporters, and uncomment the two named pipelines at the bottom:
 
@@ -89,7 +89,7 @@ Questions to explore:
 
 ---
 
-### Exercise 3 — Service Graph Connector
+### Service Graph Connector
 
 Find the commented `service_graph` connector block. Uncomment it, add `service_graph` to the `traces` pipeline exporters, and uncomment the `metrics/service_graph` pipeline:
 

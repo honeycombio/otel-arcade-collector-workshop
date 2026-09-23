@@ -5,7 +5,7 @@ metadata:
   namespace: arcade
 ---
 # Allows the arcade-ui pod to manage collector ConfigMaps, inspect DaemonSet/Deployment
-# status, and stream pod logs — needed for the Deploy page in Lab 4.
+# status, and stream pod logs — needed for the Deploy page in the Agent → Gateway Architecture lab.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

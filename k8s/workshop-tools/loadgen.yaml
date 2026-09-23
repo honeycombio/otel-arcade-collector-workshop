@@ -1,5 +1,5 @@
 # Loadgen runs as a Deployment with replicas: 0 by default. The speaker
-# scales it up during Labs 3 and 4:
+# scales it up during the Collector Self-Telemetry and Agent → Gateway Architecture labs:
 #   kubectl scale deployment loadgen -n workshop-tools --replicas=1
 apiVersion: apps/v1
 kind: Deployment

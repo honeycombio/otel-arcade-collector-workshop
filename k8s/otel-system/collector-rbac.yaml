@@ -5,8 +5,8 @@ metadata:
   namespace: otel-system
 ---
 # Permissions used by k8sattributes / k8sclusterreceiver if attendees enable
-# them in Lab 2. The agent doesn't need them yet — included so attendees
-# don't have to invent RBAC mid-lab.
+# them in the OTTL cleanup lab. The agent doesn't need them yet — included
+# so attendees don't have to invent RBAC mid-lab.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
