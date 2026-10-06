@@ -940,12 +940,12 @@ exporters:
 # ── Service ──────────────────────────────────────────────────────────
 service:
   telemetry:
-    # Exercise 1: service.name tags all self-metrics and logs in Honeycomb.
+    # Tag the Collector: service.name tags all self-metrics and logs in Honeycomb.
     resource:
       attributes:
         - name: service.name
           value: otel-collector-agent
-    # Exercise 3: push Collector logs to Honeycomb.
+    # Push Collector logs to Honeycomb.
     logs:
       level: info
       processors:
@@ -957,8 +957,6 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: \${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
     metrics:
       level: detailed
       readers:
@@ -967,7 +965,7 @@ service:
               prometheus:
                 host: "0.0.0.0"
                 port: 8888
-        # Exercise 2: push Collector metrics to Honeycomb alongside the Prometheus pull.
+        # Push Collector metrics to Honeycomb alongside the Prometheus pull.
         - periodic:
             exporter:
               otlp:
@@ -976,8 +974,6 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: \${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
   pipelines:
     # traces/raw: captures spans BEFORE transforms — powers the Split view.
     traces/raw:
@@ -1072,8 +1068,6 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: \${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
     metrics:
       level: detailed
       readers:
@@ -1090,8 +1084,6 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: \${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
   pipelines:
     # traces/raw: captures spans BEFORE transforms — powers the Split view.
     traces/raw:
@@ -1198,7 +1190,7 @@ processors:
     spike_limit_mib: 128
 
 
-  # ── Exercise 1: Tail Sampling ─────────────────────────────────────────────
+  # ── Tail Sampling ─────────────────────────────────────────────────────────
   # tail_sampling:
   #   decision_wait: 5s
   #   policies:
@@ -1216,7 +1208,7 @@ processors:
   #         sampling_percentage: 10
 
 connectors:
-  # ── Exercise 2: Routing ───────────────────────────────────────────────────
+  # ── Routing ───────────────────────────────────────────────────────────────
   # routing:
   #   default_pipelines: [traces/standard]
   #   error_mode: ignore
@@ -1225,7 +1217,7 @@ connectors:
   #       statement: status.code == STATUS_CODE_ERROR
   #       pipelines: [traces/errors]
 
-  # ── Exercise 3: Service Graph ─────────────────────────────────────────────
+  # ── Service Graph ─────────────────────────────────────────────────────────
   # service_graph:
   #   latency_histogram_buckets: [5ms, 25ms, 100ms, 500ms, 1s]
   #   store:

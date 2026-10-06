@@ -1,6 +1,6 @@
-# OTel Arcade
+# OpenTelemetry Arcade
 
-Welcome to the OTel Collector workshop. This repo contains the application you'll be working with today: a small arcade of mini-games that generates real OpenTelemetry telemetry as you play. Here are the accompanying [slides](https://docs.google.com/presentation/d/1FDuEpkoQr85ysLlfApLQMXiCfHh0_Zvr5-bSKuph3n0).
+Welcome to the OpenTelemetry Collector workshop. This repo contains the application you'll be working with today: a small arcade of mini-games that generates real OpenTelemetry telemetry as you play. Here are the accompanying [slides](https://docs.google.com/presentation/d/1FDuEpkoQr85ysLlfApLQMXiCfHh0_Zvr5-bSKuph3n0).
 
 Your job isn't to understand the app. Your job is to build and tune the **OpenTelemetry Collector pipeline** that processes the telemetry coming out of it. The app is just the traffic source.
 
@@ -8,28 +8,21 @@ Your job isn't to understand the app. Your job is to build and tune the **OpenTe
 
 ## Getting started
 
+> **Running this in an Instruqt sandbox?** The stack is already built and running for you — no Docker Desktop, no `make` commands. Skip straight to the **OpenTelemetry Arcade** tab and the lab instructions in your Instruqt panel. Everything below is for running the workshop on your own machine instead.
+
+### Running it locally
+
 ```bash
 make local-init   # check Docker, create .env, pre-pull the Collector image
-```
-
-**(Optional — do this before the next step)** Open `.env` and add your Honeycomb API key:
-
-```
-HONEYCOMB_API_KEY=your-key-here
-```
-
-If you don't have one yet, skip it. The Visualizer and Collector pipeline work without it; only the Honeycomb backend export is affected. Adding the key *after* `make local-up` requires recreating the container — see Lab 1 for details.
-
-```bash
 make local-up     # build and start the app services
 make local-status # confirm the four app services are healthy
 ```
 
 Once everything is up, open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-> The Collector will show as exited on fresh start — that's expected. Lab 1's first task is to wire its pipelines so it starts.
+> The Collector will show as exited on fresh start — that's expected. The first lab's task is to wire its pipelines so it starts.
 
-**Start here: [Lab 1 →](labs/lab-1.md)** — write your first Collector pipeline and watch telemetry flow through it.
+**Start here: [Your First Collector Pipeline →](labs/workshop-1-first-pipeline.md)** — write your first Collector pipeline and watch telemetry flow through it.
 
 ---
 
@@ -100,10 +93,10 @@ The **◈ Visualizer** page is your primary feedback loop for the labs. It shows
 
 - **Pipeline topology** — a live diagram of your actual Collector config, updated automatically whenever you apply a change. Shows the real receiver, processor, and exporter names for each pipeline.
 - **Telemetry feed** — live spans, logs, and metrics as they flow through the Collector. Use the **All / Traces / Logs / Metrics** tabs to focus on one signal type at a time.
-- **Split view** — once you're working on Lab 2 transforms, click **Split** in the feed header to see pre-transform and post-transform spans side by side. Rows with changes get an amber border in the After column. You'll need the Lab 2 template applied for it to populate.
+- **Split view** — once you're working on the OTTL cleanup lab's transforms, click **Split** in the feed header to see pre-transform and post-transform spans side by side. Rows with changes get an amber border in the After column. You'll need the OTTL transforms template applied for it to populate.
 - **Collector health** — queue depth, throughput, and other self-metrics (useful in the later labs). The health panel reflects whichever collector is selected — switch to the **Gateway** tab in the topology panel to see the gateway's own metrics.
 
-The feed highlights certain spans in orange. Pay attention to what's highlighted and why — understanding that is part of Lab 2.
+The feed highlights certain spans in orange. Pay attention to what's highlighted and why — understanding that is part of the OTTL cleanup lab.
 
 ---
 
@@ -112,11 +105,11 @@ The feed highlights certain spans in orange. Pay attention to what's highlighted
 The **⚙ Deploy & Configure** page is the single place for all Collector config work. It has three tabs:
 
 
-| Tab                      | What it's for                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| **Collector** (Labs 1–3) | Configures `otel-collector-agent` — your single Collector for Labs 1 through 3 |
-| **Agent** (Lab 4)        | Same container, now framed as the agent in the agent→gateway pattern           |
-| **Gateway** (Lab 4)      | Deploys `otel-collector-gateway` on the Docker network and configures it       |
+| Tab                                                              | What it's for                                                                        |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Collector** (used through Collector Self-Telemetry)            | Configures `otel-collector-agent` — your single Collector before the gateway is introduced |
+| **Agent** (from Agent → Gateway Architecture on)                 | Same container, now framed as the agent in the agent→gateway pattern                 |
+| **Gateway** (from Agent → Gateway Architecture on)               | Deploys `otel-collector-gateway` on the Docker network and configures it             |
 
 
 ### Editing in the browser
@@ -153,20 +146,20 @@ The editor validates YAML as you type and shows the error location in a banner a
 
 ## Labs overview
 
-**Lab 1** — Deploy a working Collector
+**[Your First Collector Pipeline](labs/workshop-1-first-pipeline.md)** — Deploy a working Collector
 Write a Collector config that receives OTLP from the arcade services and exports somewhere useful. When it works, the Visualizer topology will populate and telemetry will start flowing.
 
-**Lab 2** — OTTL processors
-Look at what's in the feed. Some of it probably shouldn't be there, or shouldn't look the way it does. Your task is to write `transform` processor statements to clean it up. The Visualizer header gives you a real-time count of how much work is left. The **Before → After** toggle (available once the Lab 2 template is applied) shows you exactly what each transform changed.
+**[Cleaning Up Telemetry with OTTL](labs/workshop-1-ottl-cleanup.md)** — OTTL processors
+Look at what's in the feed. Some of it probably shouldn't be there, or shouldn't look the way it does. Your task is to write `transform` processor statements to clean it up. The Visualizer header gives you a real-time count of how much work is left. The **Before → After** toggle (available once the OTTL transforms template is applied) shows you exactly what each transform changed.
 
-**Lab 3** — Collector self-telemetry
+**[Collector Self-Telemetry](labs/workshop-2-self-telemetry.md)** — Collector self-telemetry
 Configure the Collector to ship its own metrics and logs to Honeycomb via `service.telemetry`. Then put it under load and query pipeline health — queue depth, throughput, dropped spans — historically in Honeycomb rather than just in the live Visualizer panel.
 
-**Lab 4** — Gateway architecture
+**[Agent → Gateway Architecture](labs/workshop-2-agent-gateway.md)** — Gateway architecture
 Introduce the agent→gateway pattern. Open **⚙ Deploy & Configure**, switch to the **Gateway** tab and click **Deploy Gateway**, then switch to the **Agent** tab and update the config to forward to `otel-collector-gateway:4317` instead of exporting directly.
 
-**Lab 5 (stretch)** — Advanced gateway patterns
-Three exercises on the gateway: tail sampling, routing connector, and service graph connector. The Visualizer's Service Graph panel shows the topology from Lab 1 onward.
+**[Advanced Gateway Patterns](labs/workshop-2-advanced-gateway-patterns.md)** *(stretch)* — Advanced gateway patterns
+Three exercises on the gateway: tail sampling, routing connector, and service graph connector. The Visualizer's Service Graph panel shows the topology from the first lab onward.
 
 ---
 
@@ -177,7 +170,7 @@ Play any game to generate a few spans manually.
 The **⚡ TelemetryGen** sidebar page is your main traffic tool — no game required:
 
 - **Custom span** — set any service name, span name, and attributes. Good for testing a specific OTTL expression.
-- **Presets** — one-click spans that demonstrate each Lab 2 smell (SQL, PII, health probe, clean, error status).
+- **Presets** — one-click spans that demonstrate each OTTL-cleanup-lab smell (SQL, PII, health probe, clean, error status).
 - **Game Session presets** — simulate full multi-service game sessions at volume (5×, 10×, 50×), complete with all deliberate telemetry problems.
 - **Load Generator** — scroll to the bottom of TelemetryGen to start and stop a sustained background load at a configurable RPS.
 
@@ -214,7 +207,7 @@ make local-down                           # stop everything and wipe state
 
 **I'm getting auth errors to the backend.** If you haven't set `HONEYCOMB_API_KEY` in your `.env`, remove `otlp_grpc/backend` from your pipeline exporters for now. Everything else keeps working.
 
-**I don't know where to start on Lab 2.** Open the Visualizer feed and look at what's highlighted orange. Click on a span and read its attributes. The template in the Load dropdown for Lab 2 has scaffolding with hints.
+**I don't know where to start on the OTTL cleanup lab.** Open the Visualizer feed and look at what's highlighted orange. Click on a span and read its attributes. The OTTL transforms template in the Load dropdown has scaffolding with hints.
 
 **My config was valid YAML but the Collector still crashed.** YAML syntax and OTel config semantics are different things. `make collector-validate` checks both — run it before applying.
 

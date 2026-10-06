@@ -1,4 +1,4 @@
-# OTel Arcade — Lab 2 solution.
+# OTel Arcade — Cleaning Up Telemetry with OTTL solution.
 #
 # All five OTTL transforms applied:
 #   1. Normalize raw SQL span names → db.query

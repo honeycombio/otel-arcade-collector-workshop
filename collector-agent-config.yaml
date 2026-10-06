@@ -1,4 +1,4 @@
-# OTel Arcade — Lab 1: Your first Collector pipeline.
+# OTel Arcade — Your first Collector pipeline.
 #
 # The components below are defined but not yet connected. Your job is to
 # wire them into named pipelines in the service.pipelines section at the bottom.

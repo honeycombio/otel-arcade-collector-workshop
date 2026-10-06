@@ -1,4 +1,4 @@
-# Lab 3: Collector Self-Telemetry
+# Collector Self-Telemetry
 
 ## What you'll do
 
@@ -6,8 +6,8 @@ Configure the Collector to ship its own metrics and logs to Honeycomb. Then put 
 
 ## Prerequisites
 
-- Lab 2 complete: your agent config has working OTTL transforms
-- `HONEYCOMB_API_KEY` is set in your `.env` — Lab 3 exercises push Collector self-telemetry directly to Honeycomb and won't show results without it
+- [Cleaning Up Telemetry with OTTL](workshop-1-ottl-cleanup.md) complete: your agent config has working OTTL transforms
+- `HONEYCOMB_API_KEY` is set in your `.env` — this lab's exercises push Collector self-telemetry directly to Honeycomb and won't show results without it
 
 ---
 
@@ -52,7 +52,7 @@ This all comes from Prometheus pull. Honeycomb can't see any of it yet. Step 2 c
 
 Open `collector-agent-config.yaml` and work through the three exercises below — restart the agent after each one.
 
-#### Exercise 1 — Tag the Collector
+#### Tag the Collector
 
 Open `collector-agent-config.yaml` and find the `service.telemetry` block. Add a `resource` section:
 
@@ -71,7 +71,7 @@ Apply & Restart the agent.
 
 ---
 
-#### Exercise 2 — Push Collector metrics to Honeycomb
+#### Push Collector metrics to Honeycomb
 
 Add a `periodic` reader under `service.telemetry.metrics.readers`:
 
@@ -92,18 +92,16 @@ Add a `periodic` reader under `service.telemetry.metrics.readers`:
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 
-Apply & Restart. After ~15 seconds, open Honeycomb and query the `otel-collector` metrics dataset — you should see `otelcol_receiver_accepted_spans`, `otelcol_exporter_queue_size`, and the other metrics from the table above.
+Apply & Restart. After ~15 seconds, open Honeycomb and query the `Metrics` dataset (filter for `service.name=otel-collector-agent`) — you should see `otelcol_receiver_accepted_spans`, `otelcol_exporter_queue_size`, and the other metrics from the table above.
 
 > **Note:** The `pull` and `periodic` readers co-exist — the Visualizer health panel still works.
 > If no metrics appear, confirm `HONEYCOMB_API_KEY` is set in `.env` and the agent was fully restarted (not just reloaded).
 
 ---
 
-#### Exercise 3 — Push Collector logs to Honeycomb
+#### Push Collector logs to Honeycomb
 
 Add a `logs` block under `service.telemetry`:
 
@@ -119,13 +117,11 @@ Add a `logs` block under `service.telemetry`:
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 
-Apply & Restart. In Honeycomb, query the `otel-collector` logs dataset — you'll see the Collector's own startup messages, pipeline summaries, and any warning or error logs.
+Apply & Restart. In Honeycomb, query the `otel-collector-agent` logs dataset — you'll see the Collector's own startup messages, pipeline summaries, and any warning or error logs.
 
-> **Tip:** The **Lab 3 — Self-telemetry** template in the editor dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
+> **Tip:** The **Self-telemetry** template in the editor dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
 
 ---
 
@@ -146,7 +142,7 @@ make local-loadgen-stop   # stop
 
 ### 4. Query self-metrics in Honeycomb
 
-Open Honeycomb and query the `otel-collector` metrics dataset. Look for metrics with the `otelcol_` prefix.
+Open Honeycomb and query the `Metrics` dataset (filter for `service.name=otel-collector-agent`). Look for metrics with the `otelcol_` prefix.
 
 Some questions to explore:
 
@@ -162,7 +158,7 @@ Some questions to explore:
 - What is the difference between `memory_limiter`'s `limit_mib` and `spike_limit_mib`, and when would the spike limit matter?
 
 **Processor efficiency:**
-- After your Lab 2 transforms, are spans being dropped anywhere? Where would you look to confirm?
+- After your OTTL transforms, are spans being dropped anywhere? Where would you look to confirm?
 
 ### 5. Design an alert
 
@@ -186,6 +182,6 @@ Think about:
 
 ## Going further
 
-- In Lab 4 you'll deploy the gateway — at that point, add the same `service.telemetry` block to `collector-gateway-config.yaml` and set `service.name` to `otel-collector-gateway` to observe both tiers side by side.
+- In [Agent → Gateway Architecture](workshop-2-agent-gateway.md) you'll deploy the gateway — at that point, add the same `service.telemetry` block to `collector-gateway-config.yaml` and set `service.name` to `otel-collector-gateway` to observe both tiers side by side.
 - Reduce the `sending_queue` batch `min_size` on the backend exporter to a very small number. What changes in throughput metrics?
 - Try setting `memory_limiter.limit_mib` very low. What happens? Which metric tells you spans are being dropped?

@@ -1,4 +1,4 @@
-# Lab 4: Agent → Gateway Architecture
+# Agent → Gateway Architecture
 
 ## What you'll do
 
@@ -6,7 +6,7 @@ Restructure the pipeline from a single Collector into a two-tier architecture: a
 
 ## Prerequisites
 
-- Lab 3 complete: self-telemetry is configured and Collector metrics are flowing to Honeycomb
+- [Collector Self-Telemetry](workshop-2-self-telemetry.md) complete: self-telemetry is configured and Collector metrics are flowing to Honeycomb
 - `HONEYCOMB_API_KEY` is set in your `.env`
 
 ---
@@ -56,12 +56,12 @@ The gateway ships with a baseline config. You'll leave it mostly as-is for this 
 
 Now switch to the **Agent** tab. You'll see the same editor interface for `collector-agent-config.yaml`.
 
-Click **Load template → Lab 4 — Agent forwarding** in the Agent tab's toolbar. The Lab 4 template keeps the `service.telemetry` block from Lab 3 — your Collector metrics and logs keep flowing to Honeycomb. What changes is the pipeline: instead of exporting traces, metrics, and logs directly to Honeycomb, the agent now forwards them to the gateway.
+Select **Agent forwarding** from the Template dropdown in the Agent tab's toolbar. This template keeps the `service.telemetry` block from the self-telemetry lab — your Collector metrics and logs keep flowing to Honeycomb. What changes is the pipeline: instead of exporting traces, metrics, and logs directly to Honeycomb, the agent now forwards them to the gateway.
 
 > **Note:** Loading a template replaces your current editor content. If you have unsaved changes, apply them first (Ctrl+S).
 
 Read through what changed:
-- What exporters are present? What's missing compared to Lab 3?
+- What exporters are present? What's missing compared to before?
 - Where is the agent now sending traces, metrics, and logs?
 - Which processors are still running on the agent?
 - What is the endpoint for the `otlp_grpc/gateway` exporter? Does that hostname match the container name you just deployed?
@@ -80,7 +80,7 @@ docker ps | grep otel-arcade
 
 You should see both the agent container (typically `otel-arcade-otel-collector-agent-1`) and the gateway container (typically `otel-arcade-otel-collector-gateway-1`). The prefix before `otel-collector` matches your Docker Compose project name — it will be the same prefix as your other arcade containers.
 
-The **Collector health** panel at the bottom of the Visualizer also switches when you change tabs — since you configured self-telemetry in Lab 3, these metrics are already flowing to Honeycomb. You can query `otelcol_exporter_queue_size` there to compare agent and gateway health side by side.
+The **Collector health** panel at the bottom of the Visualizer also switches when you change tabs — since you configured self-telemetry in the previous lab, these metrics are already flowing to Honeycomb. You can query `otelcol_exporter_queue_size` there to compare agent and gateway health side by side.
 
 ### 4. Verify end-to-end flow
 
@@ -111,6 +111,6 @@ With this architecture in place, consider:
 ## Going further
 
 - Modify the **gateway** config to add a second exporter. What changes in the Visualizer topology?
-- Try stopping the gateway container (`docker stop otel-arcade-otel-collector-gateway-1`). What happens to the Visualizer feed? What happens to the agent's queue? Since you configured self-telemetry in Lab 3, watch `otelcol_exporter_queue_size` on the agent in Honeycomb — how long before spans start being dropped? Does the Collector recover when the gateway comes back?
-- Add the same `service.telemetry` block from Lab 3 to `collector-gateway-config.yaml` — set `service.name` to `otel-collector-gateway`. Now both tiers report health metrics to Honeycomb and you can compare them side by side.
+- Try stopping the gateway container (`docker stop otel-arcade-otel-collector-gateway-1`). What happens to the Visualizer feed? What happens to the agent's queue? Since you configured self-telemetry earlier, watch `otelcol_exporter_queue_size` on the agent in Honeycomb — how long before spans start being dropped? Does the Collector recover when the gateway comes back?
+- Add the same `service.telemetry` block from the self-telemetry lab to `collector-gateway-config.yaml` — set `service.name` to `otel-collector-gateway`. Now both tiers report health metrics to Honeycomb and you can compare them side by side.
 - In a real Kubernetes deployment, how many agent replicas would there be? How many gateway replicas? What drives those numbers?

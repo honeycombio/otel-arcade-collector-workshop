@@ -1,13 +1,14 @@
-# OTel Arcade — Lab 4 solution (agent config).
+# OTel Arcade — Collector Self-Telemetry solution (agent config).
 #
-# Lab 3 self-telemetry config with gateway architecture applied:
-#   - Agent forwards all telemetry to otel-collector-gateway:4317 (no direct Honeycomb export)
-#   - Self-telemetry from Lab 3 (service.name, metrics push, logs push) is retained
+# The OTTL-cleanup config with all three self-telemetry exercises applied:
+#   Tag the Collector: service.name resource attribute added
+#   Push Collector metrics: pushed to Honeycomb (periodic reader)
+#   Push Collector logs: pushed to Honeycomb
 #
-# Prerequisites: deploy the gateway first (⚙ Deploy & Configure → Gateway tab → Deploy Gateway)
+# The agent still exports directly to Honeycomb — the gateway is introduced in the next lab.
 #
 # To apply: paste into the Agent tab editor and click Apply & Restart,
-# or: cp labs/solutions/lab-4-agent-solution.yaml collector-agent-config.yaml
+# or: cp labs/solutions/workshop-2-self-telemetry-agent-solution.yaml collector-agent-config.yaml
 
 receivers:
   otlp:
@@ -41,16 +42,24 @@ processors:
 exporters:
   debug:
     verbosity: basic
-  otlp_grpc/gateway:
-    endpoint: otel-collector-gateway:4317
-    tls:
-      insecure: true
+  otlp_grpc/backend:
+    endpoint: ${env:OTEL_EXPORTER_ENDPOINT}
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
     sending_queue:
       enabled: true
       sizer: items
       batch:
         flush_timeout: 5s
         min_size: 512
+  otlp_http/visualizer:
+    endpoint: http://visualizer:4318
+    encoding: json
+    headers:
+      x-collector-source: agent
+    tls:
+      insecure: true
+  # Still needed for the Split (Before→After) view in the Visualizer.
   otlp_http/visualizer-raw:
     endpoint: http://visualizer:4318
     encoding: json
@@ -77,8 +86,6 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
     metrics:
       level: detailed
       readers:
@@ -95,9 +102,8 @@ service:
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
   pipelines:
+    # Captures spans BEFORE transforms — powers the Split (Before→After) view.
     traces/raw:
       receivers: [otlp]
       processors: [memory_limiter]
@@ -105,12 +111,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, filter/drop_probes, transform/normalize]
-      exporters: [debug, otlp_grpc/gateway]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter]
-      exporters: [debug, otlp_grpc/gateway]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]
     logs:
       receivers: [otlp]
       processors: [memory_limiter]
-      exporters: [debug, otlp_grpc/gateway]
+      exporters: [debug, otlp_grpc/backend, otlp_http/visualizer]

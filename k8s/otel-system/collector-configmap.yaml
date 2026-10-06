@@ -5,11 +5,11 @@ metadata:
   namespace: otel-system
 data:
   config.yaml: |
-    # Lab 1 starting configuration for the AGENT collector (DaemonSet).
+    # Starting configuration (Your First Collector Pipeline lab) for the AGENT collector (DaemonSet).
     # Functional out of the box; attendees modify it during labs.
     #
-    # Lab 2: add OTTL transforms (search for "TODO Lab 2").
-    # Lab 4: change the exporters to forward to the gateway instead of direct.
+    # Cleaning Up Telemetry with OTTL lab: add OTTL transforms (search for "TODO OTTL").
+    # Agent → Gateway Architecture lab: change the exporters to forward to the gateway instead of direct.
 
     receivers:
       otlp:
@@ -24,7 +24,7 @@ data:
         check_interval: 1s
         limit_mib: 512
         spike_limit_mib: 128
-      # TODO Lab 2: add `transform` here to normalize span names and redact
+      # TODO OTTL: add `transform` here to normalize span names and redact
       # player.id. The Visualizer will stop highlighting orange when this works.
 
     exporters:

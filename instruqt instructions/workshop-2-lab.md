@@ -35,7 +35,7 @@ This panel is powered by a Prometheus pull from the Collector's `:8888/metrics` 
 # Challenge 2: Configure Self-Telemetry
 The Collector instruments itself with OpenTelemetry. By default, it exposes those self-metrics via a Prometheus endpoint — that's what the health panel scrapes. To make self-telemetry queryable, you need to push it to Honeycomb. This is done in a separate part of the config called `service.telemetry` — **not** in the pipeline exporters.
 Work through the three exercises below. Select **Apply & Restart** after each one.
-## Exercise 1 — Tag the Collector
+## Tag the Collector
 Without `service.name`, every metric and log the Collector ships to Honeycomb arrives with no identity — you can't filter for Collector health data separately from your app data.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. Scroll to the bottom of the config and find the `service:` block. Inside it you'll see a `telemetry:` key — this is where the Collector's self-instrumentation is configured.
@@ -47,7 +47,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
           value: otel-collector-agent
 ```
 4. Select **Apply & Restart**.
-## Exercise 2 — Push Collector Metrics to Honeycomb
+## Push Collector Metrics to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
 2. The health panel works because the Collector already exposes a Prometheus pull endpoint — but that data is ephemeral and only visible inside the sandbox. Adding a `periodic` OTLP reader pushes those same metrics to Honeycomb on a schedule so they're queryable and durable. Find the `port: 8888` line — the last line of the existing `- pull:` block — and paste the block below immediately after it, indenting `- periodic:` so it lines up exactly with `- pull:` above it:
 ```yaml
@@ -59,17 +59,15 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 3. Select **Apply & Restart**.
 4. Select the **.env** tab and select **Apply** again. Your key only gets pushed into whatever's in the config at the moment you click Apply — the `periodic` reader you just pasted is new, so it needs its own Apply to pick up the real key.
-5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size`.
+5. After ~15 seconds, open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Confirm you see metrics like `otelcol_receiver_accepted_spans` and `otelcol_exporter_queue_size` (hint: remember to add a filter for `service.name=otel-collector-agent`).
 > [!NOTE]
 > The `pull` and `periodic` readers co-exist — the Visualizer health panel still works after this change.
-## Exercise 3 — Push Collector Logs to Honeycomb
+## Push Collector Logs to Honeycomb
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **⚙ Deploy & Configure** in the app's left navigation.
-2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: otel-collector` line under the `periodic` reader's `x-honeycomb-dataset` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
+2. By default the Collector's own log output only goes to stdout — readable with `docker compose logs --tail=50 otel-collector-agent` but gone when the container restarts. Adding a `logs` block under `telemetry:` pushes those logs to Honeycomb so they're searchable and durable. Find the last line of the `metrics:` key — the `value: ${env:HONEYCOMB_API_KEY}` line under the `periodic` reader's `x-honeycomb-team` header — and paste the block below immediately after it, indenting `logs:` so it lines up exactly with `metrics:` above it:
 ```yaml
     logs:
       level: info
@@ -82,17 +80,15 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
                 headers:
                   - name: x-honeycomb-team
                     value: ${env:HONEYCOMB_API_KEY}
-                  - name: x-honeycomb-dataset
-                    value: otel-collector
 ```
 3. Select **Apply & Restart**.
 4. Select the **.env** tab and select **Apply** again to push your key into the new `logs` block's placeholder.
-5. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
+5. Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector-agent` logs dataset. Confirm you see the Collector's startup messages, pipeline summaries, and any warning or error logs.
 > [!NOTE]
 > The **Self-telemetry** template in the editor's **Template** dropdown shows the completed config for all three exercises — load it to check your work or get unstuck.
 ## Verify
-1. In Honeycomb, confirm metrics with the `otelcol_` prefix are visible in the `otel-collector` metrics dataset.
-2. Confirm log records from the Collector are visible in the `otel-collector` logs dataset.
+1. In Honeycomb, confirm metrics with the `otelcol_` prefix are visible in the `Metrics` dataset.
+2. Confirm log records from the Collector are visible in the `otel-collector-agent` logs dataset.
 3. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and confirm the Visualizer's Agent self-metrics panel still shows live metrics (both pull and push now coexist).
 > [!IMPORTANT]
 > If no data appears in Honeycomb, check the status message on the
@@ -100,7 +96,7 @@ Without `service.name`, every metric and log the Collector ships to Honeycomb ar
 > for auth errors. An invalid or missing API key will show as a 401
 > error.
 ## Success criteria
-- `otelcol_*` metrics are visible in Honeycomb in the `otel-collector` dataset
+- `otelcol_*` metrics are visible in Honeycomb in the `Metrics` dataset
 - Collector log records are visible in Honeycomb
 - Visualizer Agent self-metrics panel is still showing live metrics
 # Challenge 3: Query Self-Metrics Under Load
@@ -111,15 +107,19 @@ Now put the pipeline under load and use Honeycomb to investigate pipeline health
    **Burst:** Scroll to the **Game Session Presets** section and select **50 × Mixed (load volume)** to fire a spike of traffic.
    **Sustained:** Scroll to the **Load Generator** section at the bottom of TelemetryGen. Set a desired RPS and select **Start** to run continuous background load. Select **Stop** when done.
 ## Query self-metrics in Honeycomb
-Open the [button label="Honeycomb"](tab-2) tab and query the `otel-collector` metrics dataset. Use the `otelcol_` prefix to find Collector metrics.
+Open the [button label="Honeycomb"](tab-2) tab and query the `Metrics` dataset. Use the `otelcol_` prefix to find Collector metrics.
 Work through the following questions — the answers are in the data:
+
 **Throughput and batching**
 - How full does the exporter queue get under load? Is the sending queue flushing on size (`min_size`) or on `flush_timeout`?
+
 **Queue health**
 - Is `otelcol_exporter_queue_size` staying near zero, or is it growing? What would cause it to grow?
 - Has `otelcol_exporter_send_failed_spans` ever been non-zero? What would that indicate?
+
 **Memory**
 - What is the Collector's memory usage under load? How much headroom before `memory_limiter` would start dropping spans?
+
 **Processor efficiency**
 - After the OTTL transforms you applied in Workshop 1, are spans being dropped anywhere? Where would you look to confirm?
 ## Design an alert
@@ -214,13 +214,12 @@ Most sampling strategies decide the moment a span arrives — **head sampling**.
 1. Select the [button label="OpenTelemetry Arcade"](tab-0) tab and select **◈ Visualizer**.
 2. Select the **Gateway** selector button at the top of the Pipeline panel to switch to the gateway view, then scroll down to the **Gateway self-metrics** panel — you should now see two new gauges: **Traces sampled** and **Traces dropped**.
 3. Start the load generator: select **⚡ TelemetryGen**, scroll to **Load Generator**, and set 10 RPS. Select **Start**.
-4. Watch the gauges update as traffic flows.
-To verify the `keep_errors` policy works:
-1. Select **⚡ TelemetryGen** in the app navigation.
-2. Select the **Error span (status code 2)** preset.
-3. Check **Set error status (code=2)**.
-4. Select **Generate span**.
-5. Open the [button label="Honeycomb"](tab-2) tab and confirm the error trace arrived despite the 10% base sample rate.
+4. Watch the gauges update as traffic flows. To verify the `keep_errors` policy works:
+   1. Select **⚡ TelemetryGen** in the app navigation.
+   2. Select the **Error span (status code 2)** preset.
+   3. Check **Set error status (code=2)**.
+   4. Select **Generate span**.
+   5. Open the [button label="Honeycomb"](tab-2) tab and confirm the error trace arrived despite the 10% base sample rate.
 > [!NOTE]
 > The `decision_wait` setting (default: 5s) is how long the processor waits for all spans in a trace before deciding. Traces that arrive incomplete before `decision_wait` expires may be sampled differently than expected.
 ## Success criteria

@@ -1,4 +1,4 @@
-# OTel Arcade — Lab 1: Your first Collector pipeline.
+# OTel Arcade — Your first Collector pipeline.
 #
 # The Collector receives telemetry from the three arcade services and
 # exports it to Honeycomb and the Pipeline Visualizer. Apply this config,

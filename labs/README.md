@@ -2,15 +2,17 @@
 
 This directory contains student-facing lab instructions for the o11ycon 2026 OpenTelemetry Collector workshop.
 
+> **Running this in an Instruqt sandbox?** These files aren't your instructions — follow the lab content in your Instruqt tab instead (sourced from `instruqt instructions/` in this repo, not from here). The stack is also already running for you, so the `make` commands and setup steps below don't apply. This directory is for the in-person / self-serve version of the workshop, run on your own machine.
+
 ## Labs
 
-| Lab | Title | Time |
+| Workshop | Lab | Time |
 |---|---|---|
-| [Lab 1](lab-1.md) | Your First Collector Pipeline | ~40 min |
-| [Lab 2](lab-2.md) | Cleaning Up Telemetry with OTTL | ~50 min |
-| [Lab 3](lab-3.md) | Collector Self-Telemetry | ~40 min |
-| [Lab 4](lab-4.md) | Agent → Gateway Architecture | ~30 min |
-| [Lab 5](lab-5.md) | Advanced Gateway Patterns *(stretch)* | ~50 min |
+| Workshop 1 | [Your First Collector Pipeline](workshop-1-first-pipeline.md) | ~40 min |
+| Workshop 1 | [Cleaning Up Telemetry with OTTL](workshop-1-ottl-cleanup.md) | ~50 min |
+| Workshop 2 | [Collector Self-Telemetry](workshop-2-self-telemetry.md) | ~40 min |
+| Workshop 2 | [Agent → Gateway Architecture](workshop-2-agent-gateway.md) | ~30 min |
+| Workshop 2 | [Advanced Gateway Patterns *(stretch)*](workshop-2-advanced-gateway-patterns.md) | ~50 min |
 
 ## Before you start
 
@@ -49,12 +51,12 @@ This directory contains student-facing lab instructions for the o11ycon 2026 Ope
 | `local-up` worked but Collector ports unreachable | `make local-down && make local-up` |
 | Validate a config before applying | `make collector-validate CONFIG=collector-agent-config.yaml` |
 
-**`make local-reset-collector`** — restores `collector-agent-config.yaml` to the completed Lab 1 pipeline (`collector-agent-config.baseline.yaml` — exporters wired, no Lab 2+ changes) and restarts the agent. Note this is the *solved* Lab 1 state, not the debug-only config a fresh stack starts with.
+**`make local-reset-collector`** — restores `collector-agent-config.yaml` to the completed **Your First Collector Pipeline** state (`collector-agent-config.baseline.yaml` — exporters wired, no OTTL or self-telemetry changes) and restarts the agent. Note this is the *solved* state for that first lab, not the debug-only config a fresh stack starts with.
 
-- **Labs 1–2:** use this when your config is so broken the Collector won't start.
-- **Labs 3–4:** use **⚙ Deploy & Configure → Agent tab → Load template** (Lab 3 or Lab 4) instead — `make local-reset-collector` resets back to the completed Lab 1 state, wiping your Lab 2 transforms and Lab 3 self-telemetry config.
+- **Your First Collector Pipeline / Cleaning Up Telemetry with OTTL:** use this when your config is so broken the Collector won't start.
+- **Collector Self-Telemetry / Agent → Gateway Architecture:** use **⚙ Deploy & Configure → Agent tab → Load template** instead (Self-telemetry or Agent forwarding) — `make local-reset-collector` resets all the way back to the first lab's completed state, wiping your OTTL transforms and self-telemetry config.
 
-> **Note:** On a fresh `make local-up`, the Collector starts with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the Lab 1 exercise: wire up the exporters. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
+> **Note:** On a fresh `make local-up`, the Collector starts with debug-only pipelines — telemetry is received but nothing reaches the Visualizer or Honeycomb yet. That's the first lab's exercise: wire up the exporters. Only use `make local-reset-collector` if your config broke while you were editing it, not at the very start.
 
 **`make local-reset`** — removes the gateway container, restores the baseline collector config, and restarts all services. Does **not** wipe game data (scores/sessions are preserved).
 

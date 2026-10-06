@@ -8,7 +8,7 @@ const router = express.Router();
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const DOCKER_SOCKET            = '/var/run/docker.sock';
-const GATEWAY_IMAGE            = process.env.COLLECTOR_IMAGE              || 'otel/opentelemetry-collector-contrib:0.151.0';
+const GATEWAY_IMAGE            = process.env.COLLECTOR_IMAGE              || 'otel/opentelemetry-collector-contrib:0.159.0';
 const GATEWAY_CONTAINER_NAME   = process.env.GATEWAY_CONTAINER_NAME       || 'otel-arcade-otel-collector-gateway-1';
 const GATEWAY_NETWORK          = process.env.GATEWAY_NETWORK              || 'otel-arcade_arcade';
 const GATEWAY_CONFIG_PATH      = process.env.GATEWAY_CONFIG_PATH          || '/app/collector-gateway-config.yaml';
