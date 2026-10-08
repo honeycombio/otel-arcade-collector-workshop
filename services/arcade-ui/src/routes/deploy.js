@@ -182,6 +182,51 @@ async function createContainer(name, spec) {
   return JSON.parse(res.body);
 }
 
+// Splits "repo/name:tag" into its parts for Docker's pull API, which takes them separately.
+// Guards against registry-port colons (e.g. "host:5000/repo:tag") by only treating the final
+// colon as the tag separator when nothing after it contains a "/".
+function splitImageRef(image) {
+  const i = image.lastIndexOf(':');
+  if (i === -1 || image.slice(i + 1).includes('/')) return { repo: image, tag: 'latest' };
+  return { repo: image.slice(0, i), tag: image.slice(i + 1) };
+}
+
+// Pulls an image via Docker's /images/create endpoint. This always returns HTTP 200 and streams
+// newline-delimited JSON progress events even on failure, so a failed pull must be detected by
+// scanning the stream for an "error" field rather than by status code.
+function pullImage(image) {
+  const { repo, tag } = splitImageRef(image);
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        socketPath: DOCKER_SOCKET,
+        path: `/v1.41/images/create?fromImage=${encodeURIComponent(repo)}&tag=${encodeURIComponent(tag)}`,
+        method: 'POST',
+      },
+      (res) => {
+        let data = '';
+        let error = null;
+        res.on('data', (d) => { data += d; });
+        res.on('end', () => {
+          if (res.statusCode !== 200) {
+            return reject(new Error(`Docker pull returned ${res.statusCode}: ${data}`));
+          }
+          data.split('\n').filter(Boolean).forEach((line) => {
+            try {
+              const evt = JSON.parse(line);
+              if (evt.error) error = evt.error;
+            } catch (_) { /* ignore partial/non-JSON lines */ }
+          });
+          if (error) reject(new Error(`Docker pull failed: ${error}`));
+          else resolve();
+        });
+      }
+    );
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 async function startContainer(name) {
   const res = await dockerRequest('POST', `/v1.41/containers/${encodeURIComponent(name)}/start`);
   if (res.status !== 204 && res.status !== 304)
@@ -334,6 +379,10 @@ router.post('/api/deploy/gateway', async (req, res) => {
     // Remove any existing gateway container.
     const existing = await inspectContainer(GATEWAY_CONTAINER_NAME);
     if (existing) await removeContainer(GATEWAY_CONTAINER_NAME);
+
+    // Pull the image explicitly rather than relying on it already being present —
+    // createContainer's /containers/create call does not pull on its own.
+    await pullImage(GATEWAY_IMAGE);
 
     // Create and start the gateway container on the shared arcade network.
     // NetworkingConfig (not HostConfig.NetworkMode) is required to set a network alias,
