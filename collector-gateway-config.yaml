@@ -46,7 +46,7 @@ connectors:
   #   error_mode: ignore
   #   table:
   #     - context: span
-  #       statement: status.code == STATUS_CODE_ERROR
+  #       statement: route() where status.code == STATUS_CODE_ERROR
   #       pipelines: [traces/errors]
 
   # ── Service Graph ─────────────────────────────────────────────────────────
